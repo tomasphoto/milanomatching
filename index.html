@@ -480,6 +480,115 @@
     .ac-img-ph-empty{cursor:pointer;flex-direction:column;gap:0;transition:background .2s;}
     .ac-img-ph-empty:hover{background:rgba(201,169,110,.08);}
 
+    /* ══ ADMIN TABS ══════════════════════════════════════════ */
+    .va-tabs-strip{
+      background:var(--bg2);border-bottom:1px solid var(--border);
+      padding:0 40px;display:flex;gap:0;flex-shrink:0;
+    }
+    .va-tab{
+      background:none;border:none;border-bottom:2px solid transparent;
+      color:var(--textdim);font-family:'Inter',sans-serif;font-size:12px;
+      font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+      padding:11px 22px;cursor:pointer;transition:all .15s;white-space:nowrap;
+    }
+    .va-tab:hover{color:var(--text);}
+    .va-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+    .va-tab-n{
+      display:inline-block;background:var(--bg3);color:var(--textdim);
+      border-radius:10px;font-size:10px;padding:1px 7px;margin-left:5px;
+    }
+
+    /* ══ LEADS PANEL ════════════════════════════════════════ */
+    .la-bar{
+      background:var(--bg2);border-bottom:1px solid var(--border);
+      padding:12px 40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .va-lead-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;
+    }
+
+    /* lead card */
+    .lc{
+      background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--r);overflow:hidden;transition:border-color .2s;
+    }
+    .lc:hover{border-color:var(--bordmd);}
+    .lc-header{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:14px;}
+    .lc-qual{
+      width:28px;height:28px;border-radius:50%;background:var(--bg3);
+      border:1.5px solid var(--gold);color:var(--gold);font-size:11px;font-weight:600;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px;
+    }
+    .lc-main{flex:1;min-width:0;}
+    .lc-name{
+      font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
+      color:var(--text);line-height:1.1;margin-bottom:3px;
+    }
+    .lc-profilo{font-size:11px;color:var(--textdim);letter-spacing:.04em;margin-bottom:9px;}
+    .lc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+    .lc-tag{
+      background:var(--bg3);border:1px solid var(--border);
+      border-radius:3px;padding:3px 8px;font-size:11px;color:var(--textmid);
+    }
+    .lc-note{
+      font-size:11px;color:var(--textdim);line-height:1.5;margin-top:5px;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+    .lc-acts{
+      display:flex;gap:5px;padding:10px 18px;
+      border-top:1px solid var(--border);background:rgba(0,0,0,.12);
+    }
+    .btn-lc{
+      background:var(--bg3);border:1px solid var(--border);color:var(--textmid);
+      padding:6px 12px;font-family:'Inter',sans-serif;font-size:11px;
+      border-radius:var(--rsm);cursor:pointer;transition:all .15s;
+    }
+    .btn-lc:hover{border-color:var(--gold);color:var(--gold);}
+    .btn-lc-del:hover{border-color:#f87171;color:#f87171;}
+
+    /* status badges */
+    .ls-nuovo     {background:rgba(110,224,160,.1);color:#6EE0A0;border-color:rgba(110,224,160,.3);}
+    .ls-contattato{background:rgba(201,169,110,.1);color:var(--gold);border-color:rgba(201,169,110,.3);}
+    .ls-visita    {background:rgba(147,197,253,.1);color:#93c5fd;border-color:rgba(147,197,253,.3);}
+    .ls-proposta  {background:rgba(251,191,36,.1); color:#fbbf24;border-color:rgba(251,191,36,.3);}
+    .ls-chiuso    {background:rgba(107,114,128,.1);color:#9ca3af;border-color:rgba(107,114,128,.3);}
+    .ls-perso     {background:rgba(248,113,113,.1);color:#f87171;border-color:rgba(248,113,113,.3);}
+
+    /* match panel */
+    .lc-matches{display:none;padding:0 18px 14px;border-top:1px solid var(--border);}
+    .lc-matches.open{display:block;}
+    .lm-title{
+      font-size:9px;letter-spacing:.18em;text-transform:uppercase;
+      color:var(--textdim);padding:11px 0 9px;
+    }
+    .lm-row{
+      display:flex;align-items:center;gap:10px;
+      padding:8px 0;border-bottom:1px solid var(--border);
+    }
+    .lm-row:last-child{border-bottom:none;}
+    .lm-img{
+      width:52px;height:38px;border-radius:3px;object-fit:cover;
+      background:var(--bg3);flex-shrink:0;
+    }
+    .lm-info{flex:1;min-width:0;}
+    .lm-addr{font-size:13px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .lm-meta{font-size:11px;color:var(--textdim);}
+    .lm-price{font-size:13px;color:var(--gold);flex-shrink:0;white-space:nowrap;}
+    .btn-lm-share{
+      background:none;border:1px solid rgba(201,169,110,.3);color:var(--gold);
+      padding:4px 9px;border-radius:3px;font-size:10px;cursor:pointer;
+      white-space:nowrap;transition:all .15s;
+    }
+    .btn-lm-share:hover{background:rgba(201,169,110,.1);}
+
+    /* match toggle button */
+    .lc-match-btn{
+      background:rgba(201,169,110,.08);border:1px solid rgba(201,169,110,.25);
+      border-radius:3px;padding:3px 8px;font-size:11px;color:var(--gold);
+      cursor:pointer;transition:all .15s;
+    }
+    .lc-match-btn:hover{background:rgba(201,169,110,.18);}
+
     /* ══ MODALS ══════════════════════════════════════════════ */
     .mbg{
       display:none;position:fixed;inset:0;z-index:500;
@@ -1649,16 +1758,16 @@ function toast(msg,d=2500){
 //  SYNCED STATE — written by ghUpdateSite(), authoritative for all devices
 //  Sentinels /*--TAG--*/ allow reliable in-place JSON replacement
 // ════════════════════════════════════════════════════════════════
-const SYNC_TIMESTAMP = /*--SYNCTIME--*/1783374241243/*--SYNCTIME--*/;
+const SYNC_TIMESTAMP = /*--SYNCTIME--*/0/*--SYNCTIME--*/;
 
-const SHARE_PAGES = /*--SHARES--*/{"Duomo Case::Via Cerva 19::VC01":"share/VC01.html","Limido::Pza Aspromonte 51::LB60":"share/LB60.html"}/*--SHARES--*/;
+const SHARE_PAGES = /*--SHARES--*/{"Duomo Case::Via Cerva 19::VC01":"share/VC01.html"}/*--SHARES--*/;
 
 const DEFAULT_SETTINGS = /*--SETTINGS--*/{"phone":"+393486946024","calLink":"","email":"tomas.rojas@vizzardire.com"}/*--SETTINGS--*/;
 
-const PHOTO_DEFAULTS = /*--PHOTOS--*/{"Duomo Case::Via Cerva 19::VC01":["https://pwm.im-cdn.it/image/1888510086/xxl.jpg","https://pwm.im-cdn.it/image/1888510110/xxl.jpg","https://pwm.im-cdn.it/image/1888510122/xxl.jpg","https://pwm.im-cdn.it/image/1888510128/xxl.jpg","https://pwm.im-cdn.it/image/1888510136/xxl.jpg","https://pwm.im-cdn.it/image/1888510146/xxl.jpg","https://pwm.im-cdn.it/image/1888510164/xxl.jpg","https://pwm.im-cdn.it/image/1888510180/xxl.jpg","https://pwm.im-cdn.it/image/1888510196/xxl.jpg","https://pwm.im-cdn.it/image/1888510208/xxl.jpg","https://pwm.im-cdn.it/image/1888510216/xxl.jpg","https://pwm.im-cdn.it/image/1888510232/xxl.jpg","https://pwm.im-cdn.it/image/1891699786/xxl.jpg","https://pwm.im-cdn.it/image/1888510256/xxl.jpg","https://pwm.im-cdn.it/image/1888510270/xxl.jpg","https://pwm.im-cdn.it/image/1888510280/xxl.jpg","https://pwm.im-cdn.it/image/1888510246/xxl.jpg","https://pwm.im-cdn.it/image/1888510290/xxl.jpg","https://pwm.im-cdn.it/image/1888510302/xxl.jpg","https://pwm.im-cdn.it/image/1888510316/xxl.jpg"],"Limido::Pza Aspromonte 51::LB60":["https://tomasphoto.github.io/milanomatching/photos/LB60/02.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/03.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/03.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/04.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/04.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/05.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/06.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/07.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/08.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/09.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/09.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/10.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/11.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/12.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/12.jpg","https://tomasphoto.github.io/milanomatching/photos/LB60/13.jpg"]}/*--PHOTOS--*/;
+const PHOTO_DEFAULTS = /*--PHOTOS--*/{"Duomo Case::Via Cerva 19::VC01":["https://pwm.im-cdn.it/image/1888510086/xxl.jpg","https://pwm.im-cdn.it/image/1888510110/xxl.jpg","https://pwm.im-cdn.it/image/1888510122/xxl.jpg","https://pwm.im-cdn.it/image/1888510128/xxl.jpg","https://pwm.im-cdn.it/image/1888510136/xxl.jpg","https://pwm.im-cdn.it/image/1888510146/xxl.jpg","https://pwm.im-cdn.it/image/1888510164/xxl.jpg","https://pwm.im-cdn.it/image/1888510180/xxl.jpg","https://pwm.im-cdn.it/image/1888510196/xxl.jpg","https://pwm.im-cdn.it/image/1888510208/xxl.jpg","https://pwm.im-cdn.it/image/1888510216/xxl.jpg","https://pwm.im-cdn.it/image/1888510232/xxl.jpg","https://pwm.im-cdn.it/image/1891699786/xxl.jpg","https://pwm.im-cdn.it/image/1888510256/xxl.jpg","https://pwm.im-cdn.it/image/1888510270/xxl.jpg","https://pwm.im-cdn.it/image/1888510280/xxl.jpg","https://pwm.im-cdn.it/image/1888510246/xxl.jpg","https://pwm.im-cdn.it/image/1888510290/xxl.jpg","https://pwm.im-cdn.it/image/1888510302/xxl.jpg","https://pwm.im-cdn.it/image/1888510316/xxl.jpg"]}/*--PHOTOS--*/;
 
 const EDIT_DEFAULTS   = /*--EDITS--*/{}/*--EDITS--*/;
-const HIDDEN_DEFAULTS = /*--HIDDEN--*/["Limido::Pza Aspromonte 51::LP130","Limido::Pza Aspromonte 51::LQ90"]/*--HIDDEN--*/;
+const HIDDEN_DEFAULTS = /*--HIDDEN--*/[]/*--HIDDEN--*/;
 const CUSTOM_DEFAULTS = /*--CUSTOM--*/[]/*--CUSTOM--*/;
 
 // ── Boot ─────────────────────────────────────────────────────

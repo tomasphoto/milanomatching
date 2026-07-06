@@ -1399,7 +1399,8 @@ async function savePhotos(){
     if(_phWorking.length)ST.photos[k]=_phWorking;else delete ST.photos[k];
     stSave();closeM('m-photos');aRender();
     toast('⏳ Sincronizzazione GitHub…',15000);
-    ghUpdateSite().then(()=>toast('✅ Sito aggiornato!')).catch(e=>toast('❌ '+e.message));
+    const ts0=Date.now();
+    ghUpdateSite(ts0).then(()=>{ ST.syncTs=ts0;stSave();toast('✅ Sito aggiornato!'); }).catch(e=>toast('❌ '+e.message));
     return;
   }
 

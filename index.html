@@ -1673,9 +1673,240 @@ async function savePhotos(){
 function showAdmin(){
   hide('vl');hide('vc');show('va');
   document.title='Admin — Milan Matching';
+  _vaTab='props';
   aRender();
+  lUpdateTabCount();
 }
 function exitAdmin(){window.location.href=window.location.pathname;}
+
+// ════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════
+let _vaTab='props';
+function vaTab(tab){
+  _vaTab=tab;
+  document.getElementById('vtab-props').classList.toggle('active',tab==='props');
+  document.getElementById('vtab-leads').classList.toggle('active',tab==='leads');
+  document.getElementById('vp-props').classList.toggle('hidden',tab!=='props');
+  document.getElementById('vp-leads').classList.toggle('hidden',tab!=='leads');
+  document.getElementById('va-add-btn').textContent=tab==='leads'?'＋ Lead':'＋ Aggiungi';
+  if(tab==='leads'){lRender();}
+  else{aRender();}
+}
+function vaAddClick(){
+  if(_vaTab==='leads')openLeadAdd();
+  else openAdd();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  LEADS — DATA & MATCHING
+// ════════════════════════════════════════════════════════════════
+const STATUSES={
+  nuovo:      {label:'Nuovo',      cls:'ls-nuovo'},
+  contattato: {label:'Contattato', cls:'ls-contattato'},
+  visita:     {label:'Visita',     cls:'ls-visita'},
+  proposta:   {label:'Proposta',   cls:'ls-proposta'},
+  chiuso:     {label:'Chiuso',     cls:'ls-chiuso'},
+  perso:      {label:'Perso',      cls:'ls-perso'},
+};
+const URG_ORDER={urgente:0,alta:1,media:2,bassa:3};
+
+function matchLead(lead){
+  const bMax=lead.budgetMax||0;
+  const stanze=Array.isArray(lead.stanze)?lead.stanze:(lead.stanze?[+lead.stanze]:[]);
+  const zones =Array.isArray(lead.zones) ?lead.zones :(lead.zones ?[lead.zones] :[]);
+  return allP().filter(p=>{
+    if(ST.hiddenKeys.includes(fk(p)))return false;
+    if(bMax>0&&p.price>bMax*1.05)return false; // 5% flex
+    if(stanze.length>0){
+      const ok=stanze.includes(5)?p.st>=5:stanze.includes(p.st);
+      if(!ok)return false;
+    }
+    if(zones.length>0&&!zones.includes(p.g))return false;
+    return true;
+  }).map(p=>fk(p));
+}
+
+// ── Render ────────────────────────────────────────────────────
+function lUpdateTabCount(){
+  const n=(ST.leads||[]).filter(l=>l.status!=='chiuso'&&l.status!=='perso').length;
+  const el=document.getElementById('vtab-leads-n');
+  if(el)el.textContent=n?n:'';
+}
+
+function lRender(){
+  const status=(document.getElementById('lf-status')||{}).value||'';
+  const search=((document.getElementById('lf-search')||{}).value||'').toLowerCase();
+  let leads=[...(ST.leads||[])];
+  if(status)leads=leads.filter(l=>l.status===status);
+  if(search)leads=leads.filter(l=>
+    (l.nome||'').toLowerCase().includes(search)||
+    (l.profilo||'').toLowerCase().includes(search)||
+    (l.richiesta||'').toLowerCase().includes(search)||
+    (l.note||'').toLowerCase().includes(search)
+  );
+  leads.sort((a,b)=>{
+    const ua=URG_ORDER[(a.urg||'').toLowerCase()]??2;
+    const ub=URG_ORDER[(b.urg||'').toLowerCase()]??2;
+    return ua!==ub?ua-ub:(b.addedAt||0)-(a.addedAt||0);
+  });
+  const cnt=document.getElementById('la-count');
+  if(cnt)cnt.textContent=leads.length+' lead';
+  const grid=document.getElementById('la-grid');
+  if(grid)grid.innerHTML=leads.length?leads.map(lCard).join(''):'<div class="va-empty">Nessun lead trovato</div>';
+  lUpdateTabCount();
+}
+
+function lCard(lead){
+  const id=lead.id;
+  const matches=matchLead(lead);
+  const st=STATUSES[lead.status]||STATUSES.nuovo;
+  const stanze=Array.isArray(lead.stanze)?lead.stanze:(lead.stanze?[+lead.stanze]:[]);
+  const stTag=stanze.length>0?stanze.map(s=>s>=5?'5+ locali':(RL[s]||s+' locali')).join(' / '):'';
+  const urgCls=(lead.urg||'').toLowerCase()==='urgente'?'color:#f87171':
+               (lead.urg||'').toLowerCase()==='alta'?'color:#fbbf24':'color:var(--textdim)';
+  const eid=(id||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  const matchRows=matches.slice(0,6).map(k=>{
+    const p=allP().find(x=>fk(x)===k);if(!p)return'';
+    const ph=(ST.photos[k]||[])[0]||'';
+    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+    const ek2=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="lm-row">
+      ${ph?`<img class="lm-img" src="${ph}" onerror="this.style.display='none'">`:'<div class="lm-img"></div>'}
+      <div class="lm-info">
+        <div class="lm-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span></div>
+        <div class="lm-meta">${rl}${p.mq?` · ${p.mq}mq`:''} · ${p.avail}</div>
+      </div>
+      <div class="lm-price">€${p.price.toLocaleString('it-IT')}</div>
+      <button class="btn-lm-share" onclick="lSendLink('${ek2}')">🔗</button>
+    </div>`;
+  }).join('');
+  const extra=matches.length>6?`<div style="font-size:11px;color:var(--textdim);padding:8px 0">+${matches.length-6} altre proprietà compatibili</div>`:'';
+
+  return `<div class="lc" id="lc-${id}">
+  <div class="lc-header">
+    <div class="lc-qual" title="Qualità lead">${lead.qual||'—'}</div>
+    <div class="lc-main">
+      <div class="lc-name">${lead.nome}</div>
+      ${lead.profilo?`<div class="lc-profilo">${lead.profilo}</div>`:''}
+      <div class="lc-tags">
+        <span class="lc-tag ${st.cls}" style="border-radius:3px">${st.label}</span>
+        ${lead.budgetMax?`<span class="lc-tag">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:''}
+        ${stTag?`<span class="lc-tag">${stTag}</span>`:''}
+        ${lead.ingresso&&lead.ingresso!=='Flessibile'?`<span class="lc-tag">${lead.ingresso}</span>`:''}
+        ${lead.urg?`<span class="lc-tag" style="${urgCls}">${lead.urg}</span>`:''}
+        <button class="lc-match-btn" onclick="toggleLeadMatches('${eid}')">
+          ${matches.length>0?`✓ ${matches.length} match`:'⊘ 0 match'}
+        </button>
+      </div>
+      ${lead.richiesta?`<div class="lc-note">${lead.richiesta}</div>`:''}
+      ${lead.note?`<div class="lc-note" style="color:rgba(201,169,110,.7)">${lead.note}</div>`:''}
+    </div>
+  </div>
+  <div class="lc-matches" id="lm-${eid}">
+    <div class="lm-title">Proprietà compatibili · ${matches.length}</div>
+    ${matchRows}${extra}
+    ${matches.length===0?'<div style="font-size:12px;color:var(--textdim);padding:8px 0">Nessuna proprietà nei criteri — modifica budget o locali.</div>':''}
+  </div>
+  <div class="lc-acts">
+    <select class="btn-lc" style="padding:6px 8px;font-size:11px;background:var(--bg3);cursor:pointer;appearance:none;min-width:110px"
+            onchange="setLeadStatus('${eid}',this.value);this.blur()">
+      ${Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('')}
+    </select>
+    ${lead.tel?`<a class="btn-lc" href="tel:${lead.tel}">📞</a>`:''}
+    <button class="btn-lc" onclick="openLeadEdit('${eid}')">✏ Modifica</button>
+    <button class="btn-lc btn-lc-del" onclick="deleteLead('${eid}')" style="margin-left:auto">🗑</button>
+  </div>
+</div>`;
+}
+
+function toggleLeadMatches(id){
+  const el=document.getElementById('lm-'+id);
+  if(el)el.classList.toggle('open');
+}
+function setLeadStatus(id,status){
+  const lead=(ST.leads||[]).find(l=>l.id===id);
+  if(!lead)return;
+  lead.status=status;
+  stSave();lRender();scheduleSync();
+}
+function lSendLink(propKey){
+  const p=allP().find(x=>fk(x)===propKey);if(!p)return;
+  const sharePage=SHARE_PAGES[propKey];
+  const url=sharePage
+    ?location.origin+'/'+sharePage
+    :location.origin+location.pathname+'?s='+enc(p);
+  navigator.clipboard?.writeText(url)
+    .then(()=>toast('✓ Link copiato!'))
+    .catch(()=>{try{const i=document.createElement('input');i.value=url;document.body.appendChild(i);i.select();document.execCommand('copy');document.body.removeChild(i);toast('✓ Link copiato!');}catch(e){toast('Link: '+url.slice(0,60));}});
+}
+
+// ── Add / Edit ────────────────────────────────────────────────
+function openLeadAdd(){
+  document.getElementById('m-lead-title').textContent='Aggiungi lead';
+  document.getElementById('m-lead-sub').textContent='Inserisci i dati del cliente';
+  document.getElementById('li-id').value='';
+  ['li-nome','li-profilo','li-tel','li-email','li-richiesta','li-note','li-zones'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('li-budget').value='';
+  document.getElementById('li-stanze').value='';
+  document.getElementById('li-ingresso').value='Flessibile';
+  document.getElementById('li-urg').value='Alta';
+  document.getElementById('li-qual').value='3';
+  document.getElementById('li-status').value='nuovo';
+  openM('m-lead');
+}
+function openLeadEdit(id){
+  const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
+  document.getElementById('m-lead-title').textContent='Modifica lead';
+  document.getElementById('m-lead-sub').textContent=lead.nome;
+  document.getElementById('li-id').value=lead.id;
+  document.getElementById('li-nome').value=lead.nome||'';
+  document.getElementById('li-profilo').value=lead.profilo||'';
+  document.getElementById('li-tel').value=lead.tel||'';
+  document.getElementById('li-email').value=lead.email||'';
+  document.getElementById('li-budget').value=lead.budgetMax||'';
+  document.getElementById('li-stanze').value=(Array.isArray(lead.stanze)?lead.stanze:[]).join(', ');
+  document.getElementById('li-zones').value=(Array.isArray(lead.zones)?lead.zones:[]).join(', ');
+  document.getElementById('li-ingresso').value=lead.ingresso||'Flessibile';
+  document.getElementById('li-urg').value=lead.urg||'Alta';
+  document.getElementById('li-qual').value=lead.qual||3;
+  document.getElementById('li-status').value=lead.status||'nuovo';
+  document.getElementById('li-richiesta').value=lead.richiesta||'';
+  document.getElementById('li-note').value=lead.note||'';
+  openM('m-lead');
+}
+function saveLead(){
+  const id=document.getElementById('li-id').value;
+  const stanze=document.getElementById('li-stanze').value
+    .split(/[,\s]+/).map(Number).filter(n=>n>0&&n<=9);
+  const zones=document.getElementById('li-zones').value
+    .split(',').map(s=>s.trim()).filter(Boolean);
+  const d={
+    nome:     document.getElementById('li-nome').value.trim(),
+    profilo:  document.getElementById('li-profilo').value.trim(),
+    tel:      document.getElementById('li-tel').value.trim(),
+    email:    document.getElementById('li-email').value.trim(),
+    budgetMax:+document.getElementById('li-budget').value||0,
+    stanze, zones,
+    ingresso: document.getElementById('li-ingresso').value.trim(),
+    urg:      document.getElementById('li-urg').value,
+    qual:     +document.getElementById('li-qual').value||3,
+    status:   document.getElementById('li-status').value,
+    richiesta:document.getElementById('li-richiesta').value.trim(),
+    note:     document.getElementById('li-note').value.trim(),
+  };
+  if(!d.nome){toast('Inserisci almeno il nome');return;}
+  if(!ST.leads)ST.leads=[];
+  if(id){const i=ST.leads.findIndex(l=>l.id===id);if(i>=0)Object.assign(ST.leads[i],d);}
+  else{d.id='L'+Date.now();d.addedAt=Date.now();ST.leads.unshift(d);}
+  stSave();closeM('m-lead');lRender();scheduleSync();
+}
+function deleteLead(id){
+  if(!confirm('Rimuovere questo lead?'))return;
+  ST.leads=(ST.leads||[]).filter(l=>l.id!==id);
+  stSave();lRender();scheduleSync();
+}
 
 function aRender(){
   const rooms=document.getElementById('af-rooms').value;

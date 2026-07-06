@@ -1817,9 +1817,10 @@ function lCard(lead){
             onchange="setLeadStatus('${eid}',this.value);this.blur()">
       ${Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('')}
     </select>
-    ${lead.tel?`<a class="btn-lc" href="tel:${lead.tel}">📞</a>`:''}
-    <button class="btn-lc" onclick="openLeadEdit('${eid}')">✏ Modifica</button>
-    <button class="btn-lc btn-lc-del" onclick="deleteLead('${eid}')" style="margin-left:auto">🗑</button>
+    ${lead.tel?`<a class="btn-lc" href="tel:${lead.tel}">${lead.tel}</a>`:''}
+    <button class="btn-lc" onclick="openMsgModal('${eid}')">Messaggio</button>
+    <button class="btn-lc" onclick="openLeadEdit('${eid}')">Modifica</button>
+    <button class="btn-lc btn-lc-del" onclick="deleteLead('${eid}')" style="margin-left:auto">Rimuovi</button>
   </div>
 </div>`;
 }

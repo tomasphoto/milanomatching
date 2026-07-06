@@ -1447,6 +1447,28 @@ function saveSettings(){
   stSave();closeM('m-settings');toast('✓ Impostazioni salvate');
 }
 
+async function exportAndDownload(){
+  try {
+    toast('⏳ Preparazione in corso…', 8000);
+    const resp = await fetch(location.href);
+    let html = await resp.text();
+    // Merge localStorage photos into PHOTO_DEFAULTS
+    const merged = Object.assign({}, PHOTO_DEFAULTS);
+    Object.entries(ST.photos||{}).forEach(([k,v])=>{ if(v&&v.length) merged[k]=v; });
+    const newConst = 'const PHOTO_DEFAULTS = ' + JSON.stringify(merged) + ';';
+    const updated = html.replace(/const PHOTO_DEFAULTS = \{[\s\S]*?\};/, newConst);
+    if(updated === html){ toast('❌ Errore: pattern non trovato'); return; }
+    const blob = new Blob([updated], {type:'text/html;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'milanomatching.html';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    toast('✅ Scaricato! Sostituisci il file nella cartella del progetto.');
+  } catch(e){ toast('❌ ' + e.message); }
+}
+
 // ── Modal helpers ─────────────────────────────────────────────
 const openM=id=>document.getElementById(id).classList.add('open');
 const closeM=id=>document.getElementById(id).classList.remove('open');

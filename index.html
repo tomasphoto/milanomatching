@@ -1250,39 +1250,75 @@ function buildShareHtml(prop,imgUrl,pid){
 </body></html>`;
 }
 
-async function ghUpdateSite(){
-  // Merge photos
-  const merged=Object.assign({},PHOTO_DEFAULTS);
-  Object.entries(ST.photos||{}).forEach(([k,v])=>{
-    if(v&&v.length)merged[k]=v;
-  });
-  // Build updated SHARE_PAGES
+async function ghUpdateSite(ts=Date.now()){
+  // ── Build merged state to bake into GitHub HTML ───────────
+  const mergedPhotos=Object.assign({},PHOTO_DEFAULTS);
+  Object.entries(ST.photos||{}).forEach(([k,v])=>{ if(v&&v.length)mergedPhotos[k]=v; });
+
   const mergedShare=Object.assign({},SHARE_PAGES);
-  Object.keys(merged).forEach(k=>{
+  Object.keys(mergedPhotos).forEach(k=>{
     const pid=k.split('::').pop();
     if(!mergedShare[k])mergedShare[k]='share/'+pid+'.html';
   });
-  // Fetch + patch index.html
+
+  const mergedSettings=Object.assign({},DEFAULT_SETTINGS,ST.settings||{});
+  const mergedEdits=Object.assign({},EDIT_DEFAULTS,ST.edits||{});
+  const mergedHidden=[...(ST.hiddenKeys||[])];
+  const mergedCustom=[...(ST.customProps||[])];
+
+  // ── Fetch index.html from GitHub ──────────────────────────
   const file=await ghAPI('GET','/index.html');
   if(!file)throw new Error('index.html non trovato su GitHub');
-  const html=ghDecode(file.content);
-  let updated=html
-    .replace(/const PHOTO_DEFAULTS = \{[\s\S]*?\};/,'const PHOTO_DEFAULTS = '+JSON.stringify(merged)+';')
-    .replace(/const SHARE_PAGES = \{[\s\S]*?\};/,'const SHARE_PAGES = '+JSON.stringify(mergedShare)+';');
-  await ghPut('/index.html',ghB64(updated),'Sync photos & share pages',file.sha);
-  // Create/update share pages for properties with GitHub photos
+  let html=ghDecode(file.content);
+
+  // Replace sentinel-marked data blocks (reliable even with nested JSON)
+  function mmR(h,tag,json){
+    return h.replace(
+      new RegExp('/\\*--'+tag+'--\\*/[\\s\\S]*?/\\*--'+tag+'--\\*/'),
+      '/*--'+tag+'--*/'+json+'/*--'+tag+'--*/'
+    );
+  }
+  html=mmR(html,'PHOTOS',  JSON.stringify(mergedPhotos));
+  html=mmR(html,'SHARES',  JSON.stringify(mergedShare));
+  html=mmR(html,'SETTINGS',JSON.stringify(mergedSettings));
+  html=mmR(html,'EDITS',   JSON.stringify(mergedEdits));
+  html=mmR(html,'HIDDEN',  JSON.stringify(mergedHidden));
+  html=mmR(html,'CUSTOM',  JSON.stringify(mergedCustom));
+  html=mmR(html,'SYNCTIME',String(ts));
+
+  await ghPut('/index.html',ghB64(html),'Sync admin state',file.sha);
+
+  // ── Create/update WhatsApp share pages ───────────────────
   const tasks=[];
-  for(const[k,photos]of Object.entries(merged)){
+  for(const[k,photos]of Object.entries(mergedPhotos)){
     const ghPhoto=photos.find(u=>u.includes('github.io'));
     if(!ghPhoto)continue;
     const prop=allP().find(p=>fk(p)===k);
     if(!prop)continue;
     const pid=k.split('::').pop();
-    const html=buildShareHtml(prop,ghPhoto,pid);
+    const shareHtml=buildShareHtml(prop,ghPhoto,pid);
     const old=await ghAPI('GET','/share/'+pid+'.html');
-    tasks.push(ghPut('/share/'+pid+'.html',ghB64(html),'Share page '+pid,old?.sha));
+    tasks.push(ghPut('/share/'+pid+'.html',ghB64(shareHtml),'Share page '+pid,old?.sha));
   }
   await Promise.all(tasks);
+}
+
+// Auto-sync: fires 2 s after the last admin change, bundles rapid edits
+let _syncTimer=null;
+function scheduleSync(){
+  if(_syncTimer)clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(async()=>{
+    _syncTimer=null;
+    toast('⏳ Pubblicazione modifiche…',20000);
+    const ts=Date.now();
+    try{
+      await ghUpdateSite(ts);
+      ST.syncTs=ts;stSave();
+      toast('✅ Modifiche pubblicate! (attivo in ~60s)');
+    }catch(e){
+      toast('❌ Sync: '+e.message);
+    }
+  },2000);
 }
 
 // ════════════════════════════════════════════════════════════════

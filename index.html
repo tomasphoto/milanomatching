@@ -1417,6 +1417,32 @@ function showCard(encoded){
   ).join('');
   document.getElementById('vc-desc').textContent=p.desc;
 
+  // Caratteristiche grid
+  const caraDiv=document.getElementById('vc-cara');
+  const caraGrid=document.getElementById('vc-cara-grid');
+  const hasCara=p.piano!=null||p.cam!=null||p.bagni!=null||p.cucina!=null;
+  if(hasCara){
+    const yn=(v,yes,no)=>v?`<span class="vc-cara-val yes">${yes||'Sì'}</span>`:`<span class="vc-cara-val no">${no||'No'}</span>`;
+    const tv=v=>v!=null&&v!==''&&v!=='—'?`<span class="vc-cara-val">${v}</span>`:`<span class="vc-cara-val no">—</span>`;
+    const rows=[
+      ...(p.piano!=null?[{l:'Piano',v:`<span class="vc-cara-val">${p.piano}</span>`}]:[]),
+      ...(p.piani!=null?[{l:'Piani edificio',v:`<span class="vc-cara-val">${p.piani}</span>`}]:[]),
+      ...(p.asc!=null?[{l:'Ascensore',v:yn(p.asc)}]:[]),
+      ...(p.cam!=null?[{l:'Camere da letto',v:`<span class="vc-cara-val">${p.cam}</span>`}]:[]),
+      ...(p.bagni!=null?[{l:'Bagni',v:`<span class="vc-cara-val">${p.bagni}</span>`}]:[]),
+      ...(p.cucina!=null?[{l:'Cucina',v:`<span class="vc-cara-val">${p.cucina}</span>`}]:[]),
+      ...(p.arredato!=null?[{l:'Arredato',v:tv(p.arredato)}]:[]),
+      ...(p.balcone!=null?[{l:'Balcone',v:yn(p.balcone)}]:[]),
+      ...(p.terrazzo!=null?[{l:'Terrazzo',v:yn(p.terrazzo)}]:[]),
+      ...(p.risc!=null?[{l:'Riscaldamento',v:tv(p.risc)}]:[]),
+      ...(p.clima!=null?[{l:'Climatizzazione',v:tv(p.clima)}]:[]),
+    ];
+    caraGrid.innerHTML=rows.map(r=>`<div class="vc-cara-item"><div class="vc-cara-lbl">${r.l}</div>${r.v}</div>`).join('');
+    caraDiv.classList.remove('hidden');
+  } else {
+    caraDiv.classList.add('hidden');
+  }
+
   // Floor plan
   const fpDiv=document.getElementById('vc-fp');
   const fpImg=document.getElementById('vc-fp-img');

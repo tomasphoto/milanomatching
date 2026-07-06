@@ -1782,7 +1782,7 @@ function lCard(lead){
         <div class="lm-meta">${rl}${p.mq?` · ${p.mq}mq`:''} · ${p.avail}</div>
       </div>
       <div class="lm-price">€${p.price.toLocaleString('it-IT')}</div>
-      <button class="btn-lm-share" onclick="lSendLink('${ek2}')">🔗</button>
+      <button class="btn-lm-share" onclick="lSendLink('${ek2}')">Link</button>
     </div>`;
   }).join('');
   const extra=matches.length>6?`<div style="font-size:11px;color:var(--textdim);padding:8px 0">+${matches.length-6} altre proprietà compatibili</div>`:'';

@@ -1800,7 +1800,7 @@ function lCard(lead){
         ${lead.ingresso&&lead.ingresso!=='Flessibile'?`<span class="lc-tag">${lead.ingresso}</span>`:''}
         ${lead.urg?`<span class="lc-tag" style="${urgCls}">${lead.urg}</span>`:''}
         <button class="lc-match-btn" onclick="toggleLeadMatches('${eid}')">
-          ${matches.length>0?`✓ ${matches.length} match`:'⊘ 0 match'}
+          ${matches.length>0?`${matches.length} match`:'0 match'}
         </button>
       </div>
       ${lead.richiesta?`<div class="lc-note">${lead.richiesta}</div>`:''}

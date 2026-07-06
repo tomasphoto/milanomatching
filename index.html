@@ -1301,10 +1301,15 @@ function openPhotos(k,addr){
 
 function phRenderPreview(){
   const el=document.getElementById('ph-preview');
-  el.innerHTML=_phWorking.map((u,i)=>`<div class="ph-thumb">
-    <img src="${u}" loading="lazy" onerror="this.style.opacity='.2'">
-    <button class="ph-del" onclick="phDel(${i})">✕</button>
-  </div>`).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
+  el.innerHTML=_phWorking.map((u,i)=>{
+    const preview=u.startsWith('data:')?u:u; // base64 shows instantly; GitHub URL shows after Pages rebuilds
+    const isPending=u.startsWith('data:');
+    return `<div class="ph-thumb" style="position:relative">
+      <img src="${preview}" loading="lazy" onerror="this.style.opacity='.3'">
+      ${isPending?'<div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);color:#C9A96E;font-size:9px;padding:2px 5px;border-radius:3px">NON SALVATA</div>':''}
+      <button class="ph-del" onclick="phDel(${i})">✕</button>
+    </div>`;
+  }).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
 }
 
 function phDel(i){_phWorking.splice(i,1);phRenderPreview();}
@@ -1315,7 +1320,7 @@ function phAddUrl(){
   _phWorking.push(url);
   document.getElementById('ph-url-input').value='';
   phRenderPreview();
-  toast('✓ URL aggiunto');
+  toast('✓ URL aggiunto — premi Salva per pubblicare');
 }
 
 function compressImg(file){
@@ -1324,8 +1329,7 @@ function compressImg(file){
     reader.onload=e=>{
       const img=new Image();
       img.onload=()=>{
-        const MAX=1200;
-        const canvas=document.createElement('canvas');
+        const MAX=1200,canvas=document.createElement('canvas');
         let w=img.width,h=img.height;
         if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
         canvas.width=w;canvas.height=h;
@@ -1338,33 +1342,58 @@ function compressImg(file){
   });
 }
 
-async function phUpload(input){
+function phUpload(input){
   const files=[...input.files];
   if(!files.length)return;
-  const key=document.getElementById('ph-fk').value;
   input.value='';
-  toast('⏳ Caricamento su GitHub…',20000);
-  let done=0;
-  for(const file of files){
-    try{
-      const b64=await compressImg(file);
-      const url=await ghUploadPhoto(key,b64);
-      _phWorking.push(url);
-      done++;
-      phRenderPreview();
-      toast('⏳ '+done+'/'+files.length+' caricate…',20000);
-    }catch(e){toast('❌ '+e.message);}
-  }
-  toast('✅ '+done+' foto su GitHub — salva per pubblicare');
+  // Show locally immediately — upload happens on Save
+  Promise.all(files.map(compressImg)).then(b64s=>{
+    b64s.forEach(b=>_phWorking.push(b));
+    phRenderPreview();
+    toast('✓ '+files.length+' foto pronte — premi Salva per caricare su GitHub');
+  });
 }
 
-function savePhotos(){
+async function savePhotos(){
   const k=document.getElementById('ph-fk').value;
+  const pending=_phWorking.filter(u=>u.startsWith('data:'));
+
+  if(!pending.length){
+    // No new uploads — just save existing URLs
+    if(_phWorking.length)ST.photos[k]=_phWorking;else delete ST.photos[k];
+    stSave();closeM('m-photos');aRender();
+    toast('⏳ Sincronizzazione GitHub…',15000);
+    ghUpdateSite().then(()=>toast('✅ Sito aggiornato!')).catch(e=>toast('❌ '+e.message));
+    return;
+  }
+
+  // Upload pending base64 photos to GitHub with progress
+  const saveBtn=document.querySelector('#m-photos .btn-ms');
+  if(saveBtn)saveBtn.disabled=true;
+  let done=0;
+
+  for(let i=0;i<_phWorking.length;i++){
+    if(!_phWorking[i].startsWith('data:'))continue;
+    const pBar=`${done+1}/${pending.length}`;
+    toast(`⬆ Caricamento foto ${pBar} su GitHub…`,30000);
+    try{
+      const url=await ghUploadPhoto(k,_phWorking[i]);
+      _phWorking[i]=url; // replace base64 with live GitHub URL
+      done++;
+      phRenderPreview();
+    }catch(e){
+      if(saveBtn)saveBtn.disabled=false;
+      toast('❌ Errore: '+e.message);
+      return;
+    }
+  }
+
+  if(saveBtn)saveBtn.disabled=false;
   if(_phWorking.length)ST.photos[k]=_phWorking;else delete ST.photos[k];
   stSave();closeM('m-photos');aRender();
-  toast('⏳ Aggiornamento sito su GitHub…',15000);
+  toast('⏳ '+done+' foto caricate — aggiornamento sito…',15000);
   ghUpdateSite()
-    .then(()=>toast('✅ Sito aggiornato! Foto live in ~60 sec'))
+    .then(()=>toast('✅ Live in ~60 sec — WhatsApp preview pronta!'))
     .catch(e=>toast('❌ '+e.message));
 }
 

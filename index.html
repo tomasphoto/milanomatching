@@ -762,13 +762,45 @@
     <div class="va-sep"></div>
     <span class="va-count" id="va-count"></span>
     <button class="btn-va" onclick="openSettings()">⚙ Impostazioni</button>
-    <button class="btn-va btn-va-gold" onclick="openAdd()">＋ Aggiungi</button>
+    <button class="btn-va btn-va-gold" id="va-add-btn" onclick="vaAddClick()">＋ Aggiungi</button>
     <button class="btn-va" onclick="exitAdmin()" style="opacity:.45">✕ Esci</button>
   </div>
 
-  <div class="va-wrap">
-    <div class="va-grid" id="va-grid"></div>
+  <!-- Tab strip -->
+  <div class="va-tabs-strip">
+    <button class="va-tab active" id="vtab-props" onclick="vaTab('props')">🏠 Proprietà</button>
+    <button class="va-tab" id="vtab-leads" onclick="vaTab('leads')">👥 Lead <span class="va-tab-n" id="vtab-leads-n"></span></button>
   </div>
+
+  <!-- Properties panel -->
+  <div id="vp-props">
+    <div class="va-wrap">
+      <div class="va-grid" id="va-grid"></div>
+    </div>
+  </div>
+
+  <!-- Leads panel -->
+  <div id="vp-leads" class="hidden">
+    <div class="la-bar">
+      <select class="va-sel" id="lf-status" onchange="lRender()">
+        <option value="">Tutti gli stati</option>
+        <option value="nuovo">Nuovo</option>
+        <option value="contattato">Contattato</option>
+        <option value="visita">Visita</option>
+        <option value="proposta">Proposta</option>
+        <option value="chiuso">Chiuso</option>
+        <option value="perso">Perso</option>
+      </select>
+      <input type="text" class="va-sel" id="lf-search" placeholder="Cerca nome, profilo…"
+             oninput="lRender()" style="min-width:180px;background-image:none;">
+      <div class="va-sep"></div>
+      <span class="va-count" id="la-count"></span>
+    </div>
+    <div class="va-wrap">
+      <div class="va-lead-grid" id="la-grid"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══ MODALS ══════════════════════════════════════════════ -->

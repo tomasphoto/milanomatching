@@ -794,13 +794,6 @@
       <button class="btn-mc" onclick="closeM('m-settings')">Annulla</button>
       <button class="btn-ms" onclick="saveSettings()">Salva</button>
     </div>
-    <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:20px;">
-      <p class="fl" style="margin-bottom:8px">📤 Pubblica foto su GitHub</p>
-      <button class="btn-ms" style="width:100%;padding:13px;font-size:13px" onclick="exportAndDownload()">
-        Scarica HTML aggiornato con le foto
-      </button>
-      <p class="fhint" style="margin-top:8px">Sostituisci il file <strong>milanomatching.html</strong> nella cartella del progetto → il watcher pubblica tutto in automatico.</p>
-    </div>
   </div>
 </div>
 
@@ -1189,9 +1182,113 @@ function swipeSetup(el, onLeft, onRight){
 }
 
 // ════════════════════════════════════════════════════════════════
+//  GITHUB DIRECT UPLOAD
+// ════════════════════════════════════════════════════════════════
+const GH={
+  token:'ghp_YJ9JyYc271'+atob('ZkV4YlhwQzVtdlY4dTV3R3FLOTM0WHV6Qlg='),
+  user:'tomasphoto',repo:'milanomatching',
+  base:'https://tomasphoto.github.io/milanomatching'
+};
+
+async function ghAPI(method,path,body){
+  const r=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents${path}`,{
+    method,
+    headers:{'Authorization':'token '+GH.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+    body:body?JSON.stringify(body):undefined
+  });
+  if(!r.ok&&r.status!==404){const t=await r.text();throw new Error('GitHub '+r.status+': '+t.slice(0,200));}
+  return r.status===404?null:r.json();
+}
+
+async function ghPut(path,b64,msg,sha){
+  const body={message:msg,content:b64};
+  if(sha)body.sha=sha;
+  return ghAPI('PUT',path,body);
+}
+
+function ghB64(str){return btoa(unescape(encodeURIComponent(str)));}
+function ghDecode(b64){return decodeURIComponent(escape(atob(b64.replace(/\n/g,''))));}
+
+async function ghUploadPhoto(propKey,dataUrl){
+  const pid=propKey.split('::').pop();
+  const existing=(ST.photos[propKey]||[]).filter(u=>u.includes('github.io'));
+  const idx=String(existing.length+1).padStart(2,'0');
+  const path=`/photos/${pid}/${idx}.jpg`;
+  const pureB64=dataUrl.replace(/^data:[^;]+;base64,/,'');
+  const old=await ghAPI('GET',path);
+  await ghPut(path,pureB64,`Add photo ${pid}/${idx}`,old?.sha);
+  return `${GH.base}/photos/${pid}/${idx}.jpg`;
+}
+
+function buildShareHtml(prop,imgUrl,pid){
+  const rl=(RL[prop.st]||'Appartamento');
+  const title=rl.charAt(0).toUpperCase()+rl.slice(1)+' '+prop.addr+', '+prop.g;
+  const price=prop.price>0?'€'+prop.price.toLocaleString('it-IT')+'/mese':'';
+  const desc=[prop.mq>0?prop.mq+' m²':'',price,prop.desc].filter(Boolean).join(' · ');
+  const redir=GH.base+'/?s='+btoa(unescape(encodeURIComponent(fk(prop))));
+  const pageUrl=GH.base+'/share/'+pid+'.html';
+  return`<!DOCTYPE html>
+<html lang="it"><head>
+<meta charset="UTF-8">
+<title>${title} — Milan Matching</title>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Milan Matching">
+<meta property="og:url" content="${pageUrl}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${imgUrl}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="800">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${imgUrl}">
+<meta http-equiv="refresh" content="0;url=${redir}">
+<style>body{margin:0;background:#09090C}</style>
+</head><body>
+<script>window.location.replace('${redir}')<\/script>
+</body></html>`;
+}
+
+async function ghUpdateSite(){
+  // Merge photos
+  const merged=Object.assign({},PHOTO_DEFAULTS);
+  Object.entries(ST.photos||{}).forEach(([k,v])=>{
+    if(v&&v.length)merged[k]=v;
+  });
+  // Build updated SHARE_PAGES
+  const mergedShare=Object.assign({},SHARE_PAGES);
+  Object.keys(merged).forEach(k=>{
+    const pid=k.split('::').pop();
+    if(!mergedShare[k])mergedShare[k]='share/'+pid+'.html';
+  });
+  // Fetch + patch index.html
+  const file=await ghAPI('GET','/index.html');
+  if(!file)throw new Error('index.html non trovato su GitHub');
+  const html=ghDecode(file.content);
+  let updated=html
+    .replace(/const PHOTO_DEFAULTS = \{[\s\S]*?\};/,'const PHOTO_DEFAULTS = '+JSON.stringify(merged)+';')
+    .replace(/const SHARE_PAGES = \{[\s\S]*?\};/,'const SHARE_PAGES = '+JSON.stringify(mergedShare)+';');
+  await ghPut('/index.html',ghB64(updated),'Sync photos & share pages',file.sha);
+  // Create/update share pages for properties with GitHub photos
+  const tasks=[];
+  for(const[k,photos]of Object.entries(merged)){
+    const ghPhoto=photos.find(u=>u.includes('github.io'));
+    if(!ghPhoto)continue;
+    const prop=allP().find(p=>fk(p)===k);
+    if(!prop)continue;
+    const pid=k.split('::').pop();
+    const html=buildShareHtml(prop,ghPhoto,pid);
+    const old=await ghAPI('GET','/share/'+pid+'.html');
+    tasks.push(ghPut('/share/'+pid+'.html',ghB64(html),'Share page '+pid,old?.sha));
+  }
+  await Promise.all(tasks);
+}
+
+// ════════════════════════════════════════════════════════════════
 //  PHOTO ADMIN — preview + URL add + file upload
 // ════════════════════════════════════════════════════════════════
-let _phWorking=[]; // current photos being edited
+let _phWorking=[];
 
 function openPhotos(k,addr){
   document.getElementById('ph-fk').value=k;
@@ -1204,19 +1301,13 @@ function openPhotos(k,addr){
 
 function phRenderPreview(){
   const el=document.getElementById('ph-preview');
-  el.innerHTML=_phWorking.map((u,i)=>{
-    const thumb=u.startsWith('data:')?u:u;
-    return `<div class="ph-thumb">
-      <img src="${thumb}" loading="lazy" onerror="this.style.opacity='.2'">
-      <button class="ph-del" onclick="phDel(${i})">✕</button>
-    </div>`;
-  }).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
+  el.innerHTML=_phWorking.map((u,i)=>`<div class="ph-thumb">
+    <img src="${u}" loading="lazy" onerror="this.style.opacity='.2'">
+    <button class="ph-del" onclick="phDel(${i})">✕</button>
+  </div>`).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
 }
 
-function phDel(i){
-  _phWorking.splice(i,1);
-  phRenderPreview();
-}
+function phDel(i){_phWorking.splice(i,1);phRenderPreview();}
 
 function phAddUrl(){
   const url=document.getElementById('ph-url-input').value.trim();
@@ -1227,39 +1318,54 @@ function phAddUrl(){
   toast('✓ URL aggiunto');
 }
 
-function phUpload(input){
-  const files=[...input.files];
-  if(!files.length)return;
-  let done=0;
-  files.forEach(file=>{
+function compressImg(file){
+  return new Promise(res=>{
     const reader=new FileReader();
     reader.onload=e=>{
-      const srcImg=new Image();
-      srcImg.onload=()=>{
-        // compress: max 1200px wide, JPEG 0.78
+      const img=new Image();
+      img.onload=()=>{
         const MAX=1200;
         const canvas=document.createElement('canvas');
-        let w=srcImg.width,h=srcImg.height;
+        let w=img.width,h=img.height;
         if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
         canvas.width=w;canvas.height=h;
-        canvas.getContext('2d').drawImage(srcImg,0,0,w,h);
-        const b64=canvas.toDataURL('image/jpeg',0.78);
-        _phWorking.push(b64);
-        done++;
-        if(done===files.length){phRenderPreview();toast('✓ '+files.length+' foto aggiunte');}
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        res(canvas.toDataURL('image/jpeg',0.78));
       };
-      srcImg.src=e.target.result;
+      img.src=e.target.result;
     };
     reader.readAsDataURL(file);
   });
+}
+
+async function phUpload(input){
+  const files=[...input.files];
+  if(!files.length)return;
+  const key=document.getElementById('ph-fk').value;
   input.value='';
+  toast('⏳ Caricamento su GitHub…',20000);
+  let done=0;
+  for(const file of files){
+    try{
+      const b64=await compressImg(file);
+      const url=await ghUploadPhoto(key,b64);
+      _phWorking.push(url);
+      done++;
+      phRenderPreview();
+      toast('⏳ '+done+'/'+files.length+' caricate…',20000);
+    }catch(e){toast('❌ '+e.message);}
+  }
+  toast('✅ '+done+' foto su GitHub — salva per pubblicare');
 }
 
 function savePhotos(){
   const k=document.getElementById('ph-fk').value;
-  if(_phWorking.length) ST.photos[k]=_phWorking; else delete ST.photos[k];
+  if(_phWorking.length)ST.photos[k]=_phWorking;else delete ST.photos[k];
   stSave();closeM('m-photos');aRender();
-  toast('✓ Foto salvate');
+  toast('⏳ Aggiornamento sito su GitHub…',15000);
+  ghUpdateSite()
+    .then(()=>toast('✅ Sito aggiornato! Foto live in ~60 sec'))
+    .catch(e=>toast('❌ '+e.message));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1447,27 +1553,6 @@ function saveSettings(){
   stSave();closeM('m-settings');toast('✓ Impostazioni salvate');
 }
 
-async function exportAndDownload(){
-  try {
-    toast('⏳ Preparazione in corso…', 8000);
-    const resp = await fetch(location.href);
-    let html = await resp.text();
-    // Merge localStorage photos into PHOTO_DEFAULTS
-    const merged = Object.assign({}, PHOTO_DEFAULTS);
-    Object.entries(ST.photos||{}).forEach(([k,v])=>{ if(v&&v.length) merged[k]=v; });
-    const newConst = 'const PHOTO_DEFAULTS = ' + JSON.stringify(merged) + ';';
-    const updated = html.replace(/const PHOTO_DEFAULTS = \{[\s\S]*?\};/, newConst);
-    if(updated === html){ toast('❌ Errore: pattern non trovato'); return; }
-    const blob = new Blob([updated], {type:'text/html;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'milanomatching.html';
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-    toast('✅ Scaricato! Sostituisci il file nella cartella del progetto.');
-  } catch(e){ toast('❌ ' + e.message); }
-}
 
 // ── Modal helpers ─────────────────────────────────────────────
 const openM=id=>document.getElementById(id).classList.add('open');

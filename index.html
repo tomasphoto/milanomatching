@@ -2444,14 +2444,12 @@ function aCard(p){
   const now=isNow(p.avail);
   const rl=p.st>=5?'5+ locali':(RL[p.st]||p.st+' locali');
   const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  const ea=p.addr.replace(/'/g,"\\'");
   return `
-<div class="ac${hid?' ac-hidden':''}">
+<div class="ac${hid?' ac-hidden':''}" onclick="openAdminCard('${ek}')">
   <div class="ac-img">
     ${ph0?`<img src="${ph0}" alt="${p.addr}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:``}
-    <div class="ac-img-ph${ph0?'':' ac-img-ph-empty'}" style="${ph0?'display:none':''}" onclick="openPhotos('${ek}','${ea}')">
-      <span style="font-size:28px">📷</span>
-      <span style="font-size:11px;color:var(--gold);margin-top:4px;letter-spacing:.05em">AGGIUNGI FOTO</span>
+    <div class="ac-img-ph" style="${ph0?'display:none':'display:flex'}">
+      <span style="font-size:28px;opacity:.15">—</span>
     </div>
     ${photos.length>1?`<div class="ac-img-n">${photos.length} foto</div>`:''}
     ${hid?'<div class="ac-hid-tag">Nascosta</div>':''}
@@ -2465,15 +2463,8 @@ function aCard(p){
       <span class="ac-m"><span class="ac-dot ${now?'now':'later'}"></span>${p.avail}</span>
     </div>
     <div class="ac-price">
-      ${p.price>0?'€'+p.price.toLocaleString('it-IT'):'—'}
+      ${p.price>0?'&#8364;'+p.price.toLocaleString('it-IT'):'—'}
       ${p.price>0?'<small> /mese</small>':''}
-    </div>
-    <div class="ac-acts">
-      <button class="btn-ac" onclick="openEdit('${ek}')">✏ Modifica</button>
-      <button class="btn-ac${photos.length?'':' btn-ac-photo-empty'}" onclick="openPhotos('${ek}','${ea}')">📷 ${photos.length?'Foto ('+photos.length+')':'Carica foto'}</button>
-      <button class="btn-ac" onclick="toggleHid('${ek}')">${hid?'👁 Mostra':'🚫 Nascondi'}</button>
-      <button class="btn-ac" onclick="delCustom('${ek}')">🗑 Rimuovi</button>
-      <button class="btn-ac btn-ac-share" onclick="openShare('${ek}','${ea}')">🔗 Genera link per il cliente</button>
     </div>
   </div>
 </div>`;

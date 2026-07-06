@@ -2470,6 +2470,175 @@ function aCard(p){
 </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════
+//  ADMIN EDIT PANEL
+// ════════════════════════════════════════════════════════════════
+let _vaepK=null, _vaepPhs=[], _vaepPhIdx=0;
+
+function openAdminCard(k){
+  const p=allP().find(x=>fk(x)===k);if(!p)return;
+  _vaepK=k;
+  document.getElementById('vaep-fk').value=k;
+  document.getElementById('vaep-ag').value=p.g;
+  document.getElementById('vaep-addr').value=p.addr;
+  document.getElementById('vaep-st').value=p.st;
+  document.getElementById('vaep-mq').value=p.mq||'';
+  document.getElementById('vaep-avail').value=p.avail;
+  document.getElementById('vaep-price').value=p.price||'';
+  document.getElementById('vaep-url').value=p.url||'';
+  document.getElementById('vaep-desc').value=p.desc;
+  document.getElementById('vaep-hid-btn').textContent=ST.hiddenKeys.includes(k)?'Mostra':'Nascondi';
+  _vaepPhs=ST.photos[k]||[];
+  vaepHeroSetup(_vaepPhs,p.addr);
+  vaepRenderCara(p);
+  const ep=document.getElementById('va-ep');
+  ep.classList.remove('hidden');
+  ep.scrollTop=0;
+}
+
+function closeAdminCard(){
+  document.getElementById('va-ep').classList.add('hidden');
+  _vaepK=null;
+}
+
+function saveAdminCard(){
+  const k=_vaepK;if(!k)return;
+  const d={
+    g:document.getElementById('vaep-ag').value.trim(),
+    addr:document.getElementById('vaep-addr').value.trim(),
+    price:+document.getElementById('vaep-price').value||0,
+    mq:+document.getElementById('vaep-mq').value||0,
+    st:+document.getElementById('vaep-st').value||2,
+    avail:document.getElementById('vaep-avail').value.trim(),
+    desc:document.getElementById('vaep-desc').value.trim(),
+    url:document.getElementById('vaep-url').value.trim(),
+  };
+  // Collect caratteristiche edits
+  ['piano','cucina','arredato','risc','clima'].forEach(f=>{
+    const el=document.getElementById('vaep-c-'+f);
+    if(el)d[f]=el.value;
+  });
+  ['piani','cam','bagni'].forEach(f=>{
+    const el=document.getElementById('vaep-c-'+f);
+    if(el)d[f]=+el.value||0;
+  });
+  ['asc','balcone','terrazzo'].forEach(f=>{
+    const el=document.getElementById('vaep-c-'+f);
+    if(el)d[f]=el.value==='true';
+  });
+  const isBase=BP.find(p=>fk(p)===k);
+  if(isBase)ST.edits[k]=d;
+  else{const i=ST.customProps.findIndex(p=>fk(p)===k);if(i>=0)Object.assign(ST.customProps[i],d);}
+  stSave();aRender();closeAdminCard();
+  scheduleSync();
+  toast('Modifiche salvate');
+}
+
+function vaepShare(){
+  if(!_vaepK)return;
+  const p=allP().find(x=>fk(x)===_vaepK);
+  if(p)openShare(_vaepK,p.addr);
+}
+
+function vaepPhotos(){
+  if(!_vaepK)return;
+  const p=allP().find(x=>fk(x)===_vaepK);
+  if(p)openPhotos(_vaepK,p.addr);
+}
+
+function vaepToggleHid(){
+  if(!_vaepK)return;
+  const i=ST.hiddenKeys.indexOf(_vaepK);
+  if(i>=0)ST.hiddenKeys.splice(i,1);else ST.hiddenKeys.push(_vaepK);
+  stSave();aRender();scheduleSync();
+  document.getElementById('vaep-hid-btn').textContent=ST.hiddenKeys.includes(_vaepK)?'Mostra':'Nascondi';
+}
+
+function vaepDelete(){
+  if(!_vaepK)return;
+  if(!ST.customProps.find(p=>fk(p)===_vaepK)){toast('Solo proprietà personalizzate possono essere rimosse.');return;}
+  if(!confirm('Rimuovere questa proprietà?'))return;
+  ST.customProps=ST.customProps.filter(p=>fk(p)!==_vaepK);
+  delete ST.photos[_vaepK];delete ST.edits[_vaepK];
+  stSave();aRender();closeAdminCard();scheduleSync();
+}
+
+function vaepHeroSetup(photos,addr){
+  _vaepPhs=photos;_vaepPhIdx=0;
+  const hero=document.getElementById('vaep-hero');
+  const ph=document.getElementById('vaep-hero-ph');
+  hero.querySelector('img.vaep-img')?.remove();
+  const cnt=document.getElementById('vaep-counter');
+  const btn=document.getElementById('vaep-all-btn');
+  const pv=document.getElementById('vaep-prev');
+  const nx=document.getElementById('vaep-next');
+  if(photos.length){
+    ph.style.display='none';
+    const img=document.createElement('img');
+    img.className='vaep-img';
+    img.src=photos[0];img.alt=addr||'';
+    img.onerror=()=>{img.remove();ph.style.display='flex';};
+    hero.insertBefore(img,hero.firstChild);
+    if(photos.length>1){
+      cnt.classList.remove('hidden');btn.classList.remove('hidden');
+      pv.classList.remove('hidden');nx.classList.remove('hidden');
+      cnt.textContent='1 / '+photos.length;
+      btn.innerHTML='&#9638; '+photos.length+' foto';
+    }else{
+      cnt.classList.add('hidden');btn.classList.add('hidden');
+      pv.classList.add('hidden');nx.classList.add('hidden');
+    }
+    swipeSetup(hero,()=>vaepHeroNav(1),()=>vaepHeroNav(-1));
+  }else{
+    ph.style.display='flex';
+    [cnt,btn,pv,nx].forEach(el=>el.classList.add('hidden'));
+  }
+}
+
+function vaepHeroNav(dir){
+  if(!_vaepPhs.length)return;
+  _vaepPhIdx=(_vaepPhIdx+dir+_vaepPhs.length)%_vaepPhs.length;
+  const img=document.getElementById('vaep-hero').querySelector('img.vaep-img');
+  if(img)img.src=_vaepPhs[_vaepPhIdx];
+  document.getElementById('vaep-counter').textContent=(_vaepPhIdx+1)+' / '+_vaepPhs.length;
+}
+
+function vaepRenderCara(p){
+  const wrap=document.getElementById('vaep-cara-wrap');
+  const grid=document.getElementById('vaep-cara-grid');
+  const CARA_FIELDS=[
+    {id:'piano',l:'Piano',type:'text'},
+    {id:'piani',l:'Piani edificio',type:'number'},
+    {id:'asc',l:'Ascensore',type:'bool'},
+    {id:'cam',l:'Camere da letto',type:'number'},
+    {id:'bagni',l:'Bagni',type:'number'},
+    {id:'cucina',l:'Cucina',type:'text'},
+    {id:'arredato',l:'Arredato',type:'text'},
+    {id:'balcone',l:'Balcone',type:'bool'},
+    {id:'terrazzo',l:'Terrazzo',type:'bool'},
+    {id:'risc',l:'Riscaldamento',type:'text'},
+    {id:'clima',l:'Climatizzazione',type:'text'},
+  ];
+  const present=CARA_FIELDS.filter(f=>p[f.id]!=null);
+  if(!present.length){wrap.classList.add('hidden');return;}
+  grid.innerHTML=present.map(f=>{
+    let inp;
+    const v=p[f.id];
+    if(f.type==='bool'){
+      inp=`<select class="vaep-cara-in" id="vaep-c-${f.id}">
+        <option value="true"${v===true?' selected':''}>Si</option>
+        <option value="false"${v===false?' selected':''}>No</option>
+      </select>`;
+    }else if(f.type==='number'){
+      inp=`<input class="vaep-cara-in" id="vaep-c-${f.id}" type="number" value="${v??''}">`;
+    }else{
+      inp=`<input class="vaep-cara-in" id="vaep-c-${f.id}" type="text" value="${(v??'').toString().replace(/"/g,'&quot;')}">`;
+    }
+    return `<div class="vaep-cara-item"><div class="vaep-cara-lbl">${f.l}</div>${inp}</div>`;
+  }).join('');
+  wrap.classList.remove('hidden');
+}
+
 function toggleHid(k){
   const i=ST.hiddenKeys.indexOf(k);
   if(i>=0)ST.hiddenKeys.splice(i,1);else ST.hiddenKeys.push(k);

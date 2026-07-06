@@ -1722,7 +1722,7 @@ function matchLead(lead){
     if(ST.hiddenKeys.includes(fk(p)))return false;
     if(bMax>0&&p.price>bMax*1.05)return false; // 5% flex
     if(stanze.length>0){
-      const ok=stanze.includes(5)?p.st>=5:stanze.includes(p.st);
+      const ok=stanze.some(s=>s>=5?p.st>=5:p.st===s);
       if(!ok)return false;
     }
     if(zones.length>0&&!zones.includes(p.g))return false;

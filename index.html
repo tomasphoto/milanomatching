@@ -1429,8 +1429,9 @@ async function savePhotos(){
   if(_phWorking.length)ST.photos[k]=_phWorking;else delete ST.photos[k];
   stSave();closeM('m-photos');aRender();
   toast('⏳ '+done+' foto caricate — aggiornamento sito…',15000);
-  ghUpdateSite()
-    .then(()=>toast('✅ Live in ~60 sec — WhatsApp preview pronta!'))
+  const ts1=Date.now();
+  ghUpdateSite(ts1)
+    .then(()=>{ ST.syncTs=ts1;stSave();toast('✅ Live in ~60 sec — WhatsApp preview pronta!'); })
     .catch(e=>toast('❌ '+e.message));
 }
 

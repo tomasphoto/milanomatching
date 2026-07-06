@@ -870,6 +870,93 @@
   </div>
 </div>
 
+<!-- Lead Add / Edit -->
+<div class="mbg" id="m-lead">
+  <div class="mbox">
+    <h2 id="m-lead-title">Aggiungi lead</h2>
+    <p class="m-sub" id="m-lead-sub">Inserisci i dati del cliente</p>
+    <input type="hidden" id="li-id">
+    <div class="fr2">
+      <div>
+        <label class="fl">Nome</label>
+        <input class="fi" id="li-nome" placeholder="Mario Rossi">
+      </div>
+      <div>
+        <label class="fl">Profilo</label>
+        <input class="fi" id="li-profilo" placeholder="Privato, Coppia, Azienda…">
+      </div>
+    </div>
+    <div class="fr2">
+      <div>
+        <label class="fl">Telefono</label>
+        <input class="fi" id="li-tel" placeholder="+39 345…" type="tel">
+      </div>
+      <div>
+        <label class="fl">Email</label>
+        <input class="fi" id="li-email" placeholder="email@…" type="email">
+      </div>
+    </div>
+    <div class="fr2">
+      <div>
+        <label class="fl">Budget max €/mese</label>
+        <input class="fi" type="number" id="li-budget" placeholder="2500">
+      </div>
+      <div>
+        <label class="fl">Locali (es. 2, 3)</label>
+        <input class="fi" id="li-stanze" placeholder="2, 3 — lascia vuoto = indifferente">
+      </div>
+    </div>
+    <div class="fr2">
+      <div>
+        <label class="fl">Ingresso</label>
+        <input class="fi" id="li-ingresso" placeholder="Subito / Set 2026">
+      </div>
+      <div>
+        <label class="fl">Urgenza</label>
+        <select class="fi" id="li-urg">
+          <option value="Urgente">🔴 Urgente</option>
+          <option value="Alta">🟡 Alta</option>
+          <option value="Media" selected>🟢 Media</option>
+          <option value="Bassa">⚪ Bassa</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr2">
+      <div>
+        <label class="fl">Qualità (1–5)</label>
+        <input class="fi" type="number" id="li-qual" min="1" max="5" placeholder="3" value="3">
+      </div>
+      <div>
+        <label class="fl">Stato pipeline</label>
+        <select class="fi" id="li-status">
+          <option value="nuovo">Nuovo</option>
+          <option value="contattato">Contattato</option>
+          <option value="visita">Visita</option>
+          <option value="proposta">Proposta</option>
+          <option value="chiuso">Chiuso</option>
+          <option value="perso">Perso</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <label class="fl">Zone preferite (gestori)</label>
+      <input class="fi" id="li-zones" placeholder="Limido, Cavallaro… — lascia vuoto = ovunque">
+    </div>
+    <div class="fr">
+      <label class="fl">Richiesta / dettagli</label>
+      <textarea class="fi" id="li-richiesta" rows="2" placeholder="Cosa cerca esattamente…"></textarea>
+    </div>
+    <div class="fr">
+      <label class="fl">Note interne</label>
+      <textarea class="fi" id="li-note" rows="2" placeholder="Note, proprietà suggerite, osservazioni…"></textarea>
+    </div>
+    <div class="macts">
+      <button class="btn-mc" onclick="closeM('m-lead')">Annulla</button>
+      <button class="btn-ms" onclick="saveLead()">Salva</button>
+    </div>
+  </div>
+</div>
+
 <!-- Photos -->
 <div class="mbg" id="m-photos">
   <div class="mbox">

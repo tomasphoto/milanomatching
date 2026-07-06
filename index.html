@@ -1642,60 +1642,39 @@ function toast(msg,d=2500){
 }
 
 // ════════════════════════════════════════════════════════════════
-//  DEFAULT PHOTOS  (baked in by parser — admin overrides via UI)
+//  SYNCED STATE — written by ghUpdateSite(), authoritative for all devices
+//  Sentinels /*--TAG--*/ allow reliable in-place JSON replacement
 // ════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════
-//  DEFAULT SETTINGS  (baked in at deploy — clients always see these)
-//  Change these by telling Claude your details, then redeploy.
-// ════════════════════════════════════════════════════════════════
-// ════════════════════════════════════════════════════════════════
-//  SHARE PAGES  (properties with WhatsApp-preview-ready pages)
-//  Added automatically by Claude when parsing listings.
-// ════════════════════════════════════════════════════════════════
-const SHARE_PAGES = {
-  'Duomo Case::Via Cerva 19::VC01': 'share/VC01.html',
-};
+const SYNC_TIMESTAMP = /*--SYNCTIME--*/0/*--SYNCTIME--*/;
 
-const DEFAULT_SETTINGS = {
-  phone:   '+393486946024',
-  calLink: '',
-  email:   'tomas.rojas@vizzardire.com',
-};
+const SHARE_PAGES = /*--SHARES--*/{"Duomo Case::Via Cerva 19::VC01":"share/VC01.html"}/*--SHARES--*/;
 
-const PHOTO_DEFAULTS = {
-  'Duomo Case::Via Cerva 19::VC01': [
-    'https://pwm.im-cdn.it/image/1888510086/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510110/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510122/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510128/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510136/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510146/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510164/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510180/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510196/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510208/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510216/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510232/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1891699786/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510256/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510270/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510280/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510246/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510290/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510302/xxl.jpg',
-    'https://pwm.im-cdn.it/image/1888510316/xxl.jpg',
-  ],
-};
+const DEFAULT_SETTINGS = /*--SETTINGS--*/{"phone":"+393486946024","calLink":"","email":"tomas.rojas@vizzardire.com"}/*--SETTINGS--*/;
 
-// ── Boot ──────────────────────────────────────────────────────
+const PHOTO_DEFAULTS = /*--PHOTOS--*/{"Duomo Case::Via Cerva 19::VC01":["https://pwm.im-cdn.it/image/1888510086/xxl.jpg","https://pwm.im-cdn.it/image/1888510110/xxl.jpg","https://pwm.im-cdn.it/image/1888510122/xxl.jpg","https://pwm.im-cdn.it/image/1888510128/xxl.jpg","https://pwm.im-cdn.it/image/1888510136/xxl.jpg","https://pwm.im-cdn.it/image/1888510146/xxl.jpg","https://pwm.im-cdn.it/image/1888510164/xxl.jpg","https://pwm.im-cdn.it/image/1888510180/xxl.jpg","https://pwm.im-cdn.it/image/1888510196/xxl.jpg","https://pwm.im-cdn.it/image/1888510208/xxl.jpg","https://pwm.im-cdn.it/image/1888510216/xxl.jpg","https://pwm.im-cdn.it/image/1888510232/xxl.jpg","https://pwm.im-cdn.it/image/1891699786/xxl.jpg","https://pwm.im-cdn.it/image/1888510256/xxl.jpg","https://pwm.im-cdn.it/image/1888510270/xxl.jpg","https://pwm.im-cdn.it/image/1888510280/xxl.jpg","https://pwm.im-cdn.it/image/1888510246/xxl.jpg","https://pwm.im-cdn.it/image/1888510290/xxl.jpg","https://pwm.im-cdn.it/image/1888510302/xxl.jpg","https://pwm.im-cdn.it/image/1888510316/xxl.jpg"]}/*--PHOTOS--*/;
+
+const EDIT_DEFAULTS   = /*--EDITS--*/{}/*--EDITS--*/;
+const HIDDEN_DEFAULTS = /*--HIDDEN--*/[]/*--HIDDEN--*/;
+const CUSTOM_DEFAULTS = /*--CUSTOM--*/[]/*--CUSTOM--*/;
+
+// ── Boot ─────────────────────────────────────────────────────
 stLoad();
-// Merge DEFAULT_SETTINGS: if a setting is missing in localStorage, use the baked-in default.
-// This ensures clients (who have empty localStorage) always see the correct phone/email.
-Object.keys(DEFAULT_SETTINGS).forEach(k => {
-  if(!ST.settings[k]) ST.settings[k] = DEFAULT_SETTINGS[k];
-});
-// Merge default photos (only if admin hasn't overridden them)
-Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ if(!ST.photos[k]) ST.photos[k]=v; });
+const _localTs = ST.syncTs || 0;
+if(_localTs < SYNC_TIMESTAMP){
+  // GitHub state is newer than this device's last sync → use baked-in as truth
+  ST.edits       = Object.assign({}, EDIT_DEFAULTS);
+  ST.hiddenKeys  = [...HIDDEN_DEFAULTS];
+  ST.customProps = [...CUSTOM_DEFAULTS];
+  Object.assign(ST.settings, DEFAULT_SETTINGS);
+  Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ ST.photos[k]=v; });
+} else {
+  // Local is same-age or newer (unsaved session changes) → fill gaps from baked-in
+  Object.entries(EDIT_DEFAULTS).forEach(([k,v])=>{ if(!ST.edits[k]) ST.edits[k]=v; });
+  HIDDEN_DEFAULTS.forEach(k=>{ if(!ST.hiddenKeys.includes(k)) ST.hiddenKeys.push(k); });
+  CUSTOM_DEFAULTS.forEach(p=>{ if(!ST.customProps.find(x=>fk(x)===fk(p))) ST.customProps.push(p); });
+  Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ if(!ST.photos[k]) ST.photos[k]=v; });
+  Object.keys(DEFAULT_SETTINGS).forEach(k=>{ if(!ST.settings[k]) ST.settings[k]=DEFAULT_SETTINGS[k]; });
+}
 route();
 </script>
 </body>

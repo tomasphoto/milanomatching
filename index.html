@@ -1619,6 +1619,7 @@ function saveSettings(){
   ST.settings.email=document.getElementById('si-email').value.trim();
   ST.adminPw=document.getElementById('si-pw').value.trim()||'milan2026';
   stSave();closeM('m-settings');toast('✓ Impostazioni salvate');
+  scheduleSync();
 }
 
 

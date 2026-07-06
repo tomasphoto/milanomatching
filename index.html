@@ -1517,6 +1517,7 @@ function toggleHid(k){
   const i=ST.hiddenKeys.indexOf(k);
   if(i>=0)ST.hiddenKeys.splice(i,1);else ST.hiddenKeys.push(k);
   stSave();aRender();
+  scheduleSync();
 }
 function delCustom(k){
   if(!ST.customProps.find(p=>fk(p)===k)){toast('Solo proprietà personalizzate possono essere rimosse.');return;}
@@ -1524,6 +1525,7 @@ function delCustom(k){
   ST.customProps=ST.customProps.filter(p=>fk(p)!==k);
   delete ST.photos[k];delete ST.edits[k];
   stSave();aRender();
+  scheduleSync();
 }
 
 // ── Share ─────────────────────────────────────────────────────

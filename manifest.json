@@ -1,0 +1,18 @@
+{
+  "name": "Milan Matching",
+  "short_name": "Milan",
+  "description": "Consulenza immobiliare personalizzata a Milano.",
+  "start_url": "/milanomatching/",
+  "display": "standalone",
+  "background_color": "#09090C",
+  "theme_color": "#09090C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1518,6 +1518,7 @@ async function ghUpdateSite(ts=Date.now()){
   html=mmR(html,'EDITS',   JSON.stringify(mergedEdits));
   html=mmR(html,'HIDDEN',  JSON.stringify(mergedHidden));
   html=mmR(html,'CUSTOM',  JSON.stringify(mergedCustom));
+  html=mmR(html,'LEADS',   JSON.stringify(mergedLeads));
   html=mmR(html,'SYNCTIME',String(ts));
 
   await ghPut('/index.html',ghB64(html),'Sync admin state',file.sha);

@@ -2012,6 +2012,155 @@ function deleteLead(id){
   stSave();lRender();scheduleSync();
 }
 
+// ── Message Modal ──────────────────────────────────────────────
+let _msgLeadId=null;
+let _msgLangNr='it';
+let _msgLangPr='it';
+let _msgMatches=[];
+
+function msgPropUrl(p){
+  // Prefer dedicated share page, fall back to ?s= link
+  const k=fk(p);
+  const sp=SHARE_PAGES[k];
+  if(sp)return GH.base+'/'+sp;
+  return GH.base+'/?s='+enc(p);
+}
+
+function openMsgModal(id){
+  const lead=(ST.leads||[]).find(l=>l.id===id);
+  if(!lead)return;
+  _msgLeadId=id;
+  _msgLangNr='it';_msgLangPr='it';
+
+  // Header
+  document.getElementById('m-msg-name').textContent=lead.nome;
+  document.getElementById('m-msg-sub').textContent=(lead.profilo||'')+(lead.budgetMax?' · max €'+lead.budgetMax.toLocaleString('it-IT'):'');
+
+  // Reset tabs
+  msgTab('nr');
+  ['msg-nr-out','msg-pr-out'].forEach(i=>document.getElementById(i).value='');
+  ['msg-nr-copy','msg-pr-copy'].forEach(i=>document.getElementById(i).textContent='Copia');
+
+  // Lang buttons reset
+  msgLang('nr','it',true);
+  msgLang('pr','it',true);
+
+  // Build proposta checklist
+  const matches=matchLead(lead);
+  _msgMatches=matches.slice(0,8).map(k=>allP().find(x=>fk(x)===k)).filter(Boolean);
+  const listEl=document.getElementById('msg-prop-list');
+  if(_msgMatches.length===0){
+    listEl.innerHTML='<div style="padding:16px;text-align:center;font-size:12px;color:var(--textdim)">Nessuna proprietà compatibile</div>';
+  } else {
+    listEl.innerHTML=_msgMatches.map((p,i)=>{
+      const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+      return `<label class="msg-prop-row">
+        <input type="checkbox" id="mpchk-${i}" checked>
+        <div class="msg-prop-info">
+          <div class="msg-prop-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span></div>
+          <div class="msg-prop-meta">${rl}${p.mq?' · '+p.mq+'mq':''} · €${p.price.toLocaleString('it-IT')}/mese · ${p.avail}</div>
+        </div>
+      </label>`;
+    }).join('');
+  }
+
+  openM('m-msg');
+}
+
+function msgTab(tab){
+  document.getElementById('msgtab-nr').classList.toggle('active',tab==='nr');
+  document.getElementById('msgtab-pr').classList.toggle('active',tab==='pr');
+  document.getElementById('msgpanel-nr').style.display=tab==='nr'?'':'none';
+  document.getElementById('msgpanel-pr').style.display=tab==='pr'?'':'none';
+}
+
+function msgLang(panel,lang,silent){
+  if(panel==='nr')_msgLangNr=lang;
+  else _msgLangPr=lang;
+  ['it','en'].forEach(l=>{
+    const btn=document.getElementById('msglang-'+panel+'-'+l);
+    if(btn)btn.classList.toggle('active',l===lang);
+  });
+  if(!silent){
+    if(panel==='nr'&&document.getElementById('msg-nr-out').value)genNonRaggiungibile();
+    if(panel==='pr'&&document.getElementById('msg-pr-out').value)genProposta();
+  }
+}
+
+function msgSelectAll(checked){
+  _msgMatches.forEach((_,i)=>{
+    const c=document.getElementById('mpchk-'+i);
+    if(c)c.checked=checked;
+  });
+}
+
+function genNonRaggiungibile(){
+  const lead=(ST.leads||[]).find(l=>l.id===_msgLeadId);if(!lead)return;
+  const lang=_msgLangNr;
+  const first=lead.nome.split(' ')[0];
+  // Use first matched property if available
+  const p=_msgMatches[0]||null;
+  let txt;
+  if(lang==='en'){
+    txt='Hi '+first+',\n\n'
+      +(p?'I was calling regarding your enquiry about the apartment at '+p.addr+'.'
+          :'I was calling regarding your enquiry about one of our apartments.')
+      +'\n\nPlease let me know when you are available, or feel free to call me back at your convenience.'
+      +'\n\nSpeak soon,\nTommaso Vizzardi';
+  } else {
+    txt='Ciao '+first+',\n\n'
+      +(p?'La chiamavo riguardo alla sua richiesta di informazioni sull\'appartamento in '+p.addr+'.'
+          :'La chiamavo riguardo alla sua richiesta di informazioni su uno dei nostri appartamenti.')
+      +'\n\nMi faccia sapere quando è disponibile, oppure mi richiami quando preferisce.'
+      +'\n\nA presto,\nTommaso Vizzardi';
+  }
+  document.getElementById('msg-nr-out').value=txt;
+}
+
+function genProposta(){
+  const lead=(ST.leads||[]).find(l=>l.id===_msgLeadId);if(!lead)return;
+  const lang=_msgLangPr;
+  const first=lead.nome.split(' ')[0];
+  const selected=_msgMatches.filter((_,i)=>{
+    const c=document.getElementById('mpchk-'+i);return c&&c.checked;
+  });
+  if(selected.length===0){toast('Seleziona almeno una proprietà');return;}
+
+  let txt;
+  if(lang==='en'){
+    txt='Hi '+first+',\n\nbased on your search criteria, here are some options that could be a good fit:\n\n';
+    selected.forEach((p,i)=>{
+      const rl=p.st===1?'1 room':p.st+' rooms';
+      const avail=(p.avail||'').toLowerCase()==='subito'?'available immediately':'available from '+p.avail;
+      txt+=(i+1)+'. '+p.addr+' ('+p.g+')\n';
+      txt+='   €'+p.price.toLocaleString('it-IT')+'/month · '+rl+(p.mq?' · '+p.mq+' sqm':'')+' · '+avail+'\n';
+      if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
+      txt+='   '+msgPropUrl(p)+'\n\n';
+    });
+    txt+='Let me know if any of these interest you and we can arrange a viewing.\n\nSpeak soon,\nTommaso Vizzardi';
+  } else {
+    txt='Ciao '+first+',\n\nin base alle sue richieste, ecco alcune soluzioni che potrebbero fare al caso suo:\n\n';
+    selected.forEach((p,i)=>{
+      const rl=p.st===1?'1 stanza':p.st+' stanze';
+      const avail=(p.avail||'').toLowerCase()==='subito'?'disponibile subito':'disponibile dal '+p.avail;
+      txt+=(i+1)+'. '+p.addr+' ('+p.g+')\n';
+      txt+='   €'+p.price.toLocaleString('it-IT')+'/mese · '+rl+(p.mq?' · '+p.mq+'mq':'')+' · '+avail+'\n';
+      if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
+      txt+='   '+msgPropUrl(p)+'\n\n';
+    });
+    txt+='Mi faccia sapere se qualcuna di queste soluzioni la interessa e organizziamo una visita.\n\nA presto,\nTommaso Vizzardi';
+  }
+  document.getElementById('msg-pr-out').value=txt;
+}
+
+function copyMsgOut(taId,btnId){
+  const ta=document.getElementById(taId);if(!ta||!ta.value)return;
+  ta.select();
+  try{document.execCommand('copy');}catch(e){navigator.clipboard&&navigator.clipboard.writeText(ta.value);}
+  const btn=document.getElementById(btnId);
+  if(btn){btn.textContent='Copiato!';setTimeout(()=>btn.textContent='Copia',2200);}
+}
+
 function aRender(){
   const rooms=document.getElementById('af-rooms').value;
   const agency=document.getElementById('af-agency').value;

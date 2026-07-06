@@ -984,6 +984,71 @@
 
 </div>
 
+<!-- ══ ADMIN EDIT PANEL ════════════════════════════════════ -->
+<div id="va-ep" class="hidden">
+  <!-- Top bar -->
+  <div class="vaep-bar">
+    <button class="vaep-close" onclick="closeAdminCard()">&#10005; &nbsp;Chiudi</button>
+    <button class="vaep-btn" onclick="vaepPhotos()">Foto</button>
+    <button class="vaep-btn" onclick="vaepShare()">Link cliente</button>
+    <button class="vaep-btn" id="vaep-hid-btn" onclick="vaepToggleHid()">Nascondi</button>
+    <button class="vaep-btn vaep-btn-del" onclick="vaepDelete()">Rimuovi</button>
+    <button class="vaep-save" onclick="saveAdminCard()">Salva modifiche</button>
+  </div>
+  <!-- Hero carousel -->
+  <div class="vaep-hero" id="vaep-hero">
+    <div class="vaep-hero-ph" id="vaep-hero-ph">Nessuna foto</div>
+    <button class="hero-arrow" id="vaep-prev" onclick="vaepHeroNav(-1)">&#8249;</button>
+    <button class="hero-arrow hero-next" id="vaep-next" onclick="vaepHeroNav(1)">&#8250;</button>
+    <div class="hero-counter hidden" id="vaep-counter"></div>
+    <button class="hero-all-btn hidden" id="vaep-all-btn" onclick="vaepPhotos()">&#9638; Tutte le foto</button>
+  </div>
+  <!-- Body -->
+  <div class="vaep-body">
+    <input type="hidden" id="vaep-fk">
+    <input class="vaep-agency-in" id="vaep-ag" type="text" placeholder="Agenzia">
+    <input class="vaep-addr-in" id="vaep-addr" type="text" placeholder="Indirizzo">
+    <!-- Quick stats row -->
+    <div class="vaep-quick">
+      <div class="vaep-field">
+        <span class="vaep-lbl">Locali</span>
+        <select class="vaep-in" id="vaep-st">
+          <option value="1">Monolocale</option>
+          <option value="2">Bilocale</option>
+          <option value="3">Trilocale</option>
+          <option value="4">Quadrilocale</option>
+          <option value="5">5+ locali</option>
+        </select>
+      </div>
+      <div class="vaep-field">
+        <span class="vaep-lbl">Superficie mq</span>
+        <input class="vaep-in" id="vaep-mq" type="number" placeholder="—" style="width:80px;">
+      </div>
+      <div class="vaep-field">
+        <span class="vaep-lbl">Disponibile da</span>
+        <input class="vaep-in" id="vaep-avail" type="text" placeholder="Subito" style="width:130px;">
+      </div>
+      <div class="vaep-field">
+        <span class="vaep-lbl">URL annuncio</span>
+        <input class="vaep-in" id="vaep-url" type="text" placeholder="https://…" style="width:220px;">
+      </div>
+    </div>
+    <!-- Price -->
+    <div class="vaep-price-row">
+      <input class="vaep-price-in" id="vaep-price" type="number" placeholder="0">
+      <span class="vaep-price-unit">/mese</span>
+    </div>
+    <!-- Description -->
+    <div class="vaep-sec-hd">Descrizione</div>
+    <textarea class="vaep-desc-in" id="vaep-desc" placeholder="Descrizione…"></textarea>
+    <!-- Caratteristiche -->
+    <div id="vaep-cara-wrap" class="hidden">
+      <div class="vaep-sec-hd">Caratteristiche</div>
+      <div class="vaep-cara-grid" id="vaep-cara-grid"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODALS ══════════════════════════════════════════════ -->
 
 <!-- Add / Edit -->

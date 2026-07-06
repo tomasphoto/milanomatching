@@ -1008,6 +1008,55 @@
   </div>
 </div>
 
+<!-- Message Modal -->
+<div class="mbg" id="m-msg">
+  <div class="mbox" style="max-width:560px">
+    <h2 id="m-msg-name"></h2>
+    <p class="m-sub" id="m-msg-sub"></p>
+
+    <div class="msg-tabs">
+      <button class="msg-tab active" id="msgtab-nr" onclick="msgTab('nr')">Non raggiungibile</button>
+      <button class="msg-tab" id="msgtab-pr" onclick="msgTab('pr')">Proposta</button>
+    </div>
+
+    <!-- Non raggiungibile tab -->
+    <div id="msgpanel-nr">
+      <div class="msg-lang">
+        <button class="msg-lang-btn active" id="msglang-nr-it" onclick="msgLang('nr','it')">IT</button>
+        <button class="msg-lang-btn" id="msglang-nr-en" onclick="msgLang('nr','en')">EN</button>
+      </div>
+      <button class="btn-msg-gen" onclick="genNonRaggiungibile()">Genera messaggio</button>
+      <textarea class="msg-output" id="msg-nr-out" placeholder="Il testo apparirà qui…" rows="6"></textarea>
+      <div class="msg-actions">
+        <button class="btn-msg-copy" id="msg-nr-copy" onclick="copyMsgOut('msg-nr-out','msg-nr-copy')">Copia</button>
+      </div>
+    </div>
+
+    <!-- Proposta tab -->
+    <div id="msgpanel-pr" style="display:none">
+      <div class="msg-lang">
+        <button class="msg-lang-btn active" id="msglang-pr-it" onclick="msgLang('pr','it')">IT</button>
+        <button class="msg-lang-btn" id="msglang-pr-en" onclick="msgLang('pr','en')">EN</button>
+      </div>
+      <div style="font-size:10px;color:var(--textdim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Proprietà da includere</div>
+      <div class="msg-prop-list" id="msg-prop-list"></div>
+      <div style="display:flex;gap:8px;margin-bottom:4px">
+        <button class="btn-msg-copy" onclick="msgSelectAll(true)">Seleziona tutti</button>
+        <button class="btn-msg-copy" onclick="msgSelectAll(false)">Deseleziona tutti</button>
+      </div>
+      <button class="btn-msg-gen" onclick="genProposta()">Genera messaggio</button>
+      <textarea class="msg-output" id="msg-pr-out" placeholder="Il testo apparirà qui…" rows="8"></textarea>
+      <div class="msg-actions">
+        <button class="btn-msg-copy" id="msg-pr-copy" onclick="copyMsgOut('msg-pr-out','msg-pr-copy')">Copia</button>
+      </div>
+    </div>
+
+    <div class="macts" style="margin-top:16px">
+      <button class="btn-mc" onclick="closeM('m-msg')">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <!-- Photos -->
 <div class="mbg" id="m-photos">
   <div class="mbox">

@@ -1602,6 +1602,7 @@ function saveProp(){
     if(fp)ST.floorplans[nk]=fp;
   }
   stSave();closeM('m-add');aRender();
+  scheduleSync();
 }
 
 // ── Settings ──────────────────────────────────────────────────

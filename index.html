@@ -1498,6 +1498,7 @@ async function ghUpdateSite(ts=Date.now()){
   const mergedEdits=Object.assign({},EDIT_DEFAULTS,ST.edits||{});
   const mergedHidden=[...(ST.hiddenKeys||[])];
   const mergedCustom=[...(ST.customProps||[])];
+  const mergedLeads=[...(ST.leads||[])];
 
   // ── Fetch index.html from GitHub ──────────────────────────
   const file=await ghAPI('GET','/index.html');

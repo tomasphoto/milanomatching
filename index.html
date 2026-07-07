@@ -3812,7 +3812,7 @@ if(_localTs < SYNC_TIMESTAMP){
   Object.entries(EDIT_DEFAULTS).forEach(([k,v])=>{ if(!ST.edits[k]) ST.edits[k]=v; });
   HIDDEN_DEFAULTS.forEach(k=>{ if(!ST.hiddenKeys.includes(k)) ST.hiddenKeys.push(k); });
   CUSTOM_DEFAULTS.forEach(p=>{ if(!ST.customProps.find(x=>fk(x)===fk(p))) ST.customProps.push(p); });
-  LEAD_DEFAULTS.forEach(l=>{ if(!ST.leads.find(x=>x.id===l.id)) ST.leads.push(Object.assign({},l)); });
+  LEAD_DEFAULTS.forEach(l=>{ const ex=ST.leads.find(x=>x.id===l.id); if(!ex){ST.leads.push(Object.assign({},l));}else{if(l.tel&&!ex.tel)ex.tel=l.tel;if(l.email&&!ex.email)ex.email=l.email;} });
   Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ if(!ST.photos[k]) ST.photos[k]=v; });
   Object.keys(DEFAULT_SETTINGS).forEach(k=>{ if(!ST.settings[k]) ST.settings[k]=DEFAULT_SETTINGS[k]; });
 }

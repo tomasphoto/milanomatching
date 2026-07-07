@@ -2347,6 +2347,11 @@ function lUpdateTabCount(){
   if(el)el.textContent=n?n:'';
 }
 
+function leadSortKey(l){
+  if(l.addedAt)return l.addedAt;
+  return +(l.id||'').replace(/[^\d]/g,'')||0;
+}
+
 function lRender(){
   const status=(document.getElementById('lf-status')||{}).value||'';
   const search=((document.getElementById('lf-search')||{}).value||'').toLowerCase();
@@ -2358,11 +2363,7 @@ function lRender(){
     (l.richiesta||'').toLowerCase().includes(search)||
     (l.note||'').toLowerCase().includes(search)
   );
-  leads.sort((a,b)=>{
-    const ua=URG_ORDER[(a.urg||'').toLowerCase()]??2;
-    const ub=URG_ORDER[(b.urg||'').toLowerCase()]??2;
-    return ua!==ub?ua-ub:(b.addedAt||0)-(a.addedAt||0);
-  });
+  leads.sort((a,b)=>leadSortKey(a)-leadSortKey(b));
   const cnt=document.getElementById('la-count');
   if(cnt)cnt.textContent=leads.length+' lead';
   const grid=document.getElementById('la-grid');
@@ -2427,9 +2428,12 @@ function lCard(lead){
             onchange="setLeadStatus('${eid}',this.value);this.blur()">
       ${Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('')}
     </select>
-    ${lead.tel?`<a class="btn-lc" href="tel:${lead.tel}">${lead.tel}</a>`:''}
+    ${lead.tel?
+    `<a class="btn-lc btn-lc-tel" href="tel:${lead.tel}">📞 ${lead.tel}</a>`:
+    `<button class="btn-lc" style="opacity:.38" onclick="openLeadEdit('${eid}')" title="Aggiungi numero">📞 —</button>`}
     <button class="btn-lc" onclick="openMsgModal('${eid}')">Messaggio</button>
     <button class="btn-lc" onclick="openLeadEdit('${eid}')">Modifica</button>
+    <button class="btn-lc" onclick="saveContact('${eid}')">Salva Contatto</button>
     <button class="btn-lc btn-lc-del" onclick="deleteLead('${eid}')" style="margin-left:auto">Rimuovi</button>
   </div>
 </div>`;
@@ -2513,13 +2517,41 @@ function saveLead(){
   if(!d.nome){toast('Inserisci almeno il nome');return;}
   if(!ST.leads)ST.leads=[];
   if(id){const i=ST.leads.findIndex(l=>l.id===id);if(i>=0)Object.assign(ST.leads[i],d);}
-  else{d.id='L'+Date.now();d.addedAt=Date.now();ST.leads.unshift(d);}
+  else{d.id='L'+Date.now();d.addedAt=Date.now();ST.leads.push(d);}
   stSave();closeM('m-lead');lRender();scheduleSync();
 }
 function deleteLead(id){
   if(!confirm('Rimuovere questo lead?'))return;
   ST.leads=(ST.leads||[]).filter(l=>l.id!==id);
   stSave();lRender();scheduleSync();
+}
+
+function saveContact(id){
+  const lead=(ST.leads||[]).find(l=>l.id===id);
+  if(!lead)return;
+  const fn=(lead.nome||'Lead').trim();
+  const parts=fn.split(/\s+/);
+  const esc=s=>(s||'').replace(/,/g,'\\,').replace(/\n/g,'\\n').replace(/;/g,'\\;');
+  const tel=(lead.tel||'').replace(/\s/g,'');
+  const noteStr=[lead.profilo,lead.richiesta&&'Richiesta: '+lead.richiesta]
+    .filter(Boolean).map(esc).join(' — ');
+  const lines=[
+    'BEGIN:VCARD','VERSION:3.0',
+    `N:${esc(parts.slice(1).join(' '))};${esc(parts[0])};;;`,
+    `FN:${esc(fn)}`,
+  ];
+  if(tel)        lines.push(`TEL;TYPE=CELL:${tel}`);
+  if(lead.email) lines.push(`EMAIL:${lead.email}`);
+  if(lead.profilo)lines.push(`ORG:${esc(lead.profilo)}`);
+  if(noteStr)    lines.push(`NOTE:${noteStr}`);
+  lines.push('END:VCARD');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/vcard;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=fn.replace(/\s+/g,'_')+'.vcf';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('✓ Contatto salvato');
 }
 
 // ── Message Modal ──────────────────────────────────────────────

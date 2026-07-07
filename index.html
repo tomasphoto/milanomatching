@@ -3360,6 +3360,7 @@ async function renderMapView(){
       attribution:'&copy; <a href="https://carto.com/" style="color:#666">CARTO</a>',
       subdomains:'abcd',maxZoom:19
     }).addTo(_leafletMap);
+    _addMetroLines();
   }
 
   _mapMarkers.forEach(m=>_leafletMap.removeLayer(m)); _mapMarkers=[];

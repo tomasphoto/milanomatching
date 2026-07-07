@@ -2565,7 +2565,8 @@ function copyMsgOut(taId,btnId){
   if(btn){btn.textContent='Copiato!';setTimeout(()=>btn.textContent='Copia',2200);}
 }
 
-function aRender(){
+// Shared filter logic — used by both list and map views
+function getFilteredProps(){
   const rooms  = document.getElementById('af-rooms').value;
   const agency = document.getElementById('af-agency').value;
   const avail  = document.getElementById('af-avail').value;
@@ -2573,46 +2574,150 @@ function aRender(){
   const price  = document.getElementById('af-price').value;
   const mq     = document.getElementById('af-mq').value;
   const zone   = (document.getElementById('af-zone').value||'').toLowerCase().trim();
-
-  // Populate agency filter
-  const ags=[...new Set(allP().map(p=>p.g))].sort();
-  const sel=document.getElementById('af-agency');
-  const cur=sel.value;
-  sel.innerHTML='<option value="">Tutte le agenzie</option>'+
-    ags.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
-
   let props=allP();
   if(rooms){const r=+rooms;props=r===4?props.filter(p=>p.st>=4):props.filter(p=>p.st===r);}
   if(agency)props=props.filter(p=>p.g===agency);
   if(avail==='now')props=props.filter(p=>isNow(p.avail));
   if(vis==='vis')props=props.filter(p=>!ST.hiddenKeys.includes(fk(p)));
   if(vis==='hid')props=props.filter(p=>ST.hiddenKeys.includes(fk(p)));
+  if(price){const pt=price.split('-');const pMin=+pt[0];const pMax=pt[1]===''?Infinity:+pt[1];props=props.filter(p=>p.price>0&&p.price>=pMin&&p.price<=pMax);}
+  if(mq){const pt=mq.split('-');const mMin=+pt[0];const mMax=pt[1]===''?Infinity:+pt[1];props=props.filter(p=>p.mq>0&&p.mq>=mMin&&p.mq<=mMax);}
+  if(zone)props=props.filter(p=>(p.addr||'').toLowerCase().includes(zone)||(p.desc||'').toLowerCase().includes(zone)||(p.g||'').toLowerCase().includes(zone));
+  return props;
+}
 
-  if(price){
-    const parts=price.split('-');
-    const pMin=+parts[0];
-    const pMax=parts[1]===''?Infinity:+parts[1];
-    props=props.filter(p=>p.price>0&&p.price>=pMin&&p.price<=pMax);
-  }
-  if(mq){
-    const parts=mq.split('-');
-    const mMin=+parts[0];
-    const mMax=parts[1]===''?Infinity:+parts[1];
-    props=props.filter(p=>p.mq>0&&p.mq>=mMin&&p.mq<=mMax);
-  }
-  if(zone){
-    props=props.filter(p=>
-      (p.addr||'').toLowerCase().includes(zone)||
-      (p.desc||'').toLowerCase().includes(zone)||
-      (p.g||'').toLowerCase().includes(zone)
-    );
-  }
+function aRender(){
+  // Populate agency dropdown
+  const ags=[...new Set(allP().map(p=>p.g))].sort();
+  const sel=document.getElementById('af-agency');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Tutte le agenzie</option>'+
+    ags.map(a=>`<option value="${a}"${a===cur?' selected':''}>${a}</option>`).join('');
 
+  const props=getFilteredProps();
   document.getElementById('va-count').textContent=`${props.length} proprietà`;
   const grid=document.getElementById('va-grid');
   grid.innerHTML=props.length
     ?props.map(aCard).join('')
     :'<div class="va-empty">Nessuna proprietà trovata</div>';
+
+  // If map is visible, refresh it too
+  if(!document.getElementById('vp-map-view').classList.contains('hidden'))renderMapView();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MAP VIEW
+// ════════════════════════════════════════════════════════════════
+let _leafletMap=null, _mapMarkers=[], _geoCache={}, _geoCacheLoaded=false;
+
+function _loadGeoCache(){
+  if(_geoCacheLoaded)return;
+  _geoCacheLoaded=true;
+  try{_geoCache=JSON.parse(localStorage.getItem('_lm_geocache')||'{}');}catch(e){_geoCache={};}
+}
+function _saveGeoCache(){
+  try{localStorage.setItem('_lm_geocache',JSON.stringify(_geoCache));}catch(e){}
+}
+
+async function _geocode(addr){
+  _loadGeoCache();
+  const key=(addr||'').toLowerCase().trim();
+  if(_geoCache[key])return _geoCache[key];
+  try{
+    const q=encodeURIComponent(addr+', Milano, Italia');
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&accept-language=it`,
+      {headers:{'User-Agent':'LinkMilano/1.0'}});
+    const d=await r.json();
+    if(d.length){
+      const c={lat:+d[0].lat,lng:+d[0].lon};
+      _geoCache[key]=c;_saveGeoCache();return c;
+    }
+  }catch(e){}
+  return null;
+}
+
+function propsSubTab(tab){
+  document.getElementById('vst-list').classList.toggle('active',tab==='list');
+  document.getElementById('vst-map').classList.toggle('active',tab==='map');
+  document.getElementById('vp-list-view').classList.toggle('hidden',tab!=='list');
+  document.getElementById('vp-map-view').classList.toggle('hidden',tab!=='map');
+  if(tab==='map')renderMapView();
+}
+
+function closeMapPopup(){if(_leafletMap)_leafletMap.closePopup();}
+
+async function renderMapView(){
+  _loadGeoCache();
+
+  // Init map once
+  if(!_leafletMap){
+    _leafletMap=L.map('va-map',{center:[45.4654,9.1859],zoom:13,zoomControl:true});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; <a href="https://carto.com/" style="color:#666">CARTO</a>',
+      subdomains:'abcd',maxZoom:19
+    }).addTo(_leafletMap);
+  }
+
+  // Clear old markers
+  _mapMarkers.forEach(m=>_leafletMap.removeLayer(m));
+  _mapMarkers=[];
+
+  const props=getFilteredProps();
+  const status=document.getElementById('va-map-status');
+  const uncached=props.filter(p=>!_geoCache[(p.addr||'').toLowerCase().trim()]);
+  if(uncached.length){status.textContent=`Caricamento posizioni (${uncached.length})…`;status.classList.remove('hidden');}
+
+  const goldIcon=L.divIcon({
+    className:'',
+    html:`<div style="width:14px;height:14px;background:#C9A96E;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.6);"></div>`,
+    iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]
+  });
+
+  let placed=0;
+  const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+  for(const p of props){
+    const c=await _geocode(p.addr);
+    if(!c)continue;
+
+    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+    const priceStr=p.price>0?`€${p.price.toLocaleString('it-IT')}/mese`:'—';
+    const mqStr=p.mq>0?`${p.mq} mq`:'';
+    const now=isNow(p.avail);
+    const dot=now?'#6EE0A0':'#F0C870';
+    const k=fk(p);
+    const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+    const popup=`
+      <div style="min-width:190px;">
+        <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A96E;margin-bottom:5px;">${p.g}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;line-height:1.2;margin-bottom:6px;">${p.addr}</div>
+        <div style="font-size:11px;color:#666;margin-bottom:8px;">${[rl,mqStr].filter(Boolean).join(' · ')}</div>
+        <div style="font-size:20px;font-family:'Cormorant Garamond',serif;margin-bottom:10px;">${priceStr}</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;margin-bottom:14px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0;"></span>${p.avail||'Subito'}
+        </div>
+        <button onclick="closeMapPopup();openAdminCard('${ek}')"
+          style="width:100%;padding:9px;background:#C9A96E;border:none;border-radius:7px;color:#09090C;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.02em;">
+          Apri scheda →
+        </button>
+      </div>`;
+
+    const marker=L.marker([c.lat,c.lng],{icon:goldIcon})
+      .bindPopup(popup,{maxWidth:260,closeButton:false})
+      .addTo(_leafletMap);
+    _mapMarkers.push(marker);
+    placed++;
+
+    // Rate limit only for fresh geocode requests
+    if(!_geoCache[(p.addr||'').toLowerCase().trim()+'-done'])await delay(1100);
+  }
+
+  status.classList.add('hidden');
+  if(_mapMarkers.length>1){
+    const group=L.featureGroup(_mapMarkers);
+    _leafletMap.fitBounds(group.getBounds().pad(0.15));
+  }
 }
 
 function aCard(p){

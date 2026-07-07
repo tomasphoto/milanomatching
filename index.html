@@ -861,6 +861,7 @@
     <div class="l-btns" id="l-btns"></div>
   </div>
   <div class="l-hint">Hai ricevuto un link per una proprietà? Aprilo per visualizzare la scheda.</div>
+  <div style="position:absolute;bottom:14px;right:18px;"><span onclick="askAdmin()" style="color:#2a2a2a;font-size:11px;cursor:pointer;user-select:none;">accedi</span></div>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════
@@ -1587,13 +1588,15 @@ function showLanding(){
 }
 
 function askAdmin(){
-  showLanding(); // ensure landing is set up as backdrop + logo handler wired
+  try{ showLanding(); }catch(e){}
   const ov=document.getElementById('pw-overlay');
   const inp=document.getElementById('pw-input');
   const err=document.getElementById('pw-error');
-  inp.value=''; err.textContent='';
+  if(!ov) return;
+  if(inp) inp.value='';
+  if(err) err.textContent='';
   ov.style.display='flex';
-  setTimeout(()=>inp.focus(),80);
+  if(inp) setTimeout(()=>{ try{inp.focus();}catch(e){} },80);
 }
 function closePwOverlay(){
   document.getElementById('pw-overlay').style.display='none';

@@ -2379,7 +2379,7 @@ function genProposta(){
     selected.forEach((p,i)=>{
       const rl=p.st===1?'1 room':p.st+' rooms';
       const avail=(p.avail||'').toLowerCase()==='subito'?'available immediately':'available from '+p.avail;
-      txt+=(i+1)+'. '+p.addr+' ('+p.g+')\n';
+      txt+=(i+1)+'. '+p.addr+'\n';
       txt+='   €'+p.price.toLocaleString('it-IT')+'/month · '+rl+(p.mq?' · '+p.mq+' sqm':'')+' · '+avail+'\n';
       if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
       txt+='   '+msgPropUrl(p)+'\n\n';
@@ -2390,7 +2390,7 @@ function genProposta(){
     selected.forEach((p,i)=>{
       const rl=p.st===1?'1 stanza':p.st+' stanze';
       const avail=(p.avail||'').toLowerCase()==='subito'?'disponibile subito':'disponibile dal '+p.avail;
-      txt+=(i+1)+'. '+p.addr+' ('+p.g+')\n';
+      txt+=(i+1)+'. '+p.addr+'\n';
       txt+='   €'+p.price.toLocaleString('it-IT')+'/mese · '+rl+(p.mq?' · '+p.mq+'mq':'')+' · '+avail+'\n';
       if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
       txt+='   '+msgPropUrl(p)+'\n\n';

@@ -832,6 +832,23 @@
 
 <div id="toast"></div>
 
+<!-- ══ PASSWORD OVERLAY ══════════════════════════════════════ -->
+<div id="pw-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#13131a;border:1px solid #2a2a35;border-radius:16px;padding:36px 28px;width:min(340px,90vw);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.6);">
+    <div style="font-size:28px;margin-bottom:14px;">🔑</div>
+    <div style="color:#e8e0d0;font-size:16px;font-weight:500;margin-bottom:6px;letter-spacing:.03em;">Accesso amministratore</div>
+    <div style="color:#666;font-size:13px;margin-bottom:22px;">Link Milano</div>
+    <input id="pw-input" type="password" placeholder="Password" autocomplete="current-password"
+      style="width:100%;padding:13px 14px;border-radius:9px;border:1px solid #333;background:#09090c;color:#fff;font-size:16px;box-sizing:border-box;margin-bottom:10px;outline:none;"
+      onkeydown="if(event.key==='Enter')submitPw()">
+    <div id="pw-error" style="color:#e05555;font-size:13px;min-height:18px;margin-bottom:14px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closePwOverlay()" style="flex:1;padding:13px;border-radius:9px;border:1px solid #333;background:transparent;color:#888;cursor:pointer;font-size:14px;">Annulla</button>
+      <button onclick="submitPw()" style="flex:1;padding:13px;border-radius:9px;border:none;background:#b8963e;color:#fff;cursor:pointer;font-size:15px;font-weight:600;letter-spacing:.02em;">Accedi</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════════
      VIEW: LANDING
 ══════════════════════════════════════════════════════════ -->

@@ -2124,7 +2124,7 @@ function scheduleSync(){
 // ════════════════════════════════════════════════════════════════
 //  PHOTO ADMIN — preview + URL add + file upload
 // ════════════════════════════════════════════════════════════════
-let _phWorking=[];
+let _phWorking=[], _phDragIdx=null;
 
 function openPhotos(k,addr){
   document.getElementById('ph-fk').value=k;
@@ -2137,15 +2137,45 @@ function openPhotos(k,addr){
 
 function phRenderPreview(){
   const el=document.getElementById('ph-preview');
-  el.innerHTML=_phWorking.map((u,i)=>{
-    const preview=u.startsWith('data:')?u:u; // base64 shows instantly; GitHub URL shows after Pages rebuilds
+  const hint=_phWorking.length>1?'<p class="ph-drag-hint">&#8597; Trascina per riordinare</p>':'';
+  el.innerHTML=hint+_phWorking.map((u,i)=>{
     const isPending=u.startsWith('data:');
-    return `<div class="ph-thumb" style="position:relative">
-      <img src="${preview}" loading="lazy" onerror="this.style.opacity='.3'">
+    return `<div class="ph-thumb" draggable="true"
+      ondragstart="phDragStart(event,${i})"
+      ondragover="phDragOver(event,${i})"
+      ondrop="phDrop(event,${i})"
+      ondragend="phDragEnd(event)"
+      style="position:relative">
+      <img src="${u}" loading="lazy" onerror="this.style.opacity='.3'">
       ${isPending?'<div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);color:#C9A96E;font-size:9px;padding:2px 5px;border-radius:3px">NON SALVATA</div>':''}
       <button class="ph-del" onclick="phDel(${i})">✕</button>
     </div>`;
   }).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
+}
+
+function phDragStart(e,i){
+  _phDragIdx=i;
+  e.currentTarget.classList.add('ph-dragging');
+  e.dataTransfer.effectAllowed='move';
+}
+function phDragOver(e,i){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.ph-thumb').forEach((el,idx)=>{
+    el.classList.toggle('ph-drag-over',idx===i&&i!==_phDragIdx);
+  });
+}
+function phDrop(e,i){
+  e.preventDefault();
+  if(_phDragIdx===null||_phDragIdx===i){_phDragIdx=null;phRenderPreview();return;}
+  const item=_phWorking.splice(_phDragIdx,1)[0];
+  _phWorking.splice(i,0,item);
+  _phDragIdx=null;
+  phRenderPreview();
+}
+function phDragEnd(e){
+  _phDragIdx=null;
+  phRenderPreview();
 }
 
 function phDel(i){_phWorking.splice(i,1);phRenderPreview();}

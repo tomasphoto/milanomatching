@@ -720,9 +720,14 @@
     /* lead card */
     .lc{
       background:var(--bg2);border:1px solid var(--border);
-      border-radius:var(--r);overflow:hidden;transition:border-color .2s;
+      border-radius:var(--r);overflow:hidden;
+      cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;
     }
-    .lc:hover{border-color:var(--bordmd);}
+    .lc:hover{
+      border-color:rgba(201,169,110,.35);
+      box-shadow:0 6px 24px rgba(0,0,0,.35);
+      transform:translateY(-1px);
+    }
     .lc-header{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:14px;}
     .lc-qual{
       width:28px;height:28px;border-radius:50%;background:var(--bg3);
@@ -791,13 +796,73 @@
     }
     .btn-lm-share:hover{background:rgba(201,169,110,.1);}
 
-    /* match toggle button */
-    .lc-match-btn{
+    /* match badge (static) */
+    .lc-match-badge{
       background:rgba(201,169,110,.08);border:1px solid rgba(201,169,110,.25);
       border-radius:3px;padding:3px 8px;font-size:11px;color:var(--gold);
-      cursor:pointer;transition:all .15s;
     }
-    .lc-match-btn:hover{background:rgba(201,169,110,.18);}
+    /* ── Lead full-screen panel ────────────────────────────── */
+    #vl-ep{
+      position:fixed;inset:0;z-index:400;
+      background:var(--bg);display:flex;flex-direction:column;overflow:hidden;
+    }
+    .vlep-bar{
+      display:flex;align-items:center;gap:10px;
+      padding:12px 24px;background:var(--bg2);
+      border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;
+    }
+    .vlep-status-sel{
+      background:var(--bg3);border:1px solid var(--border);color:var(--text);
+      padding:7px 12px;font-family:'Inter',sans-serif;font-size:12px;
+      border-radius:var(--rsm);cursor:pointer;min-width:140px;
+    }
+    .vlep-body{flex:1;overflow-y:auto;padding:28px 40px 60px;}
+    .vlep-id-row{display:flex;align-items:flex-start;gap:20px;margin-bottom:28px;}
+    .vlep-qual-lg{
+      width:52px;height:52px;border-radius:50%;
+      background:var(--bg3);border:2px solid var(--gold);
+      color:var(--gold);font-size:20px;font-weight:600;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .vlep-id-info{flex:1;min-width:0;}
+    .vlep-name-in{
+      display:block;width:100%;box-sizing:border-box;
+      font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:400;
+      background:transparent;border:none;border-bottom:1px solid var(--border);
+      color:var(--text);padding:4px 0;margin-bottom:10px;outline:none;
+      transition:border-color .15s;
+    }
+    .vlep-name-in:focus{border-bottom-color:var(--gold);}
+    .vlep-sub-in{
+      display:block;width:100%;box-sizing:border-box;
+      font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.08em;
+      background:transparent;border:none;border-bottom:1px solid var(--border);
+      color:var(--textdim);padding:4px 0;outline:none;transition:border-color .15s;
+    }
+    .vlep-sub-in:focus{border-bottom-color:var(--gold);}
+    .vlep-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
+    .vlep-stanze-sel{
+      width:100%;background:var(--bg3);border:1px solid var(--border);
+      color:var(--text);border-radius:var(--rsm);padding:6px 10px;
+      font-family:'Inter',sans-serif;font-size:12px;
+    }
+    .vlep-stanze-sel option{padding:4px 0;}
+    .vlep-matches-wrap{display:flex;flex-direction:column;gap:10px;}
+    .vlep-match-row{
+      display:flex;align-items:center;gap:14px;
+      padding:12px;background:var(--bg2);border:1px solid var(--border);
+      border-radius:var(--rsm);transition:border-color .15s;
+    }
+    .vlep-match-row:hover{border-color:rgba(201,169,110,.3);}
+    .vlep-match-img{
+      width:80px;height:56px;border-radius:4px;object-fit:cover;
+      background:var(--bg3);flex-shrink:0;
+    }
+    .vlep-match-info{flex:1;min-width:0;}
+    .vlep-match-addr{font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .vlep-match-meta{font-size:11px;color:var(--textdim);margin-top:3px;}
+    .vlep-match-price{font-size:14px;color:var(--gold);flex-shrink:0;font-weight:500;white-space:nowrap;}
+    .vlep-match-acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
 
     /* ══ MESSAGE MODAL ══════════════════════════════════════ */
     .msg-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;}
@@ -1202,6 +1267,99 @@
   <div class="vaep-foot">
     <button class="vaep-btn vaep-btn-del" onclick="vaepDelete()">Rimuovi</button>
     <button class="vaep-save" onclick="saveAdminCard()">Salva modifiche</button>
+  </div>
+</div>
+
+
+<!-- ══ LEAD PANEL ════════════════════════════════════════════ -->
+<div id="vl-ep" class="hidden">
+  <!-- Top bar -->
+  <div class="vlep-bar">
+    <button class="vaep-close" onclick="closeLeadPanel()">&#10005;&nbsp;&nbsp;Chiudi</button>
+    <select class="vlep-status-sel" id="vlep-status" onchange="vlepSetStatus(this.value)"></select>
+    <div style="flex:1"></div>
+    <button class="vaep-btn" id="vlep-tel-btn" style="opacity:.45" onclick="vlepCall()">&#128222; &#8212;</button>
+    <button class="vaep-btn" onclick="vlepMsg()">Messaggio</button>
+    <button class="vaep-btn" onclick="saveContact(_vlepId)">Salva Contatto</button>
+  </div>
+  <!-- Scrollable body -->
+  <div class="vlep-body">
+    <!-- Identity -->
+    <div class="vlep-id-row">
+      <div class="vlep-qual-lg" id="vlep-qual">&#8212;</div>
+      <div class="vlep-id-info">
+        <input class="vlep-name-in" id="vlep-nome" type="text" placeholder="Nome lead">
+        <input class="vlep-sub-in" id="vlep-profilo" type="text" placeholder="Profilo (es. Famiglia, Lavoratore&#8230;)">
+      </div>
+    </div>
+    <!-- Fields grid -->
+    <div class="vaep-sec-hd">Contatti &amp; Dettagli</div>
+    <div class="vlep-grid">
+      <div class="vaep-field">
+        <div class="vaep-label">Telefono</div>
+        <input class="vaep-in" id="vlep-tel" type="tel" placeholder="+39&#8230;">
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Email</div>
+        <input class="vaep-in" id="vlep-email" type="email" placeholder="email@&#8230;">
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Budget max (&#8364;/mese)</div>
+        <input class="vaep-in" id="vlep-budget" type="number" placeholder="es. 2500">
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Locali richiesti</div>
+        <select class="vlep-stanze-sel" id="vlep-stanze" multiple size="5">
+          <option value="1">Monolocale</option>
+          <option value="2">Bilocale</option>
+          <option value="3">Trilocale</option>
+          <option value="4">Quadrilocale</option>
+          <option value="5">5+ locali</option>
+        </select>
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Disponibilit&#224;</div>
+        <select class="vaep-in" id="vlep-ingresso">
+          <option value="Flessibile">Flessibile</option>
+          <option value="Subito">Subito</option>
+          <option value="1 mese">1 mese</option>
+          <option value="2 mesi">2 mesi</option>
+          <option value="3 mesi">3 mesi</option>
+        </select>
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Urgenza</div>
+        <select class="vaep-in" id="vlep-urg">
+          <option value="">&#8212;</option>
+          <option value="Bassa">Bassa</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+          <option value="Urgente">Urgente</option>
+        </select>
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Qualit&#224; lead (0&#8211;5)</div>
+        <input class="vaep-in" id="vlep-qual-in" type="number" min="0" max="5" placeholder="0&#8211;5">
+      </div>
+      <div class="vaep-field">
+        <div class="vaep-label">Zone preferite</div>
+        <input class="vaep-in" id="vlep-zones" type="text" placeholder="es. Porta Venezia, Navigli">
+      </div>
+    </div>
+    <!-- Richiesta -->
+    <div class="vaep-sec-hd" style="margin-top:20px">Richiesta</div>
+    <textarea class="vaep-desc-in" id="vlep-richiesta" placeholder="Zona, caratteristiche, esigenze&#8230;" style="min-height:80px"></textarea>
+    <!-- Note -->
+    <div class="vaep-sec-hd" style="margin-top:20px">Note interne</div>
+    <textarea class="vaep-desc-in" id="vlep-note" placeholder="Note private&#8230;" style="min-height:60px"></textarea>
+    <!-- Matching properties -->
+    <div class="vaep-sec-hd" style="margin-top:32px">Propriet&#224; compatibili</div>
+    <div id="vlep-matches" class="vlep-matches-wrap"></div>
+  </div>
+  <!-- Sticky footer -->
+  <div class="vaep-foot">
+    <button class="vaep-btn vaep-btn-del" onclick="vlepDelete()">Rimuovi</button>
+    <button class="vaep-save" onclick="saveLeadPanel()">Salva modifiche</button>
   </div>
 </div>
 
@@ -2381,24 +2539,7 @@ function lCard(lead){
                (lead.urg||'').toLowerCase()==='alta'?'color:#fbbf24':'color:var(--textdim)';
   const eid=(id||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 
-  const matchRows=matches.slice(0,6).map(k=>{
-    const p=allP().find(x=>fk(x)===k);if(!p)return'';
-    const ph=(ST.photos[k]||[])[0]||'';
-    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
-    const ek2=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return `<div class="lm-row">
-      ${ph?`<img class="lm-img" src="${ph}" onerror="this.style.display='none'">`:'<div class="lm-img"></div>'}
-      <div class="lm-info">
-        <div class="lm-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span></div>
-        <div class="lm-meta">${rl}${p.mq?` · ${p.mq}mq`:''} · ${p.avail}</div>
-      </div>
-      <div class="lm-price">€${p.price.toLocaleString('it-IT')}</div>
-      <button class="btn-lm-share" onclick="lSendLink('${ek2}')">Link</button>
-    </div>`;
-  }).join('');
-  const extra=matches.length>6?`<div style="font-size:11px;color:var(--textdim);padding:8px 0">+${matches.length-6} altre proprietà compatibili</div>`:'';
-
-  return `<div class="lc" id="lc-${id}">
+  return `<div class="lc" id="lc-${id}" onclick="openLeadPanel('${eid}')">
   <div class="lc-header">
     <div class="lc-qual" title="Qualità lead">${lead.qual||'—'}</div>
     <div class="lc-main">
@@ -2408,40 +2549,143 @@ function lCard(lead){
         <span class="lc-tag ${st.cls}" style="border-radius:3px">${st.label}</span>
         ${lead.budgetMax?`<span class="lc-tag">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:''}
         ${stTag?`<span class="lc-tag">${stTag}</span>`:''}
-        ${lead.ingresso&&lead.ingresso!=='Flessibile'?`<span class="lc-tag">${lead.ingresso}</span>`:''}
         ${lead.urg?`<span class="lc-tag" style="${urgCls}">${lead.urg}</span>`:''}
-        <button class="lc-match-btn" onclick="toggleLeadMatches('${eid}')">
-          ${matches.length>0?`${matches.length} match`:'0 match'}
-        </button>
+        ${matches.length>0?`<span class="lc-match-badge">${matches.length} match</span>`:''}
       </div>
       ${lead.richiesta?`<div class="lc-note">${lead.richiesta}</div>`:''}
       ${lead.note?`<div class="lc-note" style="color:rgba(201,169,110,.7)">${lead.note}</div>`:''}
     </div>
   </div>
-  <div class="lc-matches" id="lm-${eid}">
-    <div class="lm-title">Proprietà compatibili · ${matches.length}</div>
-    ${matchRows}${extra}
-    ${matches.length===0?'<div style="font-size:12px;color:var(--textdim);padding:8px 0">Nessuna proprietà nei criteri — modifica budget o locali.</div>':''}
-  </div>
-  <div class="lc-acts">
-    <select class="btn-lc" style="padding:6px 8px;font-size:11px;background:var(--bg3);cursor:pointer;appearance:none;min-width:110px"
-            onchange="setLeadStatus('${eid}',this.value);this.blur()">
-      ${Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('')}
-    </select>
-    ${lead.tel?
-    `<a class="btn-lc btn-lc-tel" href="tel:${lead.tel}">📞 ${lead.tel}</a>`:
-    `<button class="btn-lc" style="opacity:.38" onclick="openLeadEdit('${eid}')" title="Aggiungi numero">📞 —</button>`}
-    <button class="btn-lc" onclick="openMsgModal('${eid}')">Messaggio</button>
-    <button class="btn-lc" onclick="openLeadEdit('${eid}')">Modifica</button>
-    <button class="btn-lc" onclick="saveContact('${eid}')">Salva Contatto</button>
-    <button class="btn-lc btn-lc-del" onclick="deleteLead('${eid}')" style="margin-left:auto">Rimuovi</button>
-  </div>
 </div>`;
 }
 
-function toggleLeadMatches(id){
-  const el=document.getElementById('lm-'+id);
-  if(el)el.classList.toggle('open');
+function toggleLeadMatches(id){/* no-op — cards now use full panel */}
+
+// ── Lead panel ────────────────────────────────────────────────
+let _vlepId=null;
+
+function openLeadPanel(id){
+  const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
+  _vlepId=id;
+  // Identity
+  document.getElementById('vlep-nome').value=lead.nome||'';
+  document.getElementById('vlep-profilo').value=lead.profilo||'';
+  document.getElementById('vlep-tel').value=lead.tel||'';
+  document.getElementById('vlep-email').value=lead.email||'';
+  document.getElementById('vlep-budget').value=lead.budgetMax||'';
+  document.getElementById('vlep-richiesta').value=lead.richiesta||'';
+  document.getElementById('vlep-note').value=lead.note||'';
+  document.getElementById('vlep-qual').textContent=lead.qual||'—';
+  document.getElementById('vlep-qual-in').value=lead.qual||'';
+  document.getElementById('vlep-zones').value=(Array.isArray(lead.zones)?lead.zones:[]).join(', ');
+  // Ingresso / Urgenza
+  document.getElementById('vlep-ingresso').value=lead.ingresso||'Flessibile';
+  document.getElementById('vlep-urg').value=lead.urg||'';
+  // Stanze multi-select
+  const stArr=Array.isArray(lead.stanze)?lead.stanze:(lead.stanze?[+lead.stanze]:[]);
+  Array.from(document.getElementById('vlep-stanze').options).forEach(o=>{o.selected=stArr.includes(+o.value);});
+  // Pipeline status select
+  const stSel=document.getElementById('vlep-status');
+  stSel.innerHTML=Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('');
+  // Tel button
+  const tb=document.getElementById('vlep-tel-btn');
+  if(lead.tel){tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';}
+  else{tb.textContent='☎️ —';tb.style.opacity='.45';}
+  // Matches
+  vlepRenderMatches(lead);
+  // Show panel
+  hide('va');show('vl-ep');
+  window.scrollTo(0,0);
+}
+
+function closeLeadPanel(){
+  hide('vl-ep');show('va');
+  _vlepId=null;
+}
+
+function vlepSetStatus(status){
+  if(!_vlepId)return;
+  const lead=(ST.leads||[]).find(l=>l.id===_vlepId);if(!lead)return;
+  lead.status=status;
+  stSave();scheduleSync();
+  // Refresh the card in the background list
+  const el=document.getElementById('lc-'+_vlepId);
+  if(el)el.outerHTML=lCard(lead);
+}
+
+function vlepCall(){
+  const lead=(ST.leads||[]).find(l=>l.id===_vlepId);
+  if(lead&&lead.tel)window.location.href='tel:'+lead.tel;
+}
+
+function vlepMsg(){
+  if(!_vlepId)return;
+  hide('vl-ep');
+  setTimeout(()=>openMsgModal(_vlepId),80);
+}
+
+function vlepDelete(){
+  if(!_vlepId)return;
+  if(!confirm('Eliminare questo lead?'))return;
+  ST.leads=(ST.leads||[]).filter(l=>l.id!==_vlepId);
+  stSave();scheduleSync();
+  closeLeadPanel();
+  lRender();
+  toast('✓ Lead rimosso');
+}
+
+function saveLeadPanel(){
+  if(!_vlepId)return;
+  const lead=(ST.leads||[]).find(l=>l.id===_vlepId);if(!lead)return;
+  lead.nome=document.getElementById('vlep-nome').value.trim();
+  lead.profilo=document.getElementById('vlep-profilo').value.trim();
+  lead.tel=document.getElementById('vlep-tel').value.trim();
+  lead.email=document.getElementById('vlep-email').value.trim();
+  lead.budgetMax=+document.getElementById('vlep-budget').value||0;
+  lead.richiesta=document.getElementById('vlep-richiesta').value.trim();
+  lead.note=document.getElementById('vlep-note').value.trim();
+  lead.qual=+document.getElementById('vlep-qual-in').value||0;
+  lead.urg=document.getElementById('vlep-urg').value;
+  lead.ingresso=document.getElementById('vlep-ingresso').value;
+  lead.status=document.getElementById('vlep-status').value;
+  lead.stanze=Array.from(document.getElementById('vlep-stanze').selectedOptions).map(o=>+o.value);
+  lead.zones=document.getElementById('vlep-zones').value.split(',').map(s=>s.trim()).filter(Boolean);
+  // Update qual badge and tel button
+  document.getElementById('vlep-qual').textContent=lead.qual||'—';
+  const tb=document.getElementById('vlep-tel-btn');
+  if(lead.tel){tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';}
+  else{tb.textContent='☎️ —';tb.style.opacity='.45';}
+  stSave();lRender();scheduleSync();
+  vlepRenderMatches(lead);
+  toast('✓ Lead aggiornato');
+}
+
+function vlepRenderMatches(lead){
+  const wrap=document.getElementById('vlep-matches');if(!wrap)return;
+  const matches=matchLead(lead);
+  if(!matches.length){
+    wrap.innerHTML='<div style="font-size:12px;color:var(--textdim);padding:12px 0">Nessuna proprietà nei criteri — modifica budget o locali.</div>';
+    return;
+  }
+  wrap.innerHTML=matches.map(k=>{
+    const p=allP().find(x=>fk(x)===k);if(!p)return'';
+    const ph=(ST.photos[k]||[])[0]||'';
+    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+    const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="vlep-match-row">
+      ${ph?`<img class="vlep-match-img" src="${ph}" onerror="this.style.display='none'">`:
+           '<div class="vlep-match-img"></div>'}
+      <div class="vlep-match-info">
+        <div class="vlep-match-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span></div>
+        <div class="vlep-match-meta">${rl}${p.mq?` · ${p.mq}mq`:''} · ${p.avail}</div>
+      </div>
+      <div class="vlep-match-price">€${p.price.toLocaleString('it-IT')}</div>
+      <div class="vlep-match-acts">
+        <button class="btn-lm-share" onclick="lSendLink('${ek}')">Invia link</button>
+        <button class="btn-lm-share" style="color:var(--textmid)" onclick="closeLeadPanel();setTimeout(()=>openAdminCard('${ek}'),80)">Scheda →</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function setLeadStatus(id,status){
   const lead=(ST.leads||[]).find(l=>l.id===id);
@@ -2475,24 +2719,7 @@ function openLeadAdd(){
   openM('m-lead');
 }
 function openLeadEdit(id){
-  const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
-  document.getElementById('m-lead-title').textContent='Modifica lead';
-  document.getElementById('m-lead-sub').textContent=lead.nome;
-  document.getElementById('li-id').value=lead.id;
-  document.getElementById('li-nome').value=lead.nome||'';
-  document.getElementById('li-profilo').value=lead.profilo||'';
-  document.getElementById('li-tel').value=lead.tel||'';
-  document.getElementById('li-email').value=lead.email||'';
-  document.getElementById('li-budget').value=lead.budgetMax||'';
-  document.getElementById('li-stanze').value=(Array.isArray(lead.stanze)?lead.stanze:[]).join(', ');
-  document.getElementById('li-zones').value=(Array.isArray(lead.zones)?lead.zones:[]).join(', ');
-  document.getElementById('li-ingresso').value=lead.ingresso||'Flessibile';
-  document.getElementById('li-urg').value=lead.urg||'Alta';
-  document.getElementById('li-qual').value=lead.qual||3;
-  document.getElementById('li-status').value=lead.status||'nuovo';
-  document.getElementById('li-richiesta').value=lead.richiesta||'';
-  document.getElementById('li-note').value=lead.note||'';
-  openM('m-lead');
+  openLeadPanel(id);
 }
 function saveLead(){
   const id=document.getElementById('li-id').value;

@@ -2677,6 +2677,8 @@ async function renderMapView(){
   const delay=ms=>new Promise(r=>setTimeout(r,ms));
 
   for(const p of props){
+    const gkey=(p.addr||'').toLowerCase().trim();
+    const wasCached=!!_geoCache[gkey];
     const c=await _geocode(p.addr);
     if(!c)continue;
 
@@ -2709,8 +2711,8 @@ async function renderMapView(){
     _mapMarkers.push(marker);
     placed++;
 
-    // Rate limit only for fresh geocode requests
-    if(!_geoCache[(p.addr||'').toLowerCase().trim()+'-done'])await delay(1100);
+    // Respect Nominatim's 1 req/sec limit for fresh (uncached) addresses
+    if(!wasCached)await delay(1100);
   }
 
   status.classList.add('hidden');

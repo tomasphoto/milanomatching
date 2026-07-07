@@ -1802,7 +1802,7 @@ async function ghUploadPhoto(propKey,dataUrl){
 
 function buildShareHtml(prop,imgUrl,pid){
   const rl=(RL[prop.st]||'Appartamento');
-  const title=rl.charAt(0).toUpperCase()+rl.slice(1)+' '+prop.addr+', '+prop.g;
+  const title=rl.charAt(0).toUpperCase()+rl.slice(1)+' '+prop.addr;
   const price=prop.price>0?'€'+prop.price.toLocaleString('it-IT')+'/mese':'';
   const desc=[prop.mq>0?prop.mq+' m²':'',price,prop.desc].filter(Boolean).join(' · ');
   const redir=GH.base+'/?s='+btoa(unescape(encodeURIComponent(fk(prop))));

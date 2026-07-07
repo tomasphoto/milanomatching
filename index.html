@@ -3142,7 +3142,88 @@ function aRender(){
 // ════════════════════════════════════════════════════════════════
 //  MAP VIEW
 // ════════════════════════════════════════════════════════════════
-let _leafletMap=null, _mapMarkers=[], _geoCache={}, _geoCacheLoaded=false, _lastMapFilterKey=null;
+let _leafletMap=null, _mapMarkers=[], _metroLayers=[], _geoCache={}, _geoCacheLoaded=false, _lastMapFilterKey=null;
+
+// ── Milan Metro Lines ────────────────────────────────────────────────────────
+const _METRO_LINES=[
+  {id:'M1',color:'#E2001A',coords:[
+    // East branch: Sesto 1° Maggio FS → Loreto
+    [45.5354,9.2266],[45.5271,9.2218],[45.5178,9.2172],
+    [45.5100,9.2108],[45.5025,9.2045],[45.4988,9.2005],
+    [45.4960,9.1985],[45.5031,9.2196],
+    // Loreto → San Babila → Duomo
+    [45.4920,9.2075],[45.4779,9.1968],[45.4736,9.1972],
+    [45.4666,9.1966],[45.4641,9.1896],
+    // Duomo → Cadorna → Lotto → Bisceglie
+    [45.4660,9.1851],[45.4699,9.1810],[45.4657,9.1771],
+    [45.4640,9.1706],[45.4651,9.1615],[45.4750,9.1563],
+    [45.4759,9.1473],[45.4773,9.1403],[45.4835,9.1375],
+    [45.4882,9.1288],[45.5034,9.1161],[45.5032,9.1098],
+  ]},
+  {id:'M2',color:'#007A4D',coords:[
+    // SW: Assago Forum → Famagosta → Cadorna
+    [45.4066,9.1422],[45.4175,9.1478],[45.4281,9.1542],
+    [45.4368,9.1618],[45.4440,9.1671],[45.4480,9.1721],
+    [45.4554,9.1752],[45.4627,9.1779],[45.4657,9.1771],
+    // Cadorna → Garibaldi → Centrale FS
+    [45.4724,9.1818],[45.4835,9.1883],
+    [45.4843,9.1948],[45.4857,9.2040],
+    // Centrale → Loreto → Lambrate → NE
+    [45.4937,9.2096],[45.5031,9.2196],
+    [45.5061,9.2282],[45.5091,9.2396],
+    [45.5119,9.2532],[45.5199,9.2660],[45.5280,9.2800],
+  ]},
+  {id:'M3',color:'#FFCB00',coords:[
+    // North: Comasina → center
+    [45.5405,9.1622],[45.5309,9.1652],[45.5213,9.1686],
+    [45.5121,9.1720],[45.5055,9.1752],[45.4995,9.1781],
+    [45.4940,9.1805],[45.4900,9.1831],
+    // → Repubblica → Centrale FS
+    [45.4843,9.1948],[45.4857,9.2040],
+    // Centrale → curve south → San Babila → Duomo
+    [45.4800,9.2000],[45.4745,9.2020],[45.4700,9.1980],
+    [45.4666,9.1966],[45.4641,9.1896],
+    // South: Duomo → Corvetto → San Donato
+    [45.4610,9.1894],[45.4574,9.1890],[45.4521,9.1895],
+    [45.4461,9.1920],[45.4390,9.1960],[45.4310,9.2030],[45.4243,9.2105],
+  ]},
+  {id:'M4',color:'#1B5AA6',coords:[
+    // West: San Cristoforo → Duomo → San Babila → Linate
+    [45.4378,9.1522],[45.4429,9.1602],[45.4489,9.1671],
+    [45.4527,9.1726],[45.4573,9.1770],[45.4612,9.1823],
+    [45.4641,9.1896],[45.4666,9.1966],
+    [45.4677,9.2063],[45.4687,9.2155],
+    [45.4677,9.2271],[45.4650,9.2390],[45.4578,9.2558],
+  ]},
+  {id:'M5',color:'#8B31A0',coords:[
+    // N: Bignami → Bicocca → Garibaldi → San Siro
+    [45.5285,9.1942],[45.5189,9.1950],[45.5100,9.1962],
+    [45.5019,9.1915],[45.4918,9.1875],[45.4835,9.1883],
+    [45.4779,9.1840],[45.4723,9.1786],[45.4686,9.1714],
+    [45.4658,9.1638],[45.4659,9.1543],[45.4706,9.1428],[45.4720,9.1335],
+  ]},
+];
+
+function _addMetroLines(){
+  if(_metroLayers.length)return; // only once
+  _METRO_LINES.forEach(line=>{
+    // Layer 1 — wide outer glow
+    _metroLayers.push(L.polyline(line.coords,{
+      color:line.color,weight:18,opacity:0.07,
+      smoothFactor:1.5,lineCap:'round',lineJoin:'round',interactive:false
+    }).addTo(_leafletMap));
+    // Layer 2 — soft inner halo
+    _metroLayers.push(L.polyline(line.coords,{
+      color:line.color,weight:8,opacity:0.20,
+      smoothFactor:1.2,lineCap:'round',lineJoin:'round',interactive:false
+    }).addTo(_leafletMap));
+    // Layer 3 — core line
+    _metroLayers.push(L.polyline(line.coords,{
+      color:line.color,weight:2.5,opacity:0.55,
+      smoothFactor:1,lineCap:'round',lineJoin:'round',interactive:false
+    }).addTo(_leafletMap));
+  });
+}
 
 function _loadGeoCache(){
   if(_geoCacheLoaded)return; _geoCacheLoaded=true;

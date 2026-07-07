@@ -455,11 +455,27 @@
 
     /* admin card */
     .ac{
-      background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
-      overflow:hidden;transition:border-color .2s;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% 0%,rgba(201,169,110,.055) 0%,transparent 75%),
+        var(--bg2);
+      border:1px solid var(--border);border-radius:var(--r);
+      overflow:hidden;transition:border-color .2s,transform .15s,box-shadow .2s;
     }
-    .ac:hover{border-color:var(--bordmd);}
+    .ac:hover{border-color:rgba(201,169,110,.35);box-shadow:0 8px 32px rgba(0,0,0,.45);}
     .ac.ac-hidden{opacity:.32;}
+
+    /* card photo nav arrows */
+    .ac-nav{
+      position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+      background:rgba(0,0,0,.52);border:none;color:#fff;
+      width:30px;height:30px;border-radius:50%;font-size:18px;line-height:1;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      opacity:0;transition:opacity .15s,background .15s;pointer-events:auto;
+    }
+    .ac:hover .ac-nav{opacity:1;}
+    .ac-nav:hover{background:rgba(0,0,0,.8);}
+    .ac-nav-prev{left:8px;}
+    .ac-nav-next{right:8px;}
     .ac-img{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;background:var(--bg3);}
     .ac-img img{width:100%;height:100%;object-fit:cover;display:block;}
     .ac-img-ph{
@@ -516,9 +532,25 @@
     .ac-img-ph-empty:hover{background:rgba(201,169,110,.08);}
     /* clickable card affordance */
     .ac{cursor:pointer;}
-    .ac:hover{border-color:var(--gold);transform:translateY(-1px);transition:border-color .2s,transform .15s;}
+    .ac:hover{border-color:var(--gold);transform:translateY(-2px);}
     .ac-body{padding:16px 16px 18px;}
     .ac-price{margin-bottom:0;}
+
+    /* drag-to-reorder photo thumbs */
+    .ph-thumb[draggable=true]{cursor:grab;}
+    .ph-thumb[draggable=true]:active{cursor:grabbing;}
+    .ph-thumb.ph-drag-over{outline:2px solid var(--gold);opacity:.55;transform:scale(.96);}
+    .ph-thumb.ph-dragging{opacity:.3;}
+    .ph-drag-hint{font-size:10px;letter-spacing:.1em;color:var(--textdim);text-align:center;margin-bottom:10px;}
+
+    /* edit panel sticky footer */
+    .vaep-foot{
+      position:sticky;bottom:0;z-index:10;
+      display:flex;align-items:center;justify-content:flex-end;gap:10px;
+      padding:14px 24px;
+      background:var(--bg2);border-top:1px solid var(--border);
+      flex-shrink:0;
+    }
 
     /* ══ ADMIN EDIT PANEL ═══════════════════════════════════════ */
     #va-ep{
@@ -1094,8 +1126,6 @@
     <button class="vaep-btn" onclick="vaepPhotos()">Foto</button>
     <button class="vaep-btn" onclick="vaepShare()">Link cliente</button>
     <button class="vaep-btn" id="vaep-hid-btn" onclick="vaepToggleHid()">Nascondi</button>
-    <button class="vaep-btn vaep-btn-del" onclick="vaepDelete()">Rimuovi</button>
-    <button class="vaep-save" onclick="saveAdminCard()">Salva modifiche</button>
   </div>
   <!-- Hero carousel -->
   <div class="vaep-hero" id="vaep-hero">

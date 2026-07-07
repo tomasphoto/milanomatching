@@ -593,7 +593,7 @@
       justify-content:center;flex-direction:column;gap:8px;
       font-size:13px;color:var(--textdim);letter-spacing:.05em;opacity:.35;
     }
-    .vaep-body{padding:36px max(24px,min(40px,(100vw - 900px)/2)) 80px;}
+    .vaep-body{padding:36px max(24px,min(40px,(100vw - 900px)/2)) 40px;}
     .vaep-agency-in{
       font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
       background:none;border:none;border-bottom:1px solid transparent;outline:none;
@@ -1182,7 +1182,12 @@
     <div class="vaep-sec-hd" style="margin-top:32px;">Posizione</div>
     <iframe id="vaep-map-frame" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
       src="" loading="lazy" allowfullscreen
-      style="width:100%;height:320px;border:1px solid var(--border);border-radius:var(--rsm);display:block;margin-bottom:40px;filter:invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85);"></iframe>
+      style="width:100%;height:320px;border:1px solid var(--border);border-radius:var(--rsm);display:block;margin-bottom:16px;filter:invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85);"></iframe>
+  </div>
+  <!-- Sticky footer: actions -->
+  <div class="vaep-foot">
+    <button class="vaep-btn vaep-btn-del" onclick="vaepDelete()">Rimuovi</button>
+    <button class="vaep-save" onclick="saveAdminCard()">Salva modifiche</button>
   </div>
 </div>
 
@@ -2778,22 +2783,42 @@ async function renderMapView(){
   }
 }
 
+let _acPhIdx={};
+
+function acPhNav(event,k,dir){
+  event.stopPropagation();
+  const photos=ST.photos[k]||[];
+  if(photos.length<=1)return;
+  _acPhIdx[k]=((_acPhIdx[k]||0)+dir+photos.length)%photos.length;
+  const card=event.currentTarget.closest('.ac');
+  const img=card.querySelector('.ac-img img');
+  if(img)img.src=photos[_acPhIdx[k]];
+  const ctr=card.querySelector('.ac-img-n');
+  if(ctr)ctr.textContent=(_acPhIdx[k]+1)+'/'+photos.length;
+}
+
 function aCard(p){
   const k=fk(p);
   const hid=ST.hiddenKeys.includes(k);
   const photos=ST.photos[k]||[];
-  const ph0=photos[0]||null;
+  const idx=_acPhIdx[k]||0;
+  const ph0=photos[idx]||photos[0]||null;
   const now=isNow(p.avail);
   const rl=p.st>=5?'5+ locali':(RL[p.st]||p.st+' locali');
   const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const kj=JSON.stringify(k);
   return `
 <div class="ac${hid?' ac-hidden':''}" onclick="openAdminCard('${ek}')">
-  <div class="ac-img">
+  <div class="ac-img" style="position:relative;">
     ${ph0?`<img src="${ph0}" alt="${p.addr}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:``}
     <div class="ac-img-ph" style="${ph0?'display:none':'display:flex'}">
       <span style="font-size:28px;opacity:.15">—</span>
     </div>
-    ${photos.length>1?`<div class="ac-img-n">${photos.length} foto</div>`:''}
+    ${photos.length>1?`
+      <button class="ac-nav ac-nav-prev" onclick="acPhNav(event,${kj},-1)">&#8249;</button>
+      <button class="ac-nav ac-nav-next" onclick="acPhNav(event,${kj},1)">&#8250;</button>
+      <div class="ac-img-n">${idx+1}/${photos.length}</div>
+    `:photos.length===1?`<div class="ac-img-n">1 foto</div>`:''}
     ${hid?'<div class="ac-hid-tag">Nascosta</div>':''}
   </div>
   <div class="ac-body">

@@ -852,6 +852,22 @@
     .vlep-room-opt.active{
       background:rgba(201,169,110,.12);border-color:rgba(201,169,110,.4);color:var(--gold);
     }
+    .vlep-prop-wrap{position:relative;}
+    .vlep-prop-drop{
+      position:absolute;top:100%;left:0;right:0;z-index:30;
+      background:var(--bg3);border:1px solid var(--border);border-top:none;
+      border-radius:0 0 var(--rsm) var(--rsm);
+      max-height:240px;overflow-y:auto;display:none;
+    }
+    .vlep-prop-drop.open{display:block;}
+    .vlep-prop-opt{
+      padding:9px 12px;cursor:pointer;
+      border-bottom:1px solid var(--border);transition:background .1s;
+    }
+    .vlep-prop-opt:last-child{border-bottom:none;}
+    .vlep-prop-opt:hover,.vlep-prop-opt:focus{background:rgba(201,169,110,.07);outline:none;}
+    .vlep-prop-opt-addr{font-size:13px;color:var(--text);}
+    .vlep-prop-opt-meta{font-size:11px;color:var(--textdim);margin-top:2px;}
     .vlep-matches-wrap{display:flex;flex-direction:column;gap:10px;}
     .vlep-match-row{
       display:flex;align-items:center;gap:14px;
@@ -1332,21 +1348,19 @@
           <option value="3 mesi">3 mesi</option>
         </select>
       </div>
-      <div class="vaep-field">
-        <div class="vaep-label">Urgenza</div>
-        <select class="vaep-in" id="vlep-urg">
-          <option value="">&#8212;</option>
-          <option value="Bassa">Bassa</option>
-          <option value="Media">Media</option>
-          <option value="Alta">Alta</option>
-          <option value="Urgente">Urgente</option>
-        </select>
-      </div>
       <div class="vaep-field" style="grid-column:1/-1">
         <div class="vaep-label">Collega a propriet&#224;</div>
-        <select class="vaep-in" id="vlep-prop-link" style="width:100%">
-          <option value="">&#8212; Nessuna &#8212;</option>
-        </select>
+        <div class="vlep-prop-wrap">
+          <input class="vaep-in" id="vlep-prop-input" type="text"
+            placeholder="Cerca per indirizzo, agenzia, locali&#8230;"
+            autocomplete="off"
+            oninput="vlepPropSearch(this.value)"
+            onfocus="vlepPropSearch(this.value)"
+            onblur="setTimeout(()=>document.getElementById('vlep-prop-drop').classList.remove('open'),160)"
+            style="width:100%;box-sizing:border-box;">
+          <div class="vlep-prop-drop" id="vlep-prop-drop"></div>
+          <input type="hidden" id="vlep-prop-link">
+        </div>
       </div>
     </div>
     <!-- Note -->
@@ -2575,21 +2589,23 @@ function openLeadPanel(id){
   document.getElementById('vlep-budget').value=lead.budgetMax||'';
   document.getElementById('vlep-note').value=lead.note||'';
   document.getElementById('vlep-qual').textContent=lead.qual||'—';
-  // Ingresso / Urgenza
+  // Ingresso
   document.getElementById('vlep-ingresso').value=lead.ingresso||'Flessibile';
-  document.getElementById('vlep-urg').value=lead.urg||'';
   // Rooms toggles
   const stArr=Array.isArray(lead.stanze)?lead.stanze:(lead.stanze?[+lead.stanze]:[]);
   document.querySelectorAll('#vlep-rooms .vlep-room-opt').forEach(el=>{
     el.classList.toggle('active',stArr.includes(+el.dataset.val));
   });
-  // Property link selector
-  const propSel=document.getElementById('vlep-prop-link');
-  const props=allP().slice().sort((a,b)=>a.addr.localeCompare(b.addr,'it'));
-  propSel.innerHTML='<option value="">— Nessuna —</option>'+
-    props.map(p=>{const k=fk(p);const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
-      return `<option value="${k.replace(/"/g,'&quot;')}"${lead.linkedProp===k?' selected':''}>${p.addr} · ${rl} · €${p.price.toLocaleString('it-IT')}</option>`;
-    }).join('');
+  // Property link search
+  document.getElementById('vlep-prop-link').value=lead.linkedProp||'';
+  if(lead.linkedProp){
+    const lp=allP().find(x=>fk(x)===lead.linkedProp);
+    if(lp){const pid=lead.linkedProp.split('::')[2]||'';
+      document.getElementById('vlep-prop-input').value=`${lp.addr}${pid?' ('+pid+')':''} · €${lp.price.toLocaleString('it-IT')}/mese`;}
+    else document.getElementById('vlep-prop-input').value='';
+  } else {
+    document.getElementById('vlep-prop-input').value='';
+  }
   // Pipeline status select
   const stSel=document.getElementById('vlep-status');
   stSel.innerHTML=Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('');
@@ -2649,7 +2665,6 @@ function saveLeadPanel(){
   lead.email=document.getElementById('vlep-email').value.trim();
   lead.budgetMax=+document.getElementById('vlep-budget').value||0;
   lead.note=document.getElementById('vlep-note').value.trim();
-  lead.urg=document.getElementById('vlep-urg').value;
   lead.ingresso=document.getElementById('vlep-ingresso').value;
   lead.status=document.getElementById('vlep-status').value;
   lead.stanze=Array.from(document.querySelectorAll('#vlep-rooms .vlep-room-opt.active')).map(el=>+el.dataset.val);
@@ -2661,6 +2676,40 @@ function saveLeadPanel(){
   stSave();lRender();scheduleSync();
   vlepRenderMatches(lead);
   toast('✓ Lead aggiornato');
+}
+
+function vlepPropSearch(q){
+  const drop=document.getElementById('vlep-prop-drop');
+  const qn=(q||'').trim().toLowerCase();
+  const props=allP();
+  const matches=qn
+    ?props.filter(p=>
+        p.addr.toLowerCase().includes(qn)||
+        p.g.toLowerCase().includes(qn)||
+        (RL[p.st]||'').toLowerCase().includes(qn)||
+        String(p.price).includes(qn)||
+        (fk(p).split('::')[2]||'').toLowerCase().includes(qn)
+      )
+    :props.slice(0,40);
+  drop.innerHTML=matches.slice(0,25).map(p=>{
+    const k=fk(p);
+    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+    const pid=k.split('::')[2]||'';
+    const label=`${p.addr}${pid?' ('+pid+')':''} · €${p.price.toLocaleString('it-IT')}/mese`;
+    const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const el=label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="vlep-prop-opt" tabindex="-1"
+      onmousedown="vlepPropSelect('${ek}','${el}')">
+      <div class="vlep-prop-opt-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${pid}</span></div>
+      <div class="vlep-prop-opt-meta">${rl}${p.mq?' · '+p.mq+'mq':''} · €${p.price.toLocaleString('it-IT')}/mese · ${p.g}</div>
+    </div>`;
+  }).join('')+(matches.length===0?'<div style="padding:12px;font-size:12px;color:var(--textdim)">Nessun risultato</div>':'');
+  drop.classList.add('open');
+}
+function vlepPropSelect(key,label){
+  document.getElementById('vlep-prop-link').value=key;
+  document.getElementById('vlep-prop-input').value=label;
+  document.getElementById('vlep-prop-drop').classList.remove('open');
 }
 
 function vlepToggleRoom(el){el.classList.toggle('active');}

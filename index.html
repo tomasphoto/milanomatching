@@ -475,6 +475,7 @@
     }
     .ac:hover .ac-nav{opacity:1;}
     .ac-nav:hover{background:rgba(0,0,0,.8);}
+    @media(hover:none){.ac-nav{opacity:.75;}}
     .ac-nav-prev{left:8px;}
     .ac-nav-next{right:8px;}
     .ac-img{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;background:var(--bg3);}
@@ -1230,8 +1231,8 @@
   <!-- Hero carousel -->
   <div class="vaep-hero" id="vaep-hero">
     <div class="vaep-hero-ph" id="vaep-hero-ph">Nessuna foto</div>
-    <button class="hero-arrow" id="vaep-prev" onclick="vaepHeroNav(-1)">&#8249;</button>
-    <button class="hero-arrow hero-next" id="vaep-next" onclick="vaepHeroNav(1)">&#8250;</button>
+    <button class="hero-nav hero-prev" id="vaep-prev" onclick="vaepHeroNav(-1)">&#8249;</button>
+    <button class="hero-nav hero-next" id="vaep-next" onclick="vaepHeroNav(1)">&#8250;</button>
     <div class="hero-counter hidden" id="vaep-counter"></div>
     <button class="hero-all-btn hidden" id="vaep-all-btn" onclick="vaepPhotos()">&#9638; Tutte le foto</button>
   </div>
@@ -3251,6 +3252,7 @@ let _acPhIdx={};
 
 function acPhNav(event,k,dir){
   event.stopPropagation();
+  event.preventDefault();
   const photos=ST.photos[k]||[];
   if(photos.length<=1)return;
   _acPhIdx[k]=((_acPhIdx[k]||0)+dir+photos.length)%photos.length;
@@ -3279,8 +3281,8 @@ function aCard(p){
       <span style="font-size:28px;opacity:.15">—</span>
     </div>
     ${photos.length>1?`
-      <button class="ac-nav ac-nav-prev" onclick="acPhNav(event,${kj},-1)">&#8249;</button>
-      <button class="ac-nav ac-nav-next" onclick="acPhNav(event,${kj},1)">&#8250;</button>
+      <button class="ac-nav ac-nav-prev" onclick="event.stopPropagation();acPhNav(event,'${ek}',-1)">&#8249;</button>
+      <button class="ac-nav ac-nav-next" onclick="event.stopPropagation();acPhNav(event,'${ek}',1)">&#8250;</button>
       <div class="ac-img-n">${idx+1}/${photos.length}</div>
     `:photos.length===1?`<div class="ac-img-n">1 foto</div>`:''}
     ${hid?'<div class="ac-hid-tag">Nascosta</div>':''}

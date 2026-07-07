@@ -956,6 +956,22 @@
         <option value="vis">Solo visibili</option>
         <option value="hid">Solo nascoste</option>
       </select>
+      <select class="va-sel" id="af-price" onchange="aRender()">
+        <option value="">Tutti i prezzi</option>
+        <option value="0-1500">Fino a €1.500</option>
+        <option value="1500-3000">€1.500 – 3.000</option>
+        <option value="3000-5000">€3.000 – 5.000</option>
+        <option value="5000-">€5.000+</option>
+      </select>
+      <select class="va-sel" id="af-mq" onchange="aRender()">
+        <option value="">Tutti gli mq</option>
+        <option value="0-50">Fino a 50mq</option>
+        <option value="50-80">50 – 80mq</option>
+        <option value="80-120">80 – 120mq</option>
+        <option value="120-">120mq+</option>
+      </select>
+      <input type="text" class="va-sel" id="af-zone" placeholder="Cerca zona / via…"
+             oninput="aRender()" style="min-width:150px;background-image:none;">
     </div>
     <div class="va-sep"></div>
     <span class="va-count" id="va-count"></span>
@@ -1063,6 +1079,11 @@
       <div class="vaep-sec-hd">Caratteristiche</div>
       <div class="vaep-cara-grid" id="vaep-cara-grid"></div>
     </div>
+    <!-- Map -->
+    <div class="vaep-sec-hd" style="margin-top:32px;">Posizione</div>
+    <iframe id="vaep-map-frame" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
+      src="" loading="lazy" allowfullscreen
+      style="width:100%;height:320px;border:1px solid var(--border);border-radius:var(--rsm);display:block;margin-bottom:40px;filter:invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85);"></iframe>
   </div>
 </div>
 
@@ -2491,10 +2512,13 @@ function copyMsgOut(taId,btnId){
 }
 
 function aRender(){
-  const rooms=document.getElementById('af-rooms').value;
-  const agency=document.getElementById('af-agency').value;
-  const avail=document.getElementById('af-avail').value;
-  const vis=document.getElementById('af-vis').value;
+  const rooms  = document.getElementById('af-rooms').value;
+  const agency = document.getElementById('af-agency').value;
+  const avail  = document.getElementById('af-avail').value;
+  const vis    = document.getElementById('af-vis').value;
+  const price  = document.getElementById('af-price').value;
+  const mq     = document.getElementById('af-mq').value;
+  const zone   = (document.getElementById('af-zone').value||'').toLowerCase().trim();
 
   // Populate agency filter
   const ags=[...new Set(allP().map(p=>p.g))].sort();
@@ -2509,6 +2533,26 @@ function aRender(){
   if(avail==='now')props=props.filter(p=>isNow(p.avail));
   if(vis==='vis')props=props.filter(p=>!ST.hiddenKeys.includes(fk(p)));
   if(vis==='hid')props=props.filter(p=>ST.hiddenKeys.includes(fk(p)));
+
+  if(price){
+    const parts=price.split('-');
+    const pMin=+parts[0];
+    const pMax=parts[1]===''?Infinity:+parts[1];
+    props=props.filter(p=>p.price>0&&p.price>=pMin&&p.price<=pMax);
+  }
+  if(mq){
+    const parts=mq.split('-');
+    const mMin=+parts[0];
+    const mMax=parts[1]===''?Infinity:+parts[1];
+    props=props.filter(p=>p.mq>0&&p.mq>=mMin&&p.mq<=mMax);
+  }
+  if(zone){
+    props=props.filter(p=>
+      (p.addr||'').toLowerCase().includes(zone)||
+      (p.desc||'').toLowerCase().includes(zone)||
+      (p.g||'').toLowerCase().includes(zone)
+    );
+  }
 
   document.getElementById('va-count').textContent=`${props.length} proprietà`;
   const grid=document.getElementById('va-grid');
@@ -2572,6 +2616,9 @@ function openAdminCard(k){
   _vaepPhs=ST.photos[k]||[];
   vaepHeroSetup(_vaepPhs,p.addr);
   vaepRenderCara(p);
+  const mapQ=encodeURIComponent(p.addr+', Milano, Italia');
+  document.getElementById('vaep-map-frame').src=
+    `https://maps.google.com/maps?q=${mapQ}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   hide('va');show('va-ep');
   window.scrollTo(0,0);
 }

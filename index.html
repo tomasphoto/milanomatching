@@ -2490,14 +2490,14 @@ function openAdminCard(k){
   _vaepPhs=ST.photos[k]||[];
   vaepHeroSetup(_vaepPhs,p.addr);
   vaepRenderCara(p);
-  const ep=document.getElementById('va-ep');
-  ep.classList.remove('hidden');
-  ep.scrollTop=0;
+  hide('va');show('va-ep');
+  window.scrollTo(0,0);
 }
 
 function closeAdminCard(){
-  document.getElementById('va-ep').classList.add('hidden');
+  hide('va-ep');show('va');
   _vaepK=null;
+  aRender();
 }
 
 function saveAdminCard(){

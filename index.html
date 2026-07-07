@@ -2570,7 +2570,7 @@ function lRender(){
     (l.richiesta||'').toLowerCase().includes(search)||
     (l.note||'').toLowerCase().includes(search)
   );
-  leads.sort((a,b)=>leadSortKey(a)-leadSortKey(b));
+  leads.sort((a,b)=>leadSortKey(b)-leadSortKey(a));
   const cnt=document.getElementById('la-count');
   if(cnt)cnt.textContent=leads.length+' lead';
   const grid=document.getElementById('la-grid');

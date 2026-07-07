@@ -1904,6 +1904,22 @@ function scheduleSync(){
   },2000);
 }
 
+async function forceSyncNow(){
+  const btn=document.getElementById('va-pub-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ …';}
+  const ts=Date.now();
+  try{
+    toast('⏳ Pubblicazione in corso…',20000);
+    await ghUpdateSite(ts);
+    ST.syncTs=ts;stSave();
+    toast('✅ Sito e pagine WhatsApp aggiornati!');
+  }catch(e){
+    toast('❌ '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='↑ Pubblica ora';}
+  }
+}
+
 // ════════════════════════════════════════════════════════════════
 //  PHOTO ADMIN — preview + URL add + file upload
 // ════════════════════════════════════════════════════════════════

@@ -2594,6 +2594,7 @@ function lCard(lead){
     <div class="lc-main">
       <div class="lc-name">${lead.nome}</div>
       ${lead.profilo?`<div class="lc-profilo">${lead.profilo}</div>`:''}
+      ${(lead.tel||lead.email)?`<div class="lc-contact">${lead.tel?`<a href="tel:${lead.tel.replace(/\s/g,'')}" onclick="event.stopPropagation()" style="color:var(--accent);text-decoration:none;font-size:11px;margin-right:8px">☎ ${lead.tel}</a>`:''}${lead.email?`<a href="mailto:${lead.email}" onclick="event.stopPropagation()" style="color:var(--textdim);text-decoration:none;font-size:11px">${lead.email}</a>`:''}</div>`:''}
       <div class="lc-tags">
         <span class="lc-tag ${st.cls}" style="border-radius:3px">${st.label}</span>
         ${lead.budgetMax?`<span class="lc-tag">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:''}

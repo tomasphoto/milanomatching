@@ -429,13 +429,28 @@
     .btn-va-gold:hover{background:var(--goldlt);border-color:var(--goldlt);color:#09090C;}
 
     /* admin grid */
-    .va-wrap{padding:28px 40px;flex:1;}
+    .va-wrap{padding:28px 40px;flex:1;position:relative;}
     .va-grid{
       display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;
+      position:relative;z-index:1;
     }
     .va-empty{
       grid-column:1/-1;text-align:center;padding:80px 0;
       font-size:14px;color:var(--textdim);
+    }
+
+    /* landing-style grid on admin background */
+    #va{
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+      background-size:80px 80px;
+    }
+    #va::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(ellipse 60% 60% at 10% 40%,rgba(201,169,110,.045) 0%,transparent 70%),
+        radial-gradient(ellipse 50% 50% at 88% 15%,rgba(201,169,110,.025) 0%,transparent 60%);
     }
 
     /* admin card */

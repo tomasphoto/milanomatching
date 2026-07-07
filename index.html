@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Milan Matching</title>
+  <title>Link Milano</title>
   <meta name="description" content="Consulenza immobiliare personalizzata a Milano.">
 
   <!-- PWA / Add to Home Screen -->
@@ -908,7 +908,7 @@
   </div>
 
   <div class="vc-foot">
-    <div class="vc-foot-brand">Milan Matching</div>
+    <div class="vc-foot-brand">Link Milano</div>
     <div class="vc-foot-em" id="vc-foot-em"></div>
   </div>
 </div>
@@ -919,7 +919,7 @@
 <div id="va" class="hidden">
 
   <div class="va-bar">
-    <div class="va-brand">Milan Matching</div>
+    <div class="va-brand">Link Milano</div>
     <div class="va-filters">
       <select class="va-sel" id="af-rooms"  onchange="aRender()">
         <option value="">Tutti i locali</option>
@@ -1526,7 +1526,7 @@ function route(){
 let _taps=0,_tt;
 function showLanding(){
   show('vl'); hide('vc'); hide('va');
-  document.title='Milan Matching';
+  document.title='Link Milano';
   const {phone,calLink,email}=ST.settings;
   const tel=phone?(phone.startsWith('tel:')?phone:'tel:'+phone.replace(/\s/g,'')):'';
   const cal=calLink||(email?'mailto:'+email:'');
@@ -1554,7 +1554,7 @@ function showCard(encoded){
   const k=dec(encoded); if(!k){showLanding();return;}
   const p=allP().find(x=>fk(x)===k); if(!p){showLanding();return;}
   hide('vl'); hide('va'); show('vc');
-  document.title=p.addr+' — Milan Matching';
+  document.title=p.addr+' — Link Milano';
 
   const {phone,calLink,email}=ST.settings;
   const tel=phone?(phone.startsWith('tel:')?phone:'tel:'+phone.replace(/\s/g,'')):'#';
@@ -1810,9 +1810,9 @@ function buildShareHtml(prop,imgUrl,pid){
   return`<!DOCTYPE html>
 <html lang="it"><head>
 <meta charset="UTF-8">
-<title>${title} — Milan Matching</title>
+<title>${title} — Link Milano</title>
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Milan Matching">
+<meta property="og:site_name" content="Link Milano">
 <meta property="og:url" content="${pageUrl}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
@@ -1873,12 +1873,12 @@ async function ghUpdateSite(ts=Date.now()){
   // ── Create/update WhatsApp share pages ───────────────────
   const tasks=[];
   for(const[k,photos]of Object.entries(mergedPhotos)){
-    const ghPhoto=photos.find(u=>u.includes('github.io'));
-    if(!ghPhoto)continue;
+    const firstPhoto=photos[0];
+    if(!firstPhoto)continue;
     const prop=allP().find(p=>fk(p)===k);
     if(!prop)continue;
     const pid=k.split('::').pop();
-    const shareHtml=buildShareHtml(prop,ghPhoto,pid);
+    const shareHtml=buildShareHtml(prop,firstPhoto,pid);
     const old=await ghAPI('GET','/share/'+pid+'.html');
     tasks.push(ghPut('/share/'+pid+'.html',ghB64(shareHtml),'Share page '+pid,old?.sha));
   }
@@ -2022,7 +2022,7 @@ async function savePhotos(){
 // ════════════════════════════════════════════════════════════════
 function showAdmin(){
   hide('vl');hide('vc');show('va');
-  document.title='Admin — Milan Matching';
+  document.title='Admin — Link Milano';
   _vaTab='props';
   aRender();
   lUpdateTabCount();

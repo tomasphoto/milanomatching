@@ -3178,31 +3178,78 @@ function _mapFilterKey(){
     .map(id=>(document.getElementById(id)||{}).value||'').join('|');
 }
 
+function _placeGroupMarker(group,c,goldIcon){
+  let popupHtml;
+  if(group.length===1){
+    const p=group[0];
+    const k=fk(p);
+    const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+    const priceStr=p.price>0?`€${p.price.toLocaleString('it-IT')}/mese`:'—';
+    const mqStr=p.mq>0?`${p.mq} mq`:'';
+    const dot=isNow(p.avail)?'#6EE0A0':'#F0C870';
+    const ph=(ST.photos[k]||[])[0]||'';
+    popupHtml=`<div style="min-width:220px;max-width:260px;">
+      ${ph?`<img src="${ph}" style="width:100%;height:130px;object-fit:cover;border-radius:6px;margin-bottom:10px;display:block;" onerror="this.style.display='none'">` :''}
+      <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A96E;margin-bottom:4px;">${p.g}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;line-height:1.2;margin-bottom:5px;">${p.addr}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:7px;">${[rl,mqStr].filter(Boolean).join(' · ')}</div>
+      <div style="font-size:20px;font-family:'Cormorant Garamond',serif;margin-bottom:8px;">${priceStr}</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#888;margin-bottom:12px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0;"></span>${p.avail||'Subito'}
+      </div>
+      <button onclick="closeMapPopup();openAdminCard('${ek}')"
+        style="width:100%;padding:9px;background:#C9A96E;border:none;border-radius:7px;color:#09090C;font-size:12px;font-weight:600;cursor:pointer;">
+        Apri scheda →
+      </button>
+    </div>`;
+  } else {
+    const addr=group[0].addr;
+    const agency=group[0].g;
+    const rows=group.map(p=>{
+      const k=fk(p);
+      const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const rl=p.st>=5?'5+L':(RL[p.st]||'');
+      const ph=(ST.photos[k]||[])[0]||'';
+      const priceStr=p.price>0?`€${p.price.toLocaleString('it-IT')}`:'—';
+      const dot=isNow(p.avail)?'#6EE0A0':'#F0C870';
+      return `<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #222;">
+        ${ph?`<img src="${ph}" style="width:52px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`:
+             `<div style="width:52px;height:38px;background:#1a1a1a;border-radius:4px;flex-shrink:0;"></div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:11px;color:#ccc;">${rl}${p.mq?' · '+p.mq+'mq':''}</div>
+          <div style="font-size:13px;font-family:'Cormorant Garamond',serif;color:#C9A96E;">${priceStr}/mese</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#666;margin-top:1px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;"></span>${p.avail||'Subito'}
+          </div>
+        </div>
+        <button onclick="closeMapPopup();openAdminCard('${ek}')"
+          style="background:#C9A96E;border:none;border-radius:5px;color:#09090C;font-size:11px;font-weight:600;cursor:pointer;padding:5px 9px;white-space:nowrap;flex-shrink:0;">
+          →
+        </button>
+      </div>`;
+    }).join('');
+    popupHtml=`<div style="min-width:240px;max-width:280px;">
+      <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A96E;margin-bottom:4px;">${agency}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;margin-bottom:10px;">${addr}</div>
+      <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#555;margin-bottom:6px;">${group.length} unità disponibili</div>
+      <div style="max-height:260px;overflow-y:auto;">${rows}</div>
+    </div>`;
+  }
+  const m=L.marker([c.lat,c.lng],{icon:goldIcon}).bindPopup(popupHtml,{maxWidth:300,closeButton:false}).addTo(_leafletMap);
+  _mapMarkers.push(m);
+  return m;
+}
+
+// Legacy single-prop shim (used in phase-2 loop)
 function _placeMarker(p,goldIcon){
   const c=_geoCache[(p.addr||'').toLowerCase().trim()];
   if(!c)return null;
-  const k=fk(p);
-  const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
-  const priceStr=p.price>0?`€${p.price.toLocaleString('it-IT')}/mese`:'—';
-  const mqStr=p.mq>0?`${p.mq} mq`:'';
-  const dot=isNow(p.avail)?'#6EE0A0':'#F0C870';
-  const popup=`<div style="min-width:190px;">
-    <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A96E;margin-bottom:5px;">${p.g}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;line-height:1.2;margin-bottom:6px;">${p.addr}</div>
-    <div style="font-size:11px;color:#666;margin-bottom:8px;">${[rl,mqStr].filter(Boolean).join(' · ')}</div>
-    <div style="font-size:20px;font-family:'Cormorant Garamond',serif;margin-bottom:10px;">${priceStr}</div>
-    <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:#666;margin-bottom:14px;">
-      <span style="width:7px;height:7px;border-radius:50%;background:${dot};flex-shrink:0;"></span>${p.avail||'Subito'}
-    </div>
-    <button onclick="closeMapPopup();openAdminCard('${ek}')"
-      style="width:100%;padding:9px;background:#C9A96E;border:none;border-radius:7px;color:#09090C;font-size:12px;font-weight:600;cursor:pointer;">
-      Apri scheda →
-    </button>
-  </div>`;
-  const m=L.marker([c.lat,c.lng],{icon:goldIcon}).bindPopup(popup,{maxWidth:260,closeButton:false}).addTo(_leafletMap);
-  _mapMarkers.push(m);
-  return m;
+  // Find all props sharing this address (already geocoded group)
+  const group=getFilteredProps().filter(q=>(q.addr||'').toLowerCase().trim()===(p.addr||'').toLowerCase().trim());
+  // Only place if this prop is the first in the group (avoid duplicates)
+  if(group[0]!==p&&group.indexOf(p)>0)return 'dup';
+  return _placeGroupMarker(group,c,goldIcon);
 }
 
 function _fitMarkers(){
@@ -3245,20 +3292,30 @@ async function renderMapView(){
   const props=getFilteredProps();
   const status=document.getElementById('va-map-status');
 
-  // Phase 1 — instant: all already-geocoded addresses
-  props.forEach(p=>_placeMarker(p,goldIcon));
+  // Phase 1 — instant: group by address, place one marker per address
+  const byAddr={};
+  props.forEach(p=>{const ak=(p.addr||'').toLowerCase().trim();if(!byAddr[ak])byAddr[ak]=[];byAddr[ak].push(p);});
+  Object.entries(byAddr).forEach(([ak,grp])=>{
+    const c=_geoCache[ak];
+    if(c)_placeGroupMarker(grp,c,goldIcon);
+  });
   if(_mapMarkers.length)_fitMarkers();
 
-  // Phase 2 — background: new addresses only
-  const uncached=props.filter(p=>!_geoCache[(p.addr||'').toLowerCase().trim()]);
-  if(uncached.length){
-    status.textContent=`Caricamento ${uncached.length} nuove posizioni…`;
+  // Phase 2 — background: new addresses only (one geocode per unique address)
+  const uncachedAddrs=[...new Set(props.filter(p=>!_geoCache[(p.addr||'').toLowerCase().trim()]).map(p=>p.addr))];
+  if(uncachedAddrs.length){
+    status.textContent=`Caricamento ${uncachedAddrs.length} nuove posizioni…`;
     status.classList.remove('hidden');
     const delay=ms=>new Promise(r=>setTimeout(r,ms));
-    for(const p of uncached){
+    for(const addr of uncachedAddrs){
       if(_mapFilterKey()!==fKey)break;
-      await _geocode(p.addr);
-      if(_placeMarker(p,goldIcon))_fitMarkers();
+      const ak=(addr||'').toLowerCase().trim();
+      await _geocode(addr);
+      const c=_geoCache[ak];
+      if(c){
+        const grp=props.filter(p=>(p.addr||'').toLowerCase().trim()===ak);
+        if(_placeGroupMarker(grp,c,goldIcon))_fitMarkers();
+      }
       await delay(1100);
     }
     status.classList.add('hidden');

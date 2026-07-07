@@ -2864,6 +2864,16 @@ function _fitMarkers(){
   else if(_mapMarkers.length>1){const g=L.featureGroup(_mapMarkers);_leafletMap.fitBounds(g.getBounds().pad(0.18));}
 }
 
+function propsSubTab(tab){
+  document.getElementById('vst-list').classList.toggle('active',tab==='list');
+  document.getElementById('vst-map').classList.toggle('active',tab==='map');
+  document.getElementById('vp-list-view').classList.toggle('hidden',tab!=='list');
+  document.getElementById('vp-map-view').classList.toggle('hidden',tab!=='map');
+  if(tab==='map'){setTimeout(()=>{if(_leafletMap)_leafletMap.invalidateSize();renderMapView();},50);}
+}
+
+function closeMapPopup(){if(_leafletMap)_leafletMap.closePopup();}
+
 async function renderMapView(){
   _loadGeoCache();
   const fKey=_mapFilterKey();

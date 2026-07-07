@@ -3142,7 +3142,78 @@ function aRender(){
 // ════════════════════════════════════════════════════════════════
 //  MAP VIEW
 // ════════════════════════════════════════════════════════════════
-let _leafletMap=null, _mapMarkers=[], _geoCache={}, _geoCacheLoaded=false, _lastMapFilterKey=null;
+let _leafletMap=null, _mapMarkers=[], _metroStLayers=[], _geoCache={}, _geoCacheLoaded=false, _lastMapFilterKey=null;
+const _METRO_CLR={'M1':'#E2001A','M2':'#007A4D','M3':'#F5C518','M4':'#1B60A8','M5':'#9B2CA0'};
+const _METRO_CACHE_KEY='_lm_metrost_v1';
+
+async function _loadMetroStations(){
+  if(_metroStLayers.length)return;
+  // Try 7-day cache
+  try{
+    const c=JSON.parse(localStorage.getItem(_METRO_CACHE_KEY)||'null');
+    if(c&&Date.now()-c.ts<7*86400000){_renderMetroStations(c.stations);return;}
+  }catch(e){}
+  // Overpass: all Milan subway route relations + their stop nodes
+  const q=`[out:json][timeout:30];
+(relation["type"="route"]["route"="subway"]["operator"="ATM"](45.38,9.04,45.57,9.33););
+out body;>;out skel qt;`;
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(q)});
+    const d=await r.json();
+    const nodeCoords={};
+    const nodeName={};
+    d.elements.forEach(el=>{
+      if(el.type==='node'){nodeCoords[el.id]={lat:el.lat,lon:el.lon};}
+      if(el.type==='node'&&el.tags?.name)nodeName[el.id]=el.tags.name;
+    });
+    const stMap={};
+    d.elements.forEach(el=>{
+      if(el.type!=='relation')return;
+      const ref=(el.tags?.ref||'').toUpperCase();
+      const clr=el.tags?.colour||el.tags?.color||_METRO_CLR[ref]||'#C9A96E';
+      (el.members||[]).forEach(m=>{
+        if(m.type!=='node'||!m.role.startsWith('stop'))return;
+        const c=nodeCoords[m.ref];if(!c)return;
+        if(!stMap[m.ref])stMap[m.ref]={lat:c.lat,lon:c.lon,name:nodeName[m.ref]||'',colours:[]};
+        if(!stMap[m.ref].colours.includes(clr))stMap[m.ref].colours.push(clr);
+      });
+    });
+    const stations=Object.values(stMap);
+    try{localStorage.setItem(_METRO_CACHE_KEY,JSON.stringify({ts:Date.now(),stations}));}catch(e){}
+    _renderMetroStations(stations);
+  }catch(e){console.warn('Metro stations fetch failed',e);}
+}
+
+function _renderMetroStations(stations){
+  stations.forEach(s=>{
+    const clr=s.colours[0]||'#C9A96E';
+    const multi=s.colours.length>1;
+    // Outer glow ring
+    const glow=L.circleMarker([s.lat,s.lon],{
+      radius:multi?10:8,fillColor:clr,color:clr,
+      weight:0,fillOpacity:0.18,interactive:false
+    }).addTo(_leafletMap);
+    // Inner highlight ring (no fill — sits over tile icon)
+    const ring=L.circleMarker([s.lat,s.lon],{
+      radius:multi?6:5,fillColor:'transparent',color:clr,
+      weight:1.8,opacity:0.75,fillOpacity:0,interactive:!!s.name
+    });
+    if(s.name){
+      ring.bindTooltip(s.name,{permanent:false,direction:'top',
+        className:'metro-tt',offset:[0,-4]});
+    }
+    ring.addTo(_leafletMap);
+    _metroStLayers.push(glow,ring);
+    // Extra rings for interchange lines
+    s.colours.slice(1).forEach((c,i)=>{
+      const xr=L.circleMarker([s.lat,s.lon],{
+        radius:8+i*3,fillColor:'transparent',color:c,
+        weight:1.5,opacity:0.55,fillOpacity:0,interactive:false
+      }).addTo(_leafletMap);
+      _metroStLayers.push(xr);
+    });
+  });
+}
 
 function _loadGeoCache(){
   if(_geoCacheLoaded)return; _geoCacheLoaded=true;

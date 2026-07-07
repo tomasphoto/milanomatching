@@ -2528,9 +2528,11 @@ function saveAdminCard(){
   const isBase=BP.find(p=>fk(p)===k);
   if(isBase)ST.edits[k]=d;
   else{const i=ST.customProps.findIndex(p=>fk(p)===k);if(i>=0)Object.assign(ST.customProps[i],d);}
-  stSave();aRender();closeAdminCard();
+  stSave();
+  hide('va-ep');show('va');aRender();
   scheduleSync();
   toast('Modifiche salvate');
+  _vaepK=null;
 }
 
 function vaepShare(){

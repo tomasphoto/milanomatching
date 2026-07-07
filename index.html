@@ -942,7 +942,6 @@
     <div class="va-sep"></div>
     <span class="va-count" id="va-count"></span>
     <button class="btn-va" onclick="openSettings()">⚙ Impostazioni</button>
-    <button class="btn-va" id="va-pub-btn" onclick="forceSyncNow()">↑ Pubblica ora</button>
     <button class="btn-va btn-va-gold" id="va-add-btn" onclick="vaAddClick()">＋ Aggiungi</button>
     <button class="btn-va" onclick="exitAdmin()" style="opacity:.45">✕ Esci</button>
   </div>
@@ -2787,9 +2786,9 @@ function toast(msg,d=2500){
 //  SYNCED STATE — written by ghUpdateSite(), authoritative for all devices
 //  Sentinels /*--TAG--*/ allow reliable in-place JSON replacement
 // ════════════════════════════════════════════════════════════════
-const SYNC_TIMESTAMP = /*--SYNCTIME--*/1783386935951/*--SYNCTIME--*/;
+const SYNC_TIMESTAMP = /*--SYNCTIME--*/0/*--SYNCTIME--*/;
 
-const SHARE_PAGES = /*--SHARES--*/{"Duomo Case::Via Cerva 19::VC01":"share/VC01.html","Cise Re::Via Saronno 9::CR-SAR9":"share/CR-SAR9.html","Cise Re::Via Ruggero Boscovich 49::CR-BOC49":"share/CR-BOC49.html","Cise Re::Via Benedetto Marcello 89::CR-MAR89":"share/CR-MAR89.html","Cise Re::Via Bergamo 16::CR-BER16":"share/CR-BER16.html","Cise Re::Via Paolo Lomazzo 5::CR9484":"share/CR9484.html","Cise Re::Via Giovanni De Alessandri::CR9500":"share/CR9500.html","Cise Re::Viale Premuda 14::CR9483":"share/CR9483.html","Cise Re::Via Vincenzo Monti 34::CR9510":"share/CR9510.html","Cise Re::Viale Premuda 14::CR9482":"share/CR9482.html","Cise Re::Viale Papiniano 45::CR9522":"share/CR9522.html","Cise Re::Via Senato 35::CR9464":"share/CR9464.html","Cise Re::Via Vincenzo Monti 34::CR9520":"share/CR9520.html","Cise Re::Via San Giovanni sul Muro 18::CR9514":"share/CR9514.html","Cise Re::Via Bernardino Zenale::CR9478":"share/CR9478.html","Cise Re::Via del Fusaro 9::CR9480":"share/CR9480.html","Cise Re::Via Luigi Pirandello 1::CR9428":"share/CR9428.html","Cise Re::Via Pantano 15::CR9521":"share/CR9521.html","Cise Re::Viale Regina Giovanna 32::CR9518":"share/CR9518.html","Cise Re::Via Vincenzo Monti 34::CR9475":"share/CR9475.html","Cise Re::Via Disciplini 4::CR9524":"share/CR9524.html","Cise Re::Viale Piave 29::CR9416":"share/CR9416.html","Cise Re::Viale San Michele del Carso 16::CR9511":"share/CR9511.html","Cise Re::Corso Porta Romana 92::CR9460":"share/CR9460.html","Cise Re::Via San Giovanni sul Muro 18::CR9448":"share/CR9448.html","Cise Re::Via Broni 21::CR9467":"share/CR9467.html","Cise Re::Corso Porta Romana 92::CR9459":"share/CR9459.html"}/*--SHARES--*/;
+const SHARE_PAGES = /*--SHARES--*/{"Duomo Case::Via Cerva 19::VC01":"share/VC01.html"}/*--SHARES--*/;
 
 const DEFAULT_SETTINGS = /*--SETTINGS--*/{"phone":"+393486946024","calLink":"","email":"tomas.rojas@vizzardire.com"}/*--SETTINGS--*/;
 

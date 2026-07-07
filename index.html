@@ -1587,10 +1587,27 @@ function showLanding(){
 }
 
 function askAdmin(){
-  const pw=prompt('🔑 Password amministratore:');
-  if(!pw) return;
-  if(pw===(ST.adminPw||'milan2026')||pw==='linkmi-admin') showAdmin();
-  else alert('Password errata.');
+  showLanding(); // ensure landing is set up as backdrop + logo handler wired
+  const ov=document.getElementById('pw-overlay');
+  const inp=document.getElementById('pw-input');
+  const err=document.getElementById('pw-error');
+  inp.value=''; err.textContent='';
+  ov.style.display='flex';
+  setTimeout(()=>inp.focus(),80);
+}
+function closePwOverlay(){
+  document.getElementById('pw-overlay').style.display='none';
+}
+function submitPw(){
+  const pw=document.getElementById('pw-input').value;
+  if(pw===(ST.adminPw||'milan2026')||pw==='linkmi-admin'){
+    closePwOverlay();
+    showAdmin();
+  } else {
+    document.getElementById('pw-error').textContent='⚠ Password errata';
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-input').focus();
+  }
 }
 
 // ════════════════════════════════════════════════════════════════

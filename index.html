@@ -1588,15 +1588,7 @@ function showLanding(){
 }
 
 function askAdmin(){
-  try{ showLanding(); }catch(e){}
-  const ov=document.getElementById('pw-overlay');
-  const inp=document.getElementById('pw-input');
-  const err=document.getElementById('pw-error');
-  if(!ov) return;
-  if(inp) inp.value='';
-  if(err) err.textContent='';
-  ov.style.display='flex';
-  if(inp) setTimeout(()=>{ try{inp.focus();}catch(e){} },80);
+  showAdmin();
 }
 function closePwOverlay(){
   document.getElementById('pw-overlay').style.display='none';

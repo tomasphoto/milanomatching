@@ -842,12 +842,16 @@
     }
     .vlep-sub-in:focus{border-bottom-color:var(--gold);}
     .vlep-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;}
-    .vlep-stanze-sel{
-      width:100%;background:var(--bg3);border:1px solid var(--border);
-      color:var(--text);border-radius:var(--rsm);padding:6px 10px;
-      font-family:'Inter',sans-serif;font-size:12px;
+    .vlep-rooms{display:flex;flex-wrap:wrap;gap:6px;padding-top:4px;}
+    .vlep-room-opt{
+      background:var(--bg3);border:1px solid var(--border);
+      border-radius:var(--rsm);padding:5px 12px;
+      font-size:12px;color:var(--textmid);cursor:pointer;
+      transition:all .15s;user-select:none;
     }
-    .vlep-stanze-sel option{padding:4px 0;}
+    .vlep-room-opt.active{
+      background:rgba(201,169,110,.12);border-color:rgba(201,169,110,.4);color:var(--gold);
+    }
     .vlep-matches-wrap{display:flex;flex-direction:column;gap:10px;}
     .vlep-match-row{
       display:flex;align-items:center;gap:14px;
@@ -1310,13 +1314,13 @@
       </div>
       <div class="vaep-field">
         <div class="vaep-label">Locali richiesti</div>
-        <select class="vlep-stanze-sel" id="vlep-stanze" multiple size="5">
-          <option value="1">Monolocale</option>
-          <option value="2">Bilocale</option>
-          <option value="3">Trilocale</option>
-          <option value="4">Quadrilocale</option>
-          <option value="5">5+ locali</option>
-        </select>
+        <div class="vlep-rooms" id="vlep-rooms">
+          <span class="vlep-room-opt" data-val="1" onclick="vlepToggleRoom(this)">Mono</span>
+          <span class="vlep-room-opt" data-val="2" onclick="vlepToggleRoom(this)">Bilo</span>
+          <span class="vlep-room-opt" data-val="3" onclick="vlepToggleRoom(this)">Tri</span>
+          <span class="vlep-room-opt" data-val="4" onclick="vlepToggleRoom(this)">Quadri</span>
+          <span class="vlep-room-opt" data-val="5" onclick="vlepToggleRoom(this)">5+</span>
+        </div>
       </div>
       <div class="vaep-field">
         <div class="vaep-label">Disponibilit&#224;</div>
@@ -1338,21 +1342,16 @@
           <option value="Urgente">Urgente</option>
         </select>
       </div>
-      <div class="vaep-field">
-        <div class="vaep-label">Qualit&#224; lead (0&#8211;5)</div>
-        <input class="vaep-in" id="vlep-qual-in" type="number" min="0" max="5" placeholder="0&#8211;5">
-      </div>
-      <div class="vaep-field">
-        <div class="vaep-label">Zone preferite</div>
-        <input class="vaep-in" id="vlep-zones" type="text" placeholder="es. Porta Venezia, Navigli">
+      <div class="vaep-field" style="grid-column:1/-1">
+        <div class="vaep-label">Collega a propriet&#224;</div>
+        <select class="vaep-in" id="vlep-prop-link" style="width:100%">
+          <option value="">&#8212; Nessuna &#8212;</option>
+        </select>
       </div>
     </div>
-    <!-- Richiesta -->
-    <div class="vaep-sec-hd" style="margin-top:20px">Richiesta</div>
-    <textarea class="vaep-desc-in" id="vlep-richiesta" placeholder="Zona, caratteristiche, esigenze&#8230;" style="min-height:80px"></textarea>
     <!-- Note -->
     <div class="vaep-sec-hd" style="margin-top:20px">Note interne</div>
-    <textarea class="vaep-desc-in" id="vlep-note" placeholder="Note private&#8230;" style="min-height:60px"></textarea>
+    <textarea class="vaep-desc-in" id="vlep-note" placeholder="Note private&#8230;" style="min-height:80px"></textarea>
     <!-- Matching properties -->
     <div class="vaep-sec-hd" style="margin-top:32px">Propriet&#224; compatibili</div>
     <div id="vlep-matches" class="vlep-matches-wrap"></div>
@@ -2574,17 +2573,23 @@ function openLeadPanel(id){
   document.getElementById('vlep-tel').value=lead.tel||'';
   document.getElementById('vlep-email').value=lead.email||'';
   document.getElementById('vlep-budget').value=lead.budgetMax||'';
-  document.getElementById('vlep-richiesta').value=lead.richiesta||'';
   document.getElementById('vlep-note').value=lead.note||'';
   document.getElementById('vlep-qual').textContent=lead.qual||'—';
-  document.getElementById('vlep-qual-in').value=lead.qual||'';
-  document.getElementById('vlep-zones').value=(Array.isArray(lead.zones)?lead.zones:[]).join(', ');
   // Ingresso / Urgenza
   document.getElementById('vlep-ingresso').value=lead.ingresso||'Flessibile';
   document.getElementById('vlep-urg').value=lead.urg||'';
-  // Stanze multi-select
+  // Rooms toggles
   const stArr=Array.isArray(lead.stanze)?lead.stanze:(lead.stanze?[+lead.stanze]:[]);
-  Array.from(document.getElementById('vlep-stanze').options).forEach(o=>{o.selected=stArr.includes(+o.value);});
+  document.querySelectorAll('#vlep-rooms .vlep-room-opt').forEach(el=>{
+    el.classList.toggle('active',stArr.includes(+el.dataset.val));
+  });
+  // Property link selector
+  const propSel=document.getElementById('vlep-prop-link');
+  const props=allP().slice().sort((a,b)=>a.addr.localeCompare(b.addr,'it'));
+  propSel.innerHTML='<option value="">— Nessuna —</option>'+
+    props.map(p=>{const k=fk(p);const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+      return `<option value="${k.replace(/"/g,'&quot;')}"${lead.linkedProp===k?' selected':''}>${p.addr} · ${rl} · €${p.price.toLocaleString('it-IT')}</option>`;
+    }).join('');
   // Pipeline status select
   const stSel=document.getElementById('vlep-status');
   stSel.innerHTML=Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('');
@@ -2643,16 +2648,13 @@ function saveLeadPanel(){
   lead.tel=document.getElementById('vlep-tel').value.trim();
   lead.email=document.getElementById('vlep-email').value.trim();
   lead.budgetMax=+document.getElementById('vlep-budget').value||0;
-  lead.richiesta=document.getElementById('vlep-richiesta').value.trim();
   lead.note=document.getElementById('vlep-note').value.trim();
-  lead.qual=+document.getElementById('vlep-qual-in').value||0;
   lead.urg=document.getElementById('vlep-urg').value;
   lead.ingresso=document.getElementById('vlep-ingresso').value;
   lead.status=document.getElementById('vlep-status').value;
-  lead.stanze=Array.from(document.getElementById('vlep-stanze').selectedOptions).map(o=>+o.value);
-  lead.zones=document.getElementById('vlep-zones').value.split(',').map(s=>s.trim()).filter(Boolean);
-  // Update qual badge and tel button
-  document.getElementById('vlep-qual').textContent=lead.qual||'—';
+  lead.stanze=Array.from(document.querySelectorAll('#vlep-rooms .vlep-room-opt.active')).map(el=>+el.dataset.val);
+  lead.linkedProp=document.getElementById('vlep-prop-link').value||'';
+  // Update tel button
   const tb=document.getElementById('vlep-tel-btn');
   if(lead.tel){tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';}
   else{tb.textContent='☎️ —';tb.style.opacity='.45';}
@@ -2660,6 +2662,8 @@ function saveLeadPanel(){
   vlepRenderMatches(lead);
   toast('✓ Lead aggiornato');
 }
+
+function vlepToggleRoom(el){el.classList.toggle('active');}
 
 function vlepRenderMatches(lead){
   const wrap=document.getElementById('vlep-matches');if(!wrap)return;
@@ -2776,7 +2780,9 @@ function saveContact(id){
   const blob=new Blob([lines.join('\r\n')],{type:'text/vcard;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;a.download=fn.replace(/\s+/g,'_')+'.vcf';
+  let vcfName=fn.replace(/\s+/g,'_');
+  if(lead.linkedProp){const lp=allP().find(x=>fk(x)===lead.linkedProp);if(lp)vcfName+='_'+lp.addr.replace(/[^\w]/g,'_').replace(/_+/g,'_');}
+  a.href=url;a.download=vcfName+'.vcf';
   document.body.appendChild(a);a.click();
   document.body.removeChild(a);URL.revokeObjectURL(url);
   toast('✓ Contatto salvato');

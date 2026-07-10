@@ -3161,6 +3161,17 @@ function getFilteredProps(){
   return props;
 }
 
+function stepPrice(which, dir){
+  const el = document.getElementById('af-price-' + which);
+  let v = +(el.value || 0);
+  v = Math.max(0, v + dir * 100);
+  if(dir > 0 && v === 100) v = 500; // first click up jumps straight to 500
+  el.value = v;
+  const disp = document.getElementById('af-price-' + which + '-disp');
+  disp.textContent = v === 0 ? '–' : '€' + v.toLocaleString('it-IT');
+  aRender();
+}
+
 function aRender(){
   // Populate agency dropdown
   const ags=[...new Set(allP().map(p=>p.g))].sort();

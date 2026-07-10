@@ -1164,6 +1164,23 @@
         <option value="80-120">80 – 120mq</option>
         <option value="120-">120mq+</option>
       </select>
+      <select class="va-sel" id="af-zona" onchange="aRender()">
+        <option value="">Tutte le zone</option>
+        <option value="Porta Romana">Porta Romana</option>
+        <option value="Porta Venezia">Porta Venezia</option>
+        <option value="Buenos Aires">Buenos Aires</option>
+        <option value="Brera">Brera</option>
+        <option value="Centro / Duomo">Centro / Duomo</option>
+        <option value="Navigli">Navigli</option>
+        <option value="Magenta">Magenta</option>
+        <option value="Washington / De Angeli">Washington / De Angeli</option>
+        <option value="Sarpi / Arco della Pace">Sarpi / Arco della Pace</option>
+        <option value="City Life">City Life</option>
+        <option value="San Siro">San Siro</option>
+        <option value="Città Studi">Città Studi</option>
+        <option value="Vigentino">Vigentino</option>
+        <option value="Isola">Isola</option>
+      </select>
       <input type="text" class="va-sel" id="af-zone" placeholder="Zona, metro, via…"
              list="af-zone-list" oninput="aRender()" style="min-width:160px;background-image:none;" autocomplete="off">
       <datalist id="af-zone-list">
@@ -3129,6 +3146,8 @@ function getZoneKeywords(input){
   return kws.length?[...new Set(kws)]:null;
 }
 
+function getZona(p){ return (ZONA_DEFAULTS||{})[(p.addr||'').toLowerCase().trim()]||''; }
+
 // Shared filter logic — used by both list and map views
 function getFilteredProps(){
   const rooms  = document.getElementById('af-rooms').value;
@@ -3139,6 +3158,7 @@ function getFilteredProps(){
   const priceMax = +(document.getElementById('af-price-max')?.value||0);
   const mq     = document.getElementById('af-mq').value;
   const zone   = (document.getElementById('af-zone').value||'').toLowerCase().trim();
+  const zona   = document.getElementById('af-zona')?.value||'';
   let props=allP();
   if(rooms){const r=+rooms;props=r===4?props.filter(p=>p.st>=4):props.filter(p=>p.st===r);}
   if(agency)props=props.filter(p=>p.g===agency);
@@ -3147,6 +3167,7 @@ function getFilteredProps(){
   if(vis==='hid')props=props.filter(p=>ST.hiddenKeys.includes(fk(p)));
   if(priceMin>0||priceMax>0){props=props.filter(p=>p.price>0&&(priceMin===0||p.price>=priceMin)&&(priceMax===0||p.price<=priceMax));}
   if(mq){const pt=mq.split('-');const mMin=+pt[0];const mMax=pt[1]===''?Infinity:+pt[1];props=props.filter(p=>p.mq>0&&p.mq>=mMin&&p.mq<=mMax);}
+  if(zona) props=props.filter(p=>getZona(p)===zona);
   if(zone){
     const zoneKws=getZoneKeywords(zone);
     if(zoneKws){
@@ -3314,7 +3335,7 @@ async function _warmGeoCache(){
 }
 
 function _mapFilterKey(){
-  return ['af-rooms','af-agency','af-avail','af-vis','af-price-min','af-price-max','af-mq','af-zone']
+  return ['af-rooms','af-agency','af-avail','af-vis','af-price-min','af-price-max','af-mq','af-zona','af-zone']
     .map(id=>(document.getElementById(id)||{}).value||'').join('|');
 }
 
@@ -3504,6 +3525,7 @@ function aCard(p){
   </div>
   <div class="ac-body">
     <div class="ac-g">${p.g}</div>
+    ${getZona(p)?`<div class="ac-zona">${getZona(p)}</div>`:''}
     <div class="ac-addr">${p.addr}</div>
     <div class="ac-meta">
       <span class="ac-m"><strong>${rl}</strong></span>

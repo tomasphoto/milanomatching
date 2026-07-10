@@ -1144,13 +1144,18 @@
         <option value="vis">Solo visibili</option>
         <option value="hid">Solo nascoste</option>
       </select>
-      <select class="va-sel" id="af-price" onchange="aRender()">
-        <option value="">Tutti i prezzi</option>
-        <option value="0-1500">Fino a €1.500</option>
-        <option value="1500-3000">€1.500 – 3.000</option>
-        <option value="3000-5000">€3.000 – 5.000</option>
-        <option value="5000-">€5.000+</option>
-      </select>
+      <div class="va-price-stepper">
+        <span class="vpf-label">€</span>
+        <button class="vpf-btn" onclick="stepPrice('min',-1)">‹</button>
+        <span class="vpf-num" id="af-price-min-disp">–</span>
+        <button class="vpf-btn" onclick="stepPrice('min',1)">›</button>
+        <span class="vpf-dash">—</span>
+        <button class="vpf-btn" onclick="stepPrice('max',-1)">‹</button>
+        <span class="vpf-num" id="af-price-max-disp">–</span>
+        <button class="vpf-btn" onclick="stepPrice('max',1)">›</button>
+      </div>
+      <input type="hidden" id="af-price-min" value="0">
+      <input type="hidden" id="af-price-max" value="0">
       <select class="va-sel" id="af-mq" onchange="aRender()">
         <option value="">Tutti gli mq</option>
         <option value="0-50">Fino a 50mq</option>
@@ -3129,7 +3134,8 @@ function getFilteredProps(){
   const agency = document.getElementById('af-agency').value;
   const avail  = document.getElementById('af-avail').value;
   const vis    = document.getElementById('af-vis').value;
-  const price  = document.getElementById('af-price').value;
+  const priceMin = +(document.getElementById('af-price-min')?.value||0);
+  const priceMax = +(document.getElementById('af-price-max')?.value||0);
   const mq     = document.getElementById('af-mq').value;
   const zone   = (document.getElementById('af-zone').value||'').toLowerCase().trim();
   let props=allP();
@@ -3138,7 +3144,7 @@ function getFilteredProps(){
   if(avail==='now')props=props.filter(p=>isNow(p.avail));
   if(vis==='vis')props=props.filter(p=>!ST.hiddenKeys.includes(fk(p)));
   if(vis==='hid')props=props.filter(p=>ST.hiddenKeys.includes(fk(p)));
-  if(price){const pt=price.split('-');const pMin=+pt[0];const pMax=pt[1]===''?Infinity:+pt[1];props=props.filter(p=>p.price>0&&p.price>=pMin&&p.price<=pMax);}
+  if(priceMin>0||priceMax>0){props=props.filter(p=>p.price>0&&(priceMin===0||p.price>=priceMin)&&(priceMax===0||p.price<=priceMax));}
   if(mq){const pt=mq.split('-');const mMin=+pt[0];const mMax=pt[1]===''?Infinity:+pt[1];props=props.filter(p=>p.mq>0&&p.mq>=mMin&&p.mq<=mMax);}
   if(zone){
     const zoneKws=getZoneKeywords(zone);
@@ -3293,7 +3299,7 @@ async function _warmGeoCache(){
 }
 
 function _mapFilterKey(){
-  return ['af-rooms','af-agency','af-avail','af-vis','af-price','af-mq','af-zone']
+  return ['af-rooms','af-agency','af-avail','af-vis','af-price-min','af-price-max','af-mq','af-zone']
     .map(id=>(document.getElementById(id)||{}).value||'').join('|');
 }
 

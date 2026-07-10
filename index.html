@@ -3247,9 +3247,14 @@ function _renderMetroStations(stations){
   });
 }
 
+// Hardcoded coords for addresses Nominatim gets wrong — keys are lowercase addr strings
+const GEO_DEFAULTS = /*--GEO--*/{"via gian galeazzo 9":{"lat":45.4525046,"lng":9.1860185}}/*--GEO--*/;
+
 function _loadGeoCache(){
   if(_geoCacheLoaded)return; _geoCacheLoaded=true;
   try{_geoCache=JSON.parse(localStorage.getItem('_lm_geocache')||'{}');}catch(e){_geoCache={};}
+  // GEO_DEFAULTS always wins — corrects addresses that Nominatim geocodes to wrong cities
+  Object.assign(_geoCache, GEO_DEFAULTS);
 }
 function _saveGeoCache(){
   try{localStorage.setItem('_lm_geocache',JSON.stringify(_geoCache));}catch(e){}

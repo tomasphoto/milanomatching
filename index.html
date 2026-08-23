@@ -3800,6 +3800,9 @@ function saveProp(){
     const nk=fk(d);
     if(phs.length)ST.photos[nk]=phs;
     if(fp)ST.floorplans[nk]=fp;
+    stSave();closeM('m-add');aRender();
+    sbInsertProp(nk, d);
+    return;
   }
   stSave();closeM('m-add');aRender();
   scheduleSync();

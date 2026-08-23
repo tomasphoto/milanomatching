@@ -1755,6 +1755,26 @@ const SB_STATUS_MAP = {
   'secondo':'second_option','contratto':'contract'
 };
 
+async function sbInsertProp(localKey, d){
+  if(!_adminPw) return;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/admin_insert_property`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_admin_pw: _adminPw, p_data: {
+        address: d.addr, agency_name: d.g || null,
+        surface_sqm: d.mq || null, rooms: d.st || null,
+        price: d.price || null, available_from: d.avail || null,
+        description: d.desc || null, external_listing_url: d.url || null
+      }})
+    });
+    if(!r.ok){ console.warn('[SB] insert prop', await r.text()); return; }
+    const uuid = await r.json();
+    const local = ST.customProps.find(p => fk(p) === localKey);
+    if(local && uuid){ local._sbId = uuid; stSave(); }
+  } catch(e){ console.warn('[SB] sbInsertProp', e.message); }
+}
+
 async function sbSyncProp(k, localData){
   const p = allP().find(x => fk(x) === k);
   if(!p?._sbId) return;

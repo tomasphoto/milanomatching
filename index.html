@@ -36,36 +36,91 @@
 
   <style>
     :root {
-      --bg:      #09090C;
-      --bg2:     #111318;
-      --bg3:     #191C24;
-      --border:  rgba(255,255,255,0.07);
-      --bordmd:  rgba(255,255,255,0.13);
-      --text:    #EDE9E3;
-      --textmid: rgba(237,233,227,0.55);
-      --textdim: rgba(237,233,227,0.28);
-      --gold:    #C9A96E;
-      --goldlt:  #DFC08A;
-      --golddk:  #A88548;
-      --green:   #6EE0A0;
-      --amber:   #F0C870;
-      --r:       10px;
-      --rsm:     5px;
+      /* ── Backgrounds ──────────────────────────────────── */
+      --bg:      #F5F4F0;   /* page — warm white */
+      --bg2:     #FFFFFF;   /* cards / elevated */
+      --bg3:     #ECEBE7;   /* surface / inset */
+      --bg4:     #E2E1DC;   /* deep surface */
+
+      /* ── Text ──────────────────────────────────────────── */
+      --text:    #151515;   /* charcoal primary */
+      --textmid: #6A6965;   /* secondary */
+      --textdim: #9A9895;   /* tertiary / labels */
+
+      /* ── Borders ────────────────────────────────────────── */
+      --border:  rgba(20,20,20,0.08);
+      --bordmd:  rgba(20,20,20,0.14);
+      --bordhi:  rgba(20,20,20,0.24);
+
+      /* ── Accent — deep slate ────────────────────────────── */
+      --accent:   #2A3240;
+      --accent-l: #3D4F65;
+      --accent-d: #1A2030;
+
+      /* ── Brand warm — used sparingly ────────────────────── */
+      --gold:    #8A7355;
+      --goldlt:  #A08B6A;
+      --golddk:  #6B5840;
+
+      /* ── Status ─────────────────────────────────────────── */
+      --green:   #1A7A42;
+      --amber:   #9A6810;
+      --red:     #B83228;
+
+      /* ── Glass ──────────────────────────────────────────── */
+      --glass-nav:   rgba(245,244,240,0.82);
+      --glass-float: rgba(255,255,255,0.78);
+      --glass-panel: rgba(255,255,255,0.92);
+      --glass-dark:  rgba(12,12,14,0.42);
+
+      /* ── Shadows ─────────────────────────────────────────── */
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.04);
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.03), 0 6px 18px rgba(0,0,0,.07);
+      --shadow-md: 0 1px 2px rgba(0,0,0,.03), 0 12px 36px rgba(0,0,0,.09);
+      --shadow-lg: 0 4px 6px rgba(0,0,0,.02), 0 24px 60px rgba(0,0,0,.12);
+
+      /* ── Radius ──────────────────────────────────────────── */
+      --r:    12px;
+      --rsm:   8px;
+      --rxs:   6px;
+      --rlg:  18px;
+
+      /* ── Motion ──────────────────────────────────────────── */
+      --dur-fast:  140ms;
+      --dur-base:  200ms;
+      --dur-slow:  300ms;
+      --ease:      cubic-bezier(.2,.8,.2,1);
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}
-    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+    body{
+      background:var(--bg);color:var(--text);
+      font-family:'Inter',system-ui,sans-serif;
+      font-size:15px;line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      min-height:100vh;overflow-x:hidden;
+    }
     .hidden{display:none!important;}
     a{text-decoration:none;color:inherit;}
+    @media(prefers-reduced-motion:reduce){
+      *{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+    }
 
     /* ══ TOAST ══════════════════════════════════════════════ */
     #toast{
-      position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(10px);
-      background:var(--bg3);border:1px solid var(--gold);color:var(--gold);
-      padding:11px 22px;border-radius:4px;font-size:13px;letter-spacing:0.04em;
-      z-index:9999;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;
+      position:fixed;bottom:28px;right:24px;
+      background:var(--bg2);border:1px solid var(--border);color:var(--text);
+      padding:12px 18px;border-radius:var(--rsm);font-size:13px;font-weight:500;
+      box-shadow:var(--shadow-md);
+      z-index:9999;opacity:0;transform:translateY(8px);
+      transition:opacity var(--dur-slow) var(--ease),transform var(--dur-slow) var(--ease);
+      pointer-events:none;white-space:nowrap;max-width:320px;
     }
-    #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+    #toast.on{opacity:1;transform:translateY(0);}
+    @media(max-width:600px){
+      #toast{right:16px;bottom:80px;left:16px;right:16px;white-space:normal;}
+    }
 
     /* ══ LANDING VIEW ════════════════════════════════════════ */
     #vl{

@@ -2379,6 +2379,11 @@ function route(){
   if(s) showCard(s);
   else if(a!==null) askAdmin();
   else showLanding();
+  // nav scroll state (spec §16)
+  window.addEventListener('scroll',()=>{
+    const bar=document.querySelector('.vc-bar');
+    if(bar) bar.classList.toggle('scrolled', window.scrollY > 40);
+  },{passive:true});
 }
 
 // ════════════════════════════════════════════════════════════════

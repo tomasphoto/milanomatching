@@ -2278,10 +2278,54 @@ async function sbLoadLeads(){
     });
     if(!r.ok) return;
     const sbLeads = await r.json();
-    (sbLeads || []).forEach(sl => {
-      const local = (ST.leads || []).find(l => l.nome === sl.name && !l._sbId);
-      if(local) local._sbId = sl.id;
+    if(!Array.isArray(sbLeads)) return;
+    // Reverse status map: Supabase English → App Italian
+    const SB_STATUS_REV = {
+      'new':'nuovo','contacted':'contattato','viewing_scheduled':'visita',
+      'proposal':'proposta','closed':'chiuso','lost':'perso',
+      'second_option':'secondo','contract':'contratto'
+    };
+    let changed = false;
+    sbLeads.forEach(sl => {
+      if(!sl.id) return;
+      // Check if already tracked by _sbId
+      let local = (ST.leads || []).find(l => l._sbId === sl.id);
+      if(!local) {
+        // Fallback: name match for leads that predate _sbId tagging
+        local = (ST.leads || []).find(l => l.nome === sl.name && !l._sbId);
+      }
+      if(local) {
+        if(!local._sbId){ local._sbId = sl.id; changed = true; }
+      } else {
+        // Supabase-only lead — import into local state
+        if(!ST.leads) ST.leads = [];
+        ST.leads.push({
+          id: 'SB_' + sl.id,
+          _sbId: sl.id,
+          nome: sl.name || '',
+          tel: sl.phone || '',
+          email: sl.email || '',
+          profilo: sl.profile || 'Privato',
+          budgetMax: sl.budget_max || null,
+          stanze: sl.desired_rooms ? [sl.desired_rooms] : [],
+          zones: sl.desired_zones || [],
+          ingresso: sl.move_in || '',
+          urg: sl.urgency || '',
+          qual: sl.quality || null,
+          note: sl.notes || '',
+          richiesta: sl.request_text || '',
+          status: SB_STATUS_REV[sl.status] || 'nuovo',
+          addedAt: sl.added_at ? new Date(sl.added_at).getTime() : Date.now()
+        });
+        changed = true;
+      }
     });
+    if(changed){
+      stSave();
+      // Refresh the leads list if admin panel is open
+      const va = document.getElementById('va');
+      if(va && !va.classList.contains('hidden')) lRender();
+    }
   } catch(e){ console.warn('[SB] sbLoadLeads', e.message); }
 }
 

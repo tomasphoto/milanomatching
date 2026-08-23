@@ -916,9 +916,28 @@
       width:100%;height:100%;object-fit:cover;display:block;
       opacity:0;filter:blur(6px);
       transition:opacity var(--motion-card) var(--ease-premium),
-                 filter var(--motion-card) var(--ease-premium);
+                 filter var(--motion-card) var(--ease-premium),
+                 transform 420ms cubic-bezier(.2,.8,.2,1);
     }
     .ac-img img.loaded{opacity:1;filter:blur(0);}
+    @media(hover:hover) and (pointer:fine){
+      .ac:hover .ac-img img{transform:scale(1.025);}
+    }
+    /* Glass status pill floating over photo */
+    .ac-photo-status{
+      position:absolute;top:10px;left:10px;z-index:3;
+      padding:5px 10px;border-radius:999px;font-size:11px;font-weight:500;
+      color:var(--text);
+      background:rgba(250,249,246,.58);
+      border:1px solid rgba(255,255,255,.68);
+      backdrop-filter:blur(22px) saturate(145%);
+      -webkit-backdrop-filter:blur(22px) saturate(145%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.62);
+      transition:background 200ms ease;
+    }
+    .ac:hover .ac-photo-status{background:rgba(255,255,255,.78);}
+    .ac-photo-status.avail-now{color:var(--success);}
+    .ac-photo-status.avail-later{color:var(--warning);}
     .ac-img-ph{
       width:100%;height:100%;display:flex;align-items:center;
       justify-content:center;font-size:36px;opacity:.1;
@@ -1171,9 +1190,13 @@
     .leaflet-bar{border:1px solid var(--border)!important;box-shadow:var(--shadow-sm)!important;}
     #va-map-status{
       position:absolute;top:12px;left:50%;transform:translateX(-50%);
-      background:var(--glass-panel);border:1px solid var(--border);
-      border-radius:20px;padding:6px 16px;font-size:11px;color:var(--textdim);
-      pointer-events:none;z-index:1000;backdrop-filter:blur(8px);
+      border-radius:20px;padding:6px 16px;font-size:11px;color:var(--text-secondary);
+      pointer-events:none;z-index:1000;
+      background:rgba(250,249,246,.74);
+      border:1px solid rgba(255,255,255,.78);
+      backdrop-filter:blur(26px) saturate(150%);
+      -webkit-backdrop-filter:blur(26px) saturate(150%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 8px 20px rgba(28,34,30,.10);
     }
 
     /* ══ LEADS PANEL ════════════════════════════════════════ */
@@ -1469,9 +1492,12 @@
     }
     @keyframes mbg-in{from{opacity:0;}to{opacity:1;}}
     .mbox{
-      background:rgba(255,255,255,.88);
-      backdrop-filter:blur(24px);
-      border:1px solid var(--border);border-radius:var(--radius-modal);
+      background:rgba(250,249,246,.78);
+      border:1px solid rgba(255,255,255,.72);
+      backdrop-filter:blur(26px) saturate(145%);
+      -webkit-backdrop-filter:blur(26px) saturate(145%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 22px 60px rgba(15,20,17,.16);
+      border-radius:var(--radius-modal);
       padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;
       box-shadow:var(--shadow-lg);
       animation:mbox-in var(--motion-ui) var(--ease-premium) both;

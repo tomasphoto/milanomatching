@@ -2499,7 +2499,7 @@ function phRenderPreview(){
       ondragend="phDragEnd(event)"
       style="position:relative">
       <img src="${u}" loading="lazy" onerror="this.style.opacity='.3'">
-      ${isPending?'<div style="position:absolute;bottom:4px;left:4px;background:rgba(0,0,0,.6);color:#C9A96E;font-size:9px;padding:2px 5px;border-radius:3px">NON SALVATA</div>':''}
+      ${isPending?'<div style="position:absolute;bottom:4px;left:4px;background:rgba(255,255,255,.9);color:#2A3240;font-size:9px;font-weight:600;padding:2px 5px;border-radius:3px">NON SALVATA</div>':''}
       <button class="ph-del" onclick="phDel(${i})">✕</button>
     </div>`;
   }).join('')+'<button class="ph-add" onclick="document.getElementById(\'ph-file\').click()">＋</button>';
@@ -3467,26 +3467,26 @@ function _placeGroupMarker(group,c,goldIcon){
       const ph=(ST.photos[k]||[])[0]||'';
       const priceStr=p.price>0?`€${p.price.toLocaleString('it-IT')}`:'—';
       const dot=isNow(p.avail)?'#6EE0A0':'#F0C870';
-      return `<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #222;">
-        ${ph?`<img src="${ph}" style="width:52px;height:38px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">`:
-             `<div style="width:52px;height:38px;background:#1a1a1a;border-radius:4px;flex-shrink:0;"></div>`}
+      return `<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(20,20,20,0.08);font-family:'Inter',sans-serif;">
+        ${ph?`<img src="${ph}" style="width:52px;height:38px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.display='none'">`:
+             `<div style="width:52px;height:38px;background:#ECEBE7;border-radius:6px;flex-shrink:0;"></div>`}
         <div style="flex:1;min-width:0;">
-          <div style="font-size:11px;color:#ccc;">${rl}${p.mq?' · '+p.mq+'mq':''}</div>
-          <div style="font-size:13px;font-family:'Cormorant Garamond',serif;color:#C9A96E;">${priceStr}/mese</div>
-          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#666;margin-top:1px;">
+          <div style="font-size:11px;color:#6A6965;">${rl}${p.mq?' · '+p.mq+'mq':''}</div>
+          <div style="font-size:13px;font-weight:700;color:#151515;">${priceStr}/mese</div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#9A9895;margin-top:1px;">
             <span style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0;"></span>${p.avail||'Subito'}
           </div>
         </div>
         <button onclick="closeMapPopup();openAdminCard('${ek}')"
-          style="background:#C9A96E;border:none;border-radius:5px;color:#09090C;font-size:11px;font-weight:600;cursor:pointer;padding:5px 9px;white-space:nowrap;flex-shrink:0;">
+          style="background:#2A3240;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;padding:5px 9px;white-space:nowrap;flex-shrink:0;font-family:'Inter',sans-serif;">
           →
         </button>
       </div>`;
     }).join('');
-    popupHtml=`<div style="min-width:240px;max-width:280px;">
-      <div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#C9A96E;margin-bottom:4px;">${agency}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:300;margin-bottom:10px;">${addr}</div>
-      <div style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#555;margin-bottom:6px;">${group.length} unità disponibili</div>
+    popupHtml=`<div style="min-width:240px;max-width:280px;font-family:'Inter',sans-serif;">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#6A6965;margin-bottom:4px;">${agency}</div>
+      <div style="font-size:16px;font-weight:700;color:#151515;margin-bottom:10px;">${addr}</div>
+      <div style="font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#9A9895;margin-bottom:6px;">${group.length} unità disponibili</div>
       <div style="max-height:260px;overflow-y:auto;">${rows}</div>
     </div>`;
   }
@@ -3540,7 +3540,7 @@ async function renderMapView(){
 
   const goldIcon=L.divIcon({
     className:'',
-    html:'<div style="width:14px;height:14px;background:#C9A96E;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.6);"></div>',
+    html:'<div style="width:14px;height:14px;background:#2A3240;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.35);"></div>',
     iconSize:[14,14],iconAnchor:[7,7],popupAnchor:[0,-10]
   });
 

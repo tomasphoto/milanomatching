@@ -36,60 +36,91 @@
 
   <style>
     :root {
-      /* ── Backgrounds ──────────────────────────────────── */
-      --bg:      #F5F4F0;   /* page — warm white */
-      --bg2:     #FFFFFF;   /* cards / elevated */
-      --bg3:     #ECEBE7;   /* surface / inset */
-      --bg4:     #E2E1DC;   /* deep surface */
+      /* ── SPEC: Backgrounds ──────────────────────────── */
+      --bg:             #F4F3EF;
+      --bg-soft:        #ECEBE6;
+      --surface:        #FFFFFF;
+      --surface-soft:   #F8F7F4;
 
-      /* ── Text ──────────────────────────────────────────── */
-      --text:    #151515;   /* charcoal primary */
-      --textmid: #6A6965;   /* secondary */
-      --textdim: #9A9895;   /* tertiary / labels */
+      /* ── SPEC: Text ─────────────────────────────────── */
+      --text:           #171716;
+      --text-secondary: #6F6C66;
+      --text-tertiary:  #96928B;
 
-      /* ── Borders ────────────────────────────────────────── */
-      --border:  rgba(20,20,20,0.08);
-      --bordmd:  rgba(20,20,20,0.14);
-      --bordhi:  rgba(20,20,20,0.24);
+      /* ── SPEC: Borders ──────────────────────────────── */
+      --border:         rgba(23,23,22,.10);
+      --border-strong:  rgba(23,23,22,.16);
 
-      /* ── Accent — deep slate ────────────────────────────── */
-      --accent:   #2A3240;
-      --accent-l: #3D4F65;
-      --accent-d: #1A2030;
+      /* ── SPEC: Accent — deep forest green ───────────── */
+      --accent:         #26392F;
+      --accent-hover:   #1F2E27;
+      --accent-soft:    #E4EBE6;
 
-      /* ── Brand warm — used sparingly ────────────────────── */
-      --gold:    #8A7355;
-      --goldlt:  #A08B6A;
-      --golddk:  #6B5840;
+      /* ── SPEC: Status ───────────────────────────────── */
+      --success:        #527563;
+      --warning:        #A17835;
+      --danger:         #A7534D;
 
-      /* ── Status ─────────────────────────────────────────── */
-      --green:   #1A7A42;
-      --amber:   #9A6810;
-      --red:     #B83228;
+      /* ── SPEC: Glass ────────────────────────────────── */
+      --glass-light:        rgba(255,255,255,.68);
+      --glass-light-strong: rgba(255,255,255,.82);
+      --glass-dark:         rgba(18,18,18,.48);
+      --overlay:            rgba(10,10,10,.42);
 
-      /* ── Glass ──────────────────────────────────────────── */
-      --glass-nav:   rgba(245,244,240,0.82);
-      --glass-float: rgba(255,255,255,0.78);
-      --glass-panel: rgba(255,255,255,0.92);
-      --glass-dark:  rgba(12,12,14,0.42);
+      /* ── SPEC: Shadows ──────────────────────────────── */
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 8px 24px rgba(0,0,0,.07);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,.10);
 
-      /* ── Shadows ─────────────────────────────────────────── */
-      --shadow-xs: 0 1px 2px rgba(0,0,0,.04);
-      --shadow-sm: 0 1px 2px rgba(0,0,0,.03), 0 6px 18px rgba(0,0,0,.07);
-      --shadow-md: 0 1px 2px rgba(0,0,0,.03), 0 12px 36px rgba(0,0,0,.09);
-      --shadow-lg: 0 4px 6px rgba(0,0,0,.02), 0 24px 60px rgba(0,0,0,.12);
+      /* ── SPEC: Radius ───────────────────────────────── */
+      --radius-sm:    8px;
+      --radius-md:   12px;
+      --radius-card: 16px;
+      --radius-lg:   20px;
+      --radius-modal:20px;
 
-      /* ── Radius ──────────────────────────────────────────── */
-      --r:    12px;
-      --rsm:   8px;
-      --rxs:   6px;
-      --rlg:  18px;
+      /* ── SPEC: Spacing ──────────────────────────────── */
+      --space-1:  4px;  --space-2:  8px;  --space-3: 12px;
+      --space-4: 16px;  --space-5: 20px;  --space-6: 24px;
+      --space-8: 32px;  --space-10:40px;  --space-12:48px;
+      --space-16:64px;  --space-20:80px;  --space-24:96px;
 
-      /* ── Motion ──────────────────────────────────────────── */
-      --dur-fast:  140ms;
-      --dur-base:  200ms;
-      --dur-slow:  300ms;
-      --ease:      cubic-bezier(.2,.8,.2,1);
+      /* ── SPEC: Motion ───────────────────────────────── */
+      --motion-fast:  120ms;
+      --motion-ui:    180ms;
+      --motion-card:  260ms;
+      --motion-panel: 320ms;
+      --motion-page:  420ms;
+      --ease-premium: cubic-bezier(.2,.8,.2,1);
+
+      /* ── LEGACY ALIASES (keep existing CSS working) ── */
+      --bg2:     var(--surface);
+      --bg3:     var(--bg-soft);
+      --bg4:     var(--surface-soft);
+      --textmid: var(--text-secondary);
+      --textdim: var(--text-tertiary);
+      --bordmd:  var(--border-strong);
+      --bordhi:  rgba(23,23,22,.28);
+      --accent-l: var(--accent-hover);
+      --accent-d: #1A2827;
+      --gold:    var(--accent);
+      --goldlt:  var(--accent-hover);
+      --golddk:  #1A2827;
+      --green:   var(--success);
+      --amber:   var(--warning);
+      --red:     var(--danger);
+      --glass-nav:   var(--glass-light-strong);
+      --glass-float: var(--glass-light);
+      --glass-panel: var(--glass-light-strong);
+      --shadow-xs: var(--shadow-sm);
+      --r:    var(--radius-card);
+      --rsm:  var(--radius-sm);
+      --rxs:  6px;
+      --rlg:  var(--radius-lg);
+      --dur-fast: var(--motion-fast);
+      --dur-base: var(--motion-ui);
+      --dur-slow: var(--motion-card);
+      --ease:     var(--ease-premium);
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     html{scroll-behavior:smooth;}

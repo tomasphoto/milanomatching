@@ -2244,7 +2244,8 @@ async function sbSyncProp(k, localData){
   if('spese'    in localData) d.condominium_fees     = localData.spese || null;
   if('visibility' in localData) d.visibility         = localData.visibility;
   if('status'   in localData) d.status               = localData.status;
-  if(Object.keys(d).length) await sbRpc('admin_update_property', { p_sb_id: p._sbId, p_data: d });
+  if(Object.keys(d).length) return await sbRpc('admin_update_property', { p_sb_id: p._sbId, p_data: d });
+  return true; // nothing to update — treat as success
 }
 
 async function sbSyncLead(lead, localData){
@@ -4044,7 +4045,7 @@ function closeAdminCard(){
   aRender();
 }
 
-function saveAdminCard(){
+async function saveAdminCard(){
   const k=_vaepK;if(!k)return;
   const d={
     g:document.getElementById('vaep-ag').value.trim(),
@@ -4069,14 +4070,29 @@ function saveAdminCard(){
     const el=document.getElementById('vaep-c-'+f);
     if(el)d[f]=el.value==='true';
   });
-  const isBase=BP.find(p=>fk(p)===k);
-  if(isBase)ST.edits[k]=d;
-  else{const i=ST.customProps.findIndex(p=>fk(p)===k);if(i>=0)Object.assign(ST.customProps[i],d);}
+  const bpEntry=BP.find(p=>fk(p)===k);
+  const isBase=!!bpEntry;
+  if(isBase){
+    // Try Supabase first — it's the source of truth
+    const sbOk = await sbSyncProp(k, d);
+    if(sbOk){
+      // Update BP in-memory so the UI is consistent without a page reload
+      Object.assign(bpEntry, d);
+      // Discard any stale localStorage override for this property
+      delete ST.edits[k];
+      toast('✓ Salvato');
+    } else {
+      // Supabase write failed — keep a local fallback in ST.edits
+      ST.edits[k]=d;
+      toast('Salvato in locale (Supabase non raggiunto)', 4000);
+    }
+  } else {
+    const i=ST.customProps.findIndex(p=>fk(p)===k);
+    if(i>=0)Object.assign(ST.customProps[i],d);
+    toast('✓ Salvato');
+  }
   stSave();
   hide('va-ep');show('va');aRender();
-  scheduleSync();
-  sbSyncProp(k, d);
-  toast('Modifiche salvate');
   _vaepK=null;
 }
 
@@ -4408,6 +4424,14 @@ stLoad();
       });
       BP.length = 0;
       newBP.forEach(p => BP.push(p));
+      // Supabase is source of truth — discard stale localStorage overrides
+      // so that direct edits in Supabase are reflected immediately on reload
+      let stEditsChanged = false;
+      newBP.forEach(p => {
+        const k = fk(p);
+        if(ST.edits[k]){ delete ST.edits[k]; stEditsChanged = true; }
+      });
+      if(stEditsChanged) stSave();
 
       // 2. Media — paginate in 1000-row chunks
       let allMedia = [];

@@ -556,30 +556,18 @@
       font-size:14px;color:var(--textdim);
     }
 
-    /* landing-style grid on admin background */
-    #va{
-      background-image:
-        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
-      background-size:80px 80px;
-    }
-    #va::before{
-      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-      background:
-        radial-gradient(ellipse 60% 60% at 10% 40%,rgba(201,169,110,.045) 0%,transparent 70%),
-        radial-gradient(ellipse 50% 50% at 88% 15%,rgba(201,169,110,.025) 0%,transparent 60%);
-    }
+    /* admin background — clean light */
+    #va{background:var(--bg);}
+    #va::before{display:none;}
 
     /* admin card */
     .ac{
-      background:
-        radial-gradient(ellipse 120% 80% at 50% 0%,rgba(201,169,110,.055) 0%,transparent 75%),
-        var(--bg2);
-      border:1px solid var(--border);border-radius:var(--r);
-      overflow:hidden;transition:border-color .2s,transform .15s,box-shadow .2s;
+      background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+      overflow:hidden;transition:border-color var(--dur-base),transform var(--dur-fast),box-shadow var(--dur-base);
+      box-shadow:var(--shadow-xs);
     }
-    .ac:hover{border-color:rgba(201,169,110,.35);box-shadow:0 8px 32px rgba(0,0,0,.45);}
-    .ac.ac-hidden{opacity:.32;}
+    .ac:hover{border-color:var(--bordhi);box-shadow:var(--shadow-md);}
+    .ac.ac-hidden{opacity:.35;}
 
     /* card photo nav arrows */
     .ac-nav{
@@ -602,56 +590,56 @@
     }
     .ac-img-n{
       position:absolute;bottom:8px;right:8px;
-      background:rgba(9,9,12,.8);border:1px solid var(--border);
-      border-radius:3px;padding:3px 8px;font-size:10px;color:var(--textdim);
-      letter-spacing:.07em;
+      background:rgba(255,255,255,.88);border:1px solid var(--border);
+      border-radius:var(--rxs);padding:3px 8px;font-size:10px;color:var(--textdim);
+      font-weight:500;
     }
     .ac-hid-tag{
       position:absolute;top:8px;left:8px;
-      background:rgba(180,50,50,.8);color:#fff;
-      font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-      padding:3px 8px;border-radius:3px;
+      background:rgba(184,50,40,.9);color:#fff;
+      font-size:10px;font-weight:600;
+      padding:3px 9px;border-radius:var(--rxs);
     }
     .ac-body{padding:16px 16px 14px;}
-    .ac-g{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
-    .ac-zona{display:inline-block;font-size:9px;letter-spacing:.05em;text-transform:uppercase;background:rgba(201,169,110,.15);color:var(--gold);padding:1px 6px;border-radius:3px;margin-bottom:5px;border:1px solid rgba(201,169,110,.3);}
+    .ac-g{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--textdim);margin-bottom:4px;}
+    .ac-zona{display:inline-block;font-size:10px;font-weight:500;background:var(--bg3);color:var(--textmid);padding:2px 8px;border-radius:var(--rxs);margin-bottom:5px;border:1px solid var(--border);}
     .ac-addr{
-      font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;
-      color:var(--text);line-height:1.15;margin-bottom:9px;
+      font-size:16px;font-weight:600;
+      color:var(--text);line-height:1.25;margin-bottom:8px;
     }
-    .ac-meta{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+    .ac-meta{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
     .ac-m{font-size:12px;color:var(--textdim);}
-    .ac-m strong{color:var(--textmid);}
+    .ac-m strong{color:var(--textmid);font-weight:500;}
     .ac-dot{display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;vertical-align:middle;}
-    .ac-dot.now {background:var(--green);box-shadow:0 0 5px rgba(110,224,160,.5);}
+    .ac-dot.now {background:var(--green);}
     .ac-dot.later{background:var(--amber);}
     .ac-price{
-      font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;
+      font-size:20px;font-weight:700;
       color:var(--text);margin-bottom:14px;
     }
-    .ac-price small{font-family:'Inter',sans-serif;font-size:11px;color:var(--textdim);}
+    .ac-price small{font-size:11px;color:var(--textdim);font-weight:400;}
     .ac-acts{
       display:grid;grid-template-columns:1fr 1fr;gap:5px;
       padding-top:12px;border-top:1px solid var(--border);
     }
     .btn-ac{
       background:var(--bg3);border:1px solid var(--border);color:var(--textmid);
-      padding:7px;font-family:'Inter',sans-serif;font-size:11px;
-      border-radius:var(--rsm);cursor:pointer;transition:all .15s;text-align:center;
+      padding:7px;font-size:12px;font-weight:500;
+      border-radius:var(--rsm);cursor:pointer;transition:all var(--dur-base);text-align:center;
     }
-    .btn-ac:hover{border-color:var(--gold);color:var(--gold);}
+    .btn-ac:hover{border-color:var(--bordhi);color:var(--text);background:var(--bg4);}
     .btn-ac-share{
-      grid-column:span 2;border-color:rgba(201,169,110,.2);
-      color:var(--gold);font-size:11px;letter-spacing:.05em;
+      grid-column:span 2;border-color:var(--border);
+      color:var(--accent);font-size:12px;
     }
-    .btn-ac-share:hover{background:rgba(201,169,110,.07);border-color:var(--gold);}
-    .btn-ac-photo-empty{border-color:rgba(201,169,110,.3);color:var(--gold);}
-    .btn-ac-photo-empty:hover{background:rgba(201,169,110,.08);}
-    .ac-img-ph-empty{cursor:pointer;flex-direction:column;gap:0;transition:background .2s;}
-    .ac-img-ph-empty:hover{background:rgba(201,169,110,.08);}
+    .btn-ac-share:hover{background:var(--bg3);border-color:var(--bordmd);}
+    .btn-ac-photo-empty{color:var(--accent);}
+    .btn-ac-photo-empty:hover{background:var(--bg3);}
+    .ac-img-ph-empty{cursor:pointer;flex-direction:column;gap:0;transition:background var(--dur-base);}
+    .ac-img-ph-empty:hover{background:var(--bg3);}
     /* clickable card affordance */
     .ac{cursor:pointer;}
-    .ac:hover{border-color:var(--gold);transform:translateY(-2px);}
+    .ac:hover{transform:translateY(-2px);}
     .ac-body{padding:16px 16px 18px;}
     .ac-price{margin-bottom:0;}
 

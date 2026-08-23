@@ -2353,94 +2353,7 @@ async function sbUploadPhoto(propKey, dataUrl){
   return `${SB_URL}/storage/v1/object/public/property-media/${path}`;
 }
 
-function buildShareHtml(prop,imgUrl,pid){
-  const rl=(RL[prop.st]||'Appartamento');
-  const title=rl.charAt(0).toUpperCase()+rl.slice(1)+' '+prop.addr;
-  const price=prop.price>0?'€'+prop.price.toLocaleString('it-IT')+'/mese':'';
-  const desc=[prop.mq>0?prop.mq+' m²':'',price,prop.desc].filter(Boolean).join(' · ');
-  const redir=GH.base+'/?s='+btoa(unescape(encodeURIComponent(fk(prop))));
-  const pageUrl=GH.base+'/share/'+pid+'.html';
-  return`<!DOCTYPE html>
-<html lang="it"><head>
-<meta charset="UTF-8">
-<title>${title} — Link Milano</title>
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Link Milano">
-<meta property="og:url" content="${pageUrl}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${desc}">
-<meta property="og:image" content="${imgUrl}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="800">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${title}">
-<meta name="twitter:description" content="${desc}">
-<meta name="twitter:image" content="${imgUrl}">
-<meta http-equiv="refresh" content="0;url=${redir}">
-<style>body{margin:0;background:#09090C}</style>
-</head><body>
-<script>window.location.replace('${redir}')<\/script>
-</body></html>`;
-}
-
-async function ghUpdateSite(ts=Date.now()){
-  // ── Build merged state to bake into GitHub HTML ───────────
-  const mergedPhotos=Object.assign({},PHOTO_DEFAULTS);
-  Object.entries(ST.photos||{}).forEach(([k,v])=>{ if(v&&v.length)mergedPhotos[k]=v; });
-
-  const mergedShare=Object.assign({},SHARE_PAGES);
-  Object.keys(mergedPhotos).forEach(k=>{
-    const pid=k.split('::').pop();
-    if(!mergedShare[k])mergedShare[k]='share/'+pid+'.html';
-  });
-
-  const mergedSettings=Object.assign({},DEFAULT_SETTINGS,ST.settings||{});
-  const mergedEdits=Object.assign({},EDIT_DEFAULTS,ST.edits||{});
-  const mergedHidden=[...(ST.hiddenKeys||[])];
-  const mergedCustom=[...(ST.customProps||[])];
-  const mergedLeads=[...(ST.leads||[])];
-
-  // ── Fetch index.html from GitHub ──────────────────────────
-  const file=await ghAPI('GET','/index.html');
-  if(!file)throw new Error('index.html non trovato su GitHub');
-  let html=ghDecode(file.content);
-
-  // Replace sentinel-marked data blocks (reliable even with nested JSON)
-  function mmR(h,tag,json){
-    return h.replace(
-      new RegExp('/\\*--'+tag+'--\\*/[\\s\\S]*?/\\*--'+tag+'--\\*/'),
-      '/*--'+tag+'--*/'+json+'/*--'+tag+'--*/'
-    );
-  }
-  html=mmR(html,'PHOTOS',  JSON.stringify(mergedPhotos));
-  html=mmR(html,'SHARES',  JSON.stringify(mergedShare));
-  html=mmR(html,'SETTINGS',JSON.stringify(mergedSettings));
-  html=mmR(html,'EDITS',   JSON.stringify(mergedEdits));
-  html=mmR(html,'HIDDEN',  JSON.stringify(mergedHidden));
-  html=mmR(html,'CUSTOM',  JSON.stringify(mergedCustom));
-  html=mmR(html,'LEADS',   JSON.stringify(mergedLeads));
-  html=mmR(html,'SYNCTIME',String(ts));
-
-  await ghPut('/index.html',ghB64(html),'Sync admin state',file.sha);
-
-  // ── Create/update WhatsApp share pages ───────────────────
-  const tasks=[];
-  for(const[k,photos]of Object.entries(mergedPhotos)){
-    const firstPhoto=photos[0];
-    if(!firstPhoto)continue;
-    const prop=allP().find(p=>fk(p)===k);
-    if(!prop)continue;
-    const pid=k.split('::').pop();
-    const shareHtml=buildShareHtml(prop,firstPhoto,pid);
-    const old=await ghAPI('GET','/share/'+pid+'.html');
-    tasks.push(ghPut('/share/'+pid+'.html',ghB64(shareHtml),'Share page '+pid,old?.sha));
-  }
-  await Promise.all(tasks);
-}
-
-// Auto-sync: fires 2 s after the last admin change, bundles rapid edits
-let _syncTimer=null;
-function scheduleSync(){ /* no-op: data writes go directly to Supabase (Phase I) */ }
+function scheduleSync(){ /* no-op: data writes go directly to Supabase */ }
 
 // ════════════════════════════════════════════════════════════════
 //  PHOTO ADMIN — preview + URL add + file upload
@@ -2998,8 +2911,8 @@ function msgPropUrl(p){
   // Prefer dedicated share page, fall back to ?s= link
   const k=fk(p);
   const sp=SHARE_PAGES[k];
-  if(sp)return GH.base+'/'+sp;
-  return GH.base+'/?s='+enc(p);
+  if(sp)return SITE_BASE+'/'+sp;
+  return SITE_BASE+'/?s='+enc(p);
 }
 
 function openMsgModal(id){

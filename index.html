@@ -945,14 +945,16 @@
     }
     .btn-ac-quick{
       display:flex;align-items:center;justify-content:center;
-      width:34px;height:34px;border-radius:8px;border:none;cursor:pointer;
-      background:rgba(255,255,255,.82);
-      backdrop-filter:blur(18px) saturate(135%);
+      width:34px;height:34px;border-radius:9px;border:none;cursor:pointer;
+      background:rgba(250,249,246,.68);
+      border:1px solid rgba(255,255,255,.65);
+      backdrop-filter:blur(18px) saturate(145%);
+      -webkit-backdrop-filter:blur(18px) saturate(145%);
       color:var(--text);font-size:15px;
-      box-shadow:0 2px 8px rgba(0,0,0,.10);
-      transition:background var(--motion-fast);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 18px rgba(0,0,0,.10);
+      transition:background var(--motion-fast),border-color var(--motion-fast);
     }
-    .btn-ac-quick:hover{background:var(--surface);}
+    .btn-ac-quick:hover{background:rgba(255,255,255,.90);border-color:rgba(255,255,255,.88);}
 
     .ac-body{padding:15px;}
     .ac-g{font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;}
@@ -1019,9 +1021,13 @@
       min-height:100vh;display:flex;flex-direction:column;background:var(--bg);
     }
     .vaep-bar{
-      position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;
-      padding:0 24px;height:60px;background:var(--surface);border-bottom:1px solid var(--border);
-      flex-shrink:0;flex-wrap:wrap;
+      position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
+      padding:0 24px;height:60px;flex-shrink:0;flex-wrap:wrap;
+      background:rgba(250,249,246,.76);
+      border-bottom:1px solid rgba(255,255,255,.65);
+      backdrop-filter:blur(22px) saturate(145%);
+      -webkit-backdrop-filter:blur(22px) saturate(145%);
+      box-shadow:0 8px 24px rgba(25,30,27,.06);
     }
     .vaep-close{
       display:inline-flex;align-items:center;gap:6px;
@@ -1764,77 +1770,79 @@
           Aggiungi
         </button>
       </div>
-      <!-- Filter bar -->
+      <!-- Filter bar — glass toolbar surface -->
       <div class="va-filters">
-        <input type="text" class="va-search" id="af-zone" placeholder="Cerca indirizzo, zona, agenzia…"
-               list="af-zone-list" oninput="aRender()" autocomplete="off">
-        <datalist id="af-zone-list">
-          <option value="Centro"><option value="Brera"><option value="Porta Venezia">
-          <option value="Buenos Aires"><option value="Porta Nuova"><option value="Garibaldi">
-          <option value="Isola"><option value="Sempione"><option value="Arco della Pace">
-          <option value="Navigli"><option value="Ticinese"><option value="Porta Romana">
-          <option value="Quadronno"><option value="Porta Genova"><option value="Città Studi">
-          <option value="Piola"><option value="Loreto"><option value="Lodi">
-          <option value="Magenta"><option value="Pagano"><option value="San Siro">
-          <option value="City Life"><option value="De Angeli"><option value="Fiera">
-          <option value="Duomo"><option value="San Babila"><option value="Lima">
-          <option value="Cordusio"><option value="Cairoli"><option value="Cadorna">
-          <option value="Moscova"><option value="Turati"><option value="Repubblica">
-          <option value="M1"><option value="M2"><option value="M3"><option value="M5">
-        </datalist>
-        <select class="va-sel" id="af-rooms"  onchange="aRender()">
-          <option value="">Locali</option>
-          <option value="1">Monolocale</option>
-          <option value="2">Bilocale</option>
-          <option value="3">Trilocale</option>
-          <option value="4">4+ locali</option>
-        </select>
-        <select class="va-sel" id="af-agency" onchange="aRender()"><option value="">Agenzia</option></select>
-        <select class="va-sel" id="af-avail"  onchange="aRender()">
-          <option value="">Disponibilità</option>
-          <option value="now">Subito</option>
-        </select>
-        <select class="va-sel" id="af-vis"    onchange="aRender()">
-          <option value="all">Tutte</option>
-          <option value="vis">Solo visibili</option>
-          <option value="hid">Solo nascoste</option>
-        </select>
-        <select class="va-sel" id="af-mq" onchange="aRender()">
-          <option value="">mq</option>
-          <option value="0-50">–50mq</option>
-          <option value="50-80">50–80</option>
-          <option value="80-120">80–120</option>
-          <option value="120-">120+</option>
-        </select>
-        <select class="va-sel" id="af-zona" onchange="aRender()">
-          <option value="">Zona</option>
-          <option value="Porta Romana">Porta Romana</option>
-          <option value="Porta Venezia">Porta Venezia</option>
-          <option value="Buenos Aires">Buenos Aires</option>
-          <option value="Brera">Brera</option>
-          <option value="Centro / Duomo">Centro / Duomo</option>
-          <option value="Navigli">Navigli</option>
-          <option value="Magenta">Magenta</option>
-          <option value="Washington / De Angeli">Washington</option>
-          <option value="Sarpi / Arco della Pace">Sarpi</option>
-          <option value="City Life">City Life</option>
-          <option value="San Siro">San Siro</option>
-          <option value="Città Studi">Città Studi</option>
-          <option value="Vigentino">Vigentino</option>
-          <option value="Isola">Isola</option>
-        </select>
-        <div class="va-price-stepper">
-          <span class="vpf-label">€</span>
-          <button class="vpf-btn" onclick="stepPrice('min',-1)">‹</button>
-          <span class="vpf-num" id="af-price-min-disp">–</span>
-          <button class="vpf-btn" onclick="stepPrice('min',1)">›</button>
-          <span class="vpf-dash">—</span>
-          <button class="vpf-btn" onclick="stepPrice('max',-1)">‹</button>
-          <span class="vpf-num" id="af-price-max-disp">–</span>
-          <button class="vpf-btn" onclick="stepPrice('max',1)">›</button>
+        <div class="va-toolbar-glass">
+          <input type="text" class="va-search" id="af-zone" placeholder="Cerca indirizzo, zona, agenzia…"
+                 list="af-zone-list" oninput="aRender()" autocomplete="off">
+          <datalist id="af-zone-list">
+            <option value="Centro"><option value="Brera"><option value="Porta Venezia">
+            <option value="Buenos Aires"><option value="Porta Nuova"><option value="Garibaldi">
+            <option value="Isola"><option value="Sempione"><option value="Arco della Pace">
+            <option value="Navigli"><option value="Ticinese"><option value="Porta Romana">
+            <option value="Quadronno"><option value="Porta Genova"><option value="Città Studi">
+            <option value="Piola"><option value="Loreto"><option value="Lodi">
+            <option value="Magenta"><option value="Pagano"><option value="San Siro">
+            <option value="City Life"><option value="De Angeli"><option value="Fiera">
+            <option value="Duomo"><option value="San Babila"><option value="Lima">
+            <option value="Cordusio"><option value="Cairoli"><option value="Cadorna">
+            <option value="Moscova"><option value="Turati"><option value="Repubblica">
+            <option value="M1"><option value="M2"><option value="M3"><option value="M5">
+          </datalist>
+          <select class="va-sel" id="af-rooms"  onchange="aRender()">
+            <option value="">Locali</option>
+            <option value="1">Monolocale</option>
+            <option value="2">Bilocale</option>
+            <option value="3">Trilocale</option>
+            <option value="4">4+ locali</option>
+          </select>
+          <select class="va-sel" id="af-agency" onchange="aRender()"><option value="">Agenzia</option></select>
+          <select class="va-sel" id="af-avail"  onchange="aRender()">
+            <option value="">Disponibilità</option>
+            <option value="now">Subito</option>
+          </select>
+          <select class="va-sel" id="af-vis"    onchange="aRender()">
+            <option value="all">Tutte</option>
+            <option value="vis">Solo visibili</option>
+            <option value="hid">Solo nascoste</option>
+          </select>
+          <select class="va-sel" id="af-mq" onchange="aRender()">
+            <option value="">mq</option>
+            <option value="0-50">–50mq</option>
+            <option value="50-80">50–80</option>
+            <option value="80-120">80–120</option>
+            <option value="120-">120+</option>
+          </select>
+          <select class="va-sel" id="af-zona" onchange="aRender()">
+            <option value="">Zona</option>
+            <option value="Porta Romana">Porta Romana</option>
+            <option value="Porta Venezia">Porta Venezia</option>
+            <option value="Buenos Aires">Buenos Aires</option>
+            <option value="Brera">Brera</option>
+            <option value="Centro / Duomo">Centro / Duomo</option>
+            <option value="Navigli">Navigli</option>
+            <option value="Magenta">Magenta</option>
+            <option value="Washington / De Angeli">Washington</option>
+            <option value="Sarpi / Arco della Pace">Sarpi</option>
+            <option value="City Life">City Life</option>
+            <option value="San Siro">San Siro</option>
+            <option value="Città Studi">Città Studi</option>
+            <option value="Vigentino">Vigentino</option>
+            <option value="Isola">Isola</option>
+          </select>
+          <div class="va-price-stepper">
+            <span class="vpf-label">€</span>
+            <button class="vpf-btn" onclick="stepPrice('min',-1)">‹</button>
+            <span class="vpf-num" id="af-price-min-disp">–</span>
+            <button class="vpf-btn" onclick="stepPrice('min',1)">›</button>
+            <span class="vpf-dash">—</span>
+            <button class="vpf-btn" onclick="stepPrice('max',-1)">‹</button>
+            <span class="vpf-num" id="af-price-max-disp">–</span>
+            <button class="vpf-btn" onclick="stepPrice('max',1)">›</button>
+          </div>
+          <input type="hidden" id="af-price-min" value="0">
+          <input type="hidden" id="af-price-max" value="0">
         </div>
-        <input type="hidden" id="af-price-min" value="0">
-        <input type="hidden" id="af-price-max" value="0">
       </div>
       <!-- Sub-tab strip -->
       <div class="vp-subtab-strip">
@@ -1863,17 +1871,19 @@
         </div>
       </div>
       <div class="va-filters">
-        <select class="va-sel" id="lf-status" onchange="lRender()">
-          <option value="">Tutti gli stati</option>
-          <option value="nuovo">Nuovo</option>
-          <option value="contattato">Contattato</option>
-          <option value="visita">Visita</option>
-          <option value="proposta">Proposta</option>
-          <option value="chiuso">Chiuso</option>
-          <option value="perso">Perso</option>
-        </select>
-        <input type="text" class="va-search" id="lf-search" placeholder="Cerca nome, profilo…"
-               oninput="lRender()" style="max-width:260px;">
+        <div class="va-toolbar-glass">
+          <select class="va-sel" id="lf-status" onchange="lRender()">
+            <option value="">Tutti gli stati</option>
+            <option value="nuovo">Nuovo</option>
+            <option value="contattato">Contattato</option>
+            <option value="visita">Visita</option>
+            <option value="proposta">Proposta</option>
+            <option value="chiuso">Chiuso</option>
+            <option value="perso">Perso</option>
+          </select>
+          <input type="text" class="va-search" id="lf-search" placeholder="Cerca nome, profilo…"
+                 oninput="lRender()" style="max-width:260px;">
+        </div>
       </div>
       <div class="va-wrap">
         <div class="va-lead-grid" id="la-grid"></div>

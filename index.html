@@ -549,30 +549,42 @@
     /* ══ HERO CAROUSEL ══════════════════════════════════════════ */
     .hero-nav{
       position:absolute;top:50%;transform:translateY(-50%);z-index:4;
-      background:var(--glass-dark);border:1px solid rgba(255,255,255,.15);color:#fff;
-      width:42px;height:42px;border-radius:50%;font-size:20px;
+      width:44px;height:44px;border-radius:50%;font-size:20px;
       cursor:pointer;display:flex;align-items:center;justify-content:center;
-      backdrop-filter:blur(8px);
-      transition:background var(--dur-base);user-select:none;-webkit-user-select:none;
+      user-select:none;-webkit-user-select:none;border:none;
+      /* glass-dark */
+      background:rgba(25,36,31,.46);
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(22px) saturate(125%);
+      -webkit-backdrop-filter:blur(22px) saturate(125%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 8px 20px rgba(0,0,0,.18);
+      color:#fff;
+      transition:border-color 200ms ease,background 200ms ease;
     }
     @media(hover:hover) and (pointer:fine){
-      .hero-nav:hover{background:rgba(12,12,14,.65);}
+      .hero-nav:hover{background:rgba(25,36,31,.65);border-color:rgba(255,255,255,.32);}
     }
     .hero-prev{left:16px;}
     .hero-next{right:16px;}
     .hero-counter{
-      position:absolute;bottom:48px;right:16px;z-index:4;
-      background:var(--glass-dark);backdrop-filter:blur(8px);color:#fff;
+      position:absolute;bottom:48px;right:16px;z-index:4;color:#fff;
       padding:5px 12px;border-radius:var(--rxs);font-size:12px;font-weight:500;
+      background:rgba(25,36,31,.46);border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(22px) saturate(125%);
+      -webkit-backdrop-filter:blur(22px) saturate(125%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.13);
     }
     .hero-all-btn{
-      position:absolute;bottom:48px;left:16px;z-index:4;
-      background:var(--glass-dark);backdrop-filter:blur(8px);color:#fff;border:none;
+      position:absolute;bottom:48px;left:16px;z-index:4;color:#fff;border:none;
       padding:7px 14px;border-radius:var(--rxs);font-size:12px;font-weight:500;
       cursor:pointer;display:flex;align-items:center;gap:6px;
+      background:rgba(25,36,31,.46);border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(22px) saturate(125%);
+      -webkit-backdrop-filter:blur(22px) saturate(125%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.13);
     }
     @media(hover:hover) and (pointer:fine){
-      .hero-all-btn:hover{background:rgba(12,12,14,.65);}
+      .hero-all-btn:hover{background:rgba(25,36,31,.65);border-color:rgba(255,255,255,.32);}
     }
     .vc-hero{cursor:pointer;}
 
@@ -1679,8 +1691,14 @@
   </div>
 
   <div class="vc-foot">
-    <div class="vc-foot-brand">Link Milano</div>
+    <div class="vc-foot-brand">LINK MI</div>
     <div class="vc-foot-em" id="vc-foot-em"></div>
+  </div>
+
+  <!-- Mobile sticky glass CTA (hidden on desktop via CSS) -->
+  <div class="property-mobile-cta glass-light-strong" id="vc-mobile-cta">
+    <span class="pmc-price" id="vc-mobile-price"></span>
+    <a href="#" class="pmc-btn" id="vc-mobile-cta-btn">Richiedi visita</a>
   </div>
 </div>
 

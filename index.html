@@ -1254,133 +1254,164 @@
 ══════════════════════════════════════════════════════════ -->
 <div id="va" class="hidden">
 
-  <div class="va-bar">
-    <div class="va-brand">Link Milano</div>
-    <div class="va-filters">
-      <select class="va-sel" id="af-rooms"  onchange="aRender()">
-        <option value="">Tutti i locali</option>
-        <option value="1">Monolocale</option>
-        <option value="2">Bilocale</option>
-        <option value="3">Trilocale</option>
-        <option value="4">4+ locali</option>
-      </select>
-      <select class="va-sel" id="af-agency" onchange="aRender()"><option value="">Tutte le agenzie</option></select>
-      <select class="va-sel" id="af-avail"  onchange="aRender()">
-        <option value="">Disponibilità</option>
-        <option value="now">Subito</option>
-      </select>
-      <select class="va-sel" id="af-vis"    onchange="aRender()">
-        <option value="all">Tutte</option>
-        <option value="vis">Solo visibili</option>
-        <option value="hid">Solo nascoste</option>
-      </select>
-      <div class="va-price-stepper">
-        <span class="vpf-label">€</span>
-        <button class="vpf-btn" onclick="stepPrice('min',-1)">‹</button>
-        <span class="vpf-num" id="af-price-min-disp">–</span>
-        <button class="vpf-btn" onclick="stepPrice('min',1)">›</button>
-        <span class="vpf-dash">—</span>
-        <button class="vpf-btn" onclick="stepPrice('max',-1)">‹</button>
-        <span class="vpf-num" id="af-price-max-disp">–</span>
-        <button class="vpf-btn" onclick="stepPrice('max',1)">›</button>
+  <!-- ── Sidebar ── -->
+  <nav class="va-sidebar">
+    <div class="va-sb-brand">Link MI</div>
+    <div class="va-sb-nav">
+      <button class="va-sb-item va-sb-active" id="vsb-props" onclick="vaTab('props')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Proprietà
+      </button>
+      <button class="va-sb-item" id="vsb-leads" onclick="vaTab('leads')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Lead <span class="va-tab-n" id="vtab-leads-n"></span>
+      </button>
+    </div>
+    <div class="va-sb-footer">
+      <button class="va-sb-item" onclick="openSettings()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Impostazioni
+      </button>
+      <button class="va-sb-item va-sb-exit" onclick="exitAdmin()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Esci
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <div class="va-main">
+
+    <!-- Properties panel -->
+    <div id="vp-props">
+      <!-- Page header -->
+      <div class="va-page-hd">
+        <div>
+          <h1 class="va-page-title">Proprietà</h1>
+          <p class="va-page-sub" id="va-count"></p>
+        </div>
+        <button class="va-btn-primary" id="va-add-btn" onclick="vaAddClick()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi
+        </button>
       </div>
-      <input type="hidden" id="af-price-min" value="0">
-      <input type="hidden" id="af-price-max" value="0">
-      <select class="va-sel" id="af-mq" onchange="aRender()">
-        <option value="">Tutti gli mq</option>
-        <option value="0-50">Fino a 50mq</option>
-        <option value="50-80">50 – 80mq</option>
-        <option value="80-120">80 – 120mq</option>
-        <option value="120-">120mq+</option>
-      </select>
-      <select class="va-sel" id="af-zona" onchange="aRender()">
-        <option value="">Tutte le zone</option>
-        <option value="Porta Romana">Porta Romana</option>
-        <option value="Porta Venezia">Porta Venezia</option>
-        <option value="Buenos Aires">Buenos Aires</option>
-        <option value="Brera">Brera</option>
-        <option value="Centro / Duomo">Centro / Duomo</option>
-        <option value="Navigli">Navigli</option>
-        <option value="Magenta">Magenta</option>
-        <option value="Washington / De Angeli">Washington / De Angeli</option>
-        <option value="Sarpi / Arco della Pace">Sarpi / Arco della Pace</option>
-        <option value="City Life">City Life</option>
-        <option value="San Siro">San Siro</option>
-        <option value="Città Studi">Città Studi</option>
-        <option value="Vigentino">Vigentino</option>
-        <option value="Isola">Isola</option>
-      </select>
-      <input type="text" class="va-sel" id="af-zone" placeholder="Zona, metro, via…"
-             list="af-zone-list" oninput="aRender()" style="min-width:160px;background-image:none;" autocomplete="off">
-      <datalist id="af-zone-list">
-        <option value="Centro"><option value="Brera"><option value="Porta Venezia">
-        <option value="Buenos Aires"><option value="Porta Nuova"><option value="Garibaldi">
-        <option value="Isola"><option value="Sempione"><option value="Arco della Pace">
-        <option value="Navigli"><option value="Ticinese"><option value="Porta Romana">
-        <option value="Quadronno"><option value="Porta Genova"><option value="Città Studi">
-        <option value="Piola"><option value="Loreto"><option value="Lodi">
-        <option value="Magenta"><option value="Pagano"><option value="San Siro">
-        <option value="City Life"><option value="De Angeli"><option value="Fiera">
-        <option value="Duomo"><option value="San Babila"><option value="Lima">
-        <option value="Cordusio"><option value="Cairoli"><option value="Cadorna">
-        <option value="Moscova"><option value="Turati"><option value="Repubblica">
-        <option value="M1"><option value="M2"><option value="M3"><option value="M5">
-      </datalist>
+      <!-- Filter bar -->
+      <div class="va-filters">
+        <input type="text" class="va-search" id="af-zone" placeholder="Cerca indirizzo, zona, agenzia…"
+               list="af-zone-list" oninput="aRender()" autocomplete="off">
+        <datalist id="af-zone-list">
+          <option value="Centro"><option value="Brera"><option value="Porta Venezia">
+          <option value="Buenos Aires"><option value="Porta Nuova"><option value="Garibaldi">
+          <option value="Isola"><option value="Sempione"><option value="Arco della Pace">
+          <option value="Navigli"><option value="Ticinese"><option value="Porta Romana">
+          <option value="Quadronno"><option value="Porta Genova"><option value="Città Studi">
+          <option value="Piola"><option value="Loreto"><option value="Lodi">
+          <option value="Magenta"><option value="Pagano"><option value="San Siro">
+          <option value="City Life"><option value="De Angeli"><option value="Fiera">
+          <option value="Duomo"><option value="San Babila"><option value="Lima">
+          <option value="Cordusio"><option value="Cairoli"><option value="Cadorna">
+          <option value="Moscova"><option value="Turati"><option value="Repubblica">
+          <option value="M1"><option value="M2"><option value="M3"><option value="M5">
+        </datalist>
+        <select class="va-sel" id="af-rooms"  onchange="aRender()">
+          <option value="">Locali</option>
+          <option value="1">Monolocale</option>
+          <option value="2">Bilocale</option>
+          <option value="3">Trilocale</option>
+          <option value="4">4+ locali</option>
+        </select>
+        <select class="va-sel" id="af-agency" onchange="aRender()"><option value="">Agenzia</option></select>
+        <select class="va-sel" id="af-avail"  onchange="aRender()">
+          <option value="">Disponibilità</option>
+          <option value="now">Subito</option>
+        </select>
+        <select class="va-sel" id="af-vis"    onchange="aRender()">
+          <option value="all">Tutte</option>
+          <option value="vis">Solo visibili</option>
+          <option value="hid">Solo nascoste</option>
+        </select>
+        <select class="va-sel" id="af-mq" onchange="aRender()">
+          <option value="">mq</option>
+          <option value="0-50">–50mq</option>
+          <option value="50-80">50–80</option>
+          <option value="80-120">80–120</option>
+          <option value="120-">120+</option>
+        </select>
+        <select class="va-sel" id="af-zona" onchange="aRender()">
+          <option value="">Zona</option>
+          <option value="Porta Romana">Porta Romana</option>
+          <option value="Porta Venezia">Porta Venezia</option>
+          <option value="Buenos Aires">Buenos Aires</option>
+          <option value="Brera">Brera</option>
+          <option value="Centro / Duomo">Centro / Duomo</option>
+          <option value="Navigli">Navigli</option>
+          <option value="Magenta">Magenta</option>
+          <option value="Washington / De Angeli">Washington</option>
+          <option value="Sarpi / Arco della Pace">Sarpi</option>
+          <option value="City Life">City Life</option>
+          <option value="San Siro">San Siro</option>
+          <option value="Città Studi">Città Studi</option>
+          <option value="Vigentino">Vigentino</option>
+          <option value="Isola">Isola</option>
+        </select>
+        <div class="va-price-stepper">
+          <span class="vpf-label">€</span>
+          <button class="vpf-btn" onclick="stepPrice('min',-1)">‹</button>
+          <span class="vpf-num" id="af-price-min-disp">–</span>
+          <button class="vpf-btn" onclick="stepPrice('min',1)">›</button>
+          <span class="vpf-dash">—</span>
+          <button class="vpf-btn" onclick="stepPrice('max',-1)">‹</button>
+          <span class="vpf-num" id="af-price-max-disp">–</span>
+          <button class="vpf-btn" onclick="stepPrice('max',1)">›</button>
+        </div>
+        <input type="hidden" id="af-price-min" value="0">
+        <input type="hidden" id="af-price-max" value="0">
+      </div>
+      <!-- Sub-tab strip -->
+      <div class="vp-subtab-strip">
+        <button class="vp-subtab active" id="vst-list" onclick="propsSubTab('list')">Lista</button>
+        <button class="vp-subtab" id="vst-map"  onclick="propsSubTab('map')">Mappa</button>
+      </div>
+      <!-- List view -->
+      <div id="vp-list-view">
+        <div class="va-wrap">
+          <div class="va-grid" id="va-grid"></div>
+        </div>
+      </div>
+      <!-- Map view -->
+      <div id="vp-map-view" class="hidden" style="position:relative;">
+        <div id="va-map-status" class="hidden">Caricamento posizioni…</div>
+        <div id="va-map"></div>
+      </div>
     </div>
-    <div class="va-sep"></div>
-    <span class="va-count" id="va-count"></span>
-    <button class="btn-va" onclick="openSettings()">⚙ Impostazioni</button>
-    <button class="btn-va btn-va-gold" id="va-add-btn" onclick="vaAddClick()">＋ Aggiungi</button>
-    <button class="btn-va" onclick="exitAdmin()" style="opacity:.45">✕ Esci</button>
-  </div>
 
-  <!-- Tab strip -->
-  <div class="va-tabs-strip">
-    <button class="va-tab active" id="vtab-props" onclick="vaTab('props')">Proprietà</button>
-    <button class="va-tab" id="vtab-leads" onclick="vaTab('leads')">Lead <span class="va-tab-n" id="vtab-leads-n"></span></button>
-  </div>
-
-  <!-- Properties panel -->
-  <div id="vp-props">
-    <!-- Sub-tab strip -->
-    <div class="vp-subtab-strip">
-      <button class="vp-subtab active" id="vst-list" onclick="propsSubTab('list')">Lista</button>
-      <button class="vp-subtab" id="vst-map"  onclick="propsSubTab('map')">Mappa</button>
-    </div>
-    <!-- List view -->
-    <div id="vp-list-view">
+    <!-- Leads panel -->
+    <div id="vp-leads" class="hidden">
+      <div class="va-page-hd">
+        <div>
+          <h1 class="va-page-title">Lead</h1>
+          <p class="va-page-sub" id="la-count"></p>
+        </div>
+      </div>
+      <div class="va-filters">
+        <select class="va-sel" id="lf-status" onchange="lRender()">
+          <option value="">Tutti gli stati</option>
+          <option value="nuovo">Nuovo</option>
+          <option value="contattato">Contattato</option>
+          <option value="visita">Visita</option>
+          <option value="proposta">Proposta</option>
+          <option value="chiuso">Chiuso</option>
+          <option value="perso">Perso</option>
+        </select>
+        <input type="text" class="va-search" id="lf-search" placeholder="Cerca nome, profilo…"
+               oninput="lRender()" style="max-width:260px;">
+      </div>
       <div class="va-wrap">
-        <div class="va-grid" id="va-grid"></div>
+        <div class="va-lead-grid" id="la-grid"></div>
       </div>
     </div>
-    <!-- Map view -->
-    <div id="vp-map-view" class="hidden" style="position:relative;">
-      <div id="va-map-status" class="hidden">Caricamento posizioni…</div>
-      <div id="va-map"></div>
-    </div>
-  </div>
 
-  <!-- Leads panel -->
-  <div id="vp-leads" class="hidden">
-    <div class="la-bar">
-      <select class="va-sel" id="lf-status" onchange="lRender()">
-        <option value="">Tutti gli stati</option>
-        <option value="nuovo">Nuovo</option>
-        <option value="contattato">Contattato</option>
-        <option value="visita">Visita</option>
-        <option value="proposta">Proposta</option>
-        <option value="chiuso">Chiuso</option>
-        <option value="perso">Perso</option>
-      </select>
-      <input type="text" class="va-sel" id="lf-search" placeholder="Cerca nome, profilo…"
-             oninput="lRender()" style="min-width:180px;background-image:none;">
-      <div class="va-sep"></div>
-      <span class="va-count" id="la-count"></span>
-    </div>
-    <div class="va-wrap">
-      <div class="va-lead-grid" id="la-grid"></div>
-    </div>
-  </div>
+  </div><!-- /.va-main -->
 
 </div>
 

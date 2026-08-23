@@ -1731,6 +1731,13 @@
     </div>
   </div>
 
+  <!-- Mobile property summary — shows address/price/meta below the hero photo on mobile -->
+  <div class="property-summary" id="vc-prop-summary">
+    <div class="ps-addr" id="ps-addr"></div>
+    <div class="ps-price" id="ps-price"></div>
+    <div class="ps-meta" id="ps-meta"></div>
+  </div>
+
   <!-- content -->
   <div class="vc-body">
     <h1 class="vc-addr" id="vc-addr"></h1>
@@ -2932,18 +2939,26 @@ function showCard(encoded){
   document.getElementById('vc-stats').innerHTML=stats.map(s=>
     `<div class="vc-stat"><span class="vc-stat-val">${s.v}</span><span class="vc-stat-lbl">${s.l}</span></div>`
   ).join('');
-  // spec §26 — populate hero glass panel
+  // Desktop glass panel — address + price + one meta line only (no chips)
   const glassEl=document.getElementById('vc-hero-glass');
   if(glassEl){
     document.getElementById('vc-hero-addr-gl').textContent=p.addr;
-    const chips=[
-      p.price>0?`<span class="vc-hero-price">€${p.price.toLocaleString('it-IT')}<small style="font-size:14px;font-weight:400"> /mese</small></span>`:'',
-      `<span class="vc-hero-chip">${rl}</span>`,
-      p.mq>0?`<span class="vc-hero-chip">${p.mq} mq</span>`:'',
-      `<span class="vc-hero-chip">${now?'Disponibile subito':p.avail}</span>`,
-    ].filter(Boolean);
-    document.getElementById('vc-hero-meta-gl').innerHTML=chips.join('');
+    const metaParts=[rl,p.mq>0?p.mq+' m²':null].filter(Boolean);
+    document.getElementById('vc-hero-meta-gl').innerHTML=[
+      p.price>0?`<span class="vc-hero-price">€${p.price.toLocaleString('it-IT')}<small style="font-size:13px;font-weight:400"> /mese</small></span>`:'',
+      metaParts.length?`<span class="vc-hero-meta-line">${metaParts.join(' · ')}</span>`:''
+    ].filter(Boolean).join('');
     glassEl.style.display='block';
+  }
+  // Mobile property summary — address / price / meta below photo
+  const psAddr=document.getElementById('ps-addr');
+  const psPrice=document.getElementById('ps-price');
+  const psMeta=document.getElementById('ps-meta');
+  if(psAddr) psAddr.textContent=p.addr;
+  if(psPrice) psPrice.textContent=p.price>0?'€'+p.price.toLocaleString('it-IT')+' / mese':'';
+  if(psMeta){
+    const metaRow=[rl,p.mq>0?p.mq+' m²':null,now?'Disponibile subito':p.avail].filter(Boolean);
+    psMeta.textContent=metaRow.join(' · ');
   }
   // Mobile sticky CTA
   const mobilePrice=document.getElementById('vc-mobile-price');

@@ -749,7 +749,8 @@
     /* Sidebar */
     .va-sidebar{
       width:224px;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;
-      background:#ECEAE5;display:flex;flex-direction:column;
+      background:linear-gradient(180deg,#E7E8E2 0%,#ECEAE5 100%);
+      display:flex;flex-direction:column;
       padding:20px 14px;overflow-y:auto;
     }
     .va-sb-brand{
@@ -772,8 +773,9 @@
       .va-sb-item:hover{background:rgba(255,255,255,.55);color:var(--text);}
     }
     .va-sb-item.va-sb-active{
-      background:var(--surface);color:var(--text);
-      box-shadow:var(--shadow-sm);
+      background:rgba(255,255,255,.66);color:var(--text);
+      border:1px solid rgba(255,255,255,.55);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 4px 12px rgba(30,35,32,.05);
     }
     .va-sb-exit{color:var(--text-tertiary);}
 
@@ -2868,6 +2870,12 @@ function showCard(encoded){
     document.getElementById('vc-hero-meta-gl').innerHTML=chips.join('');
     glassEl.style.display='block';
   }
+  // Mobile sticky CTA
+  const mobilePrice=document.getElementById('vc-mobile-price');
+  const mobileCta=document.getElementById('vc-mobile-cta-btn');
+  if(mobilePrice) mobilePrice.textContent=p.price>0?'€'+p.price.toLocaleString('it-IT')+' /mese':'';
+  if(mobileCta){ mobileCta.href=cal; if(calLink) mobileCta.target='_blank'; }
+
   document.getElementById('vc-desc').textContent=p.desc;
 
   // Caratteristiche grid

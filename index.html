@@ -811,29 +811,39 @@
     }
     .va-btn-primary:active{transform:scale(.985);}
 
-    /* Filter bar */
+    /* Filter bar — grouped glass control surface */
     .va-filters{
-      display:flex;gap:8px;align-items:center;flex-wrap:wrap;
-      padding:0 36px 16px;
+      display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+      padding:0 36px 22px;
+    }
+    /* Inner glass toolbar wrapper — applied via class in HTML */
+    .va-toolbar-glass{
+      display:flex;gap:6px;align-items:center;flex-wrap:wrap;
+      padding:7px;border-radius:15px;
+      background:rgba(250,249,246,.74);
+      border:1px solid rgba(255,255,255,.78);
+      backdrop-filter:blur(26px) saturate(150%);
+      -webkit-backdrop-filter:blur(26px) saturate(150%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 16px 38px rgba(28,34,30,.11);
     }
     .va-search{
-      height:44px;padding:0 14px;
-      background:var(--surface);border:1px solid var(--border);
-      border-radius:10px;font-size:14px;color:var(--text);
-      outline:none;max-width:360px;width:100%;
-      transition:border-color var(--motion-ui);
+      height:38px;padding:0 12px;
+      background:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.50);
+      border-radius:9px;font-size:13px;color:var(--text);
+      outline:none;max-width:280px;width:100%;
+      transition:border-color var(--motion-ui),background var(--motion-ui);
     }
     .va-search::placeholder{color:var(--text-tertiary);}
-    .va-search:focus{border-color:var(--accent);}
+    .va-search:focus{background:rgba(255,255,255,.85);border-color:rgba(255,255,255,.90);}
     .va-sel{
-      height:40px;padding:0 28px 0 10px;
-      background:var(--surface);border:1px solid var(--border);color:var(--text);
-      font-size:13px;border-radius:10px;cursor:pointer;appearance:none;
+      height:38px;padding:0 26px 0 10px;
+      background:rgba(255,255,255,.60);border:1px solid rgba(255,255,255,.50);
+      color:var(--text);font-size:12px;border-radius:9px;cursor:pointer;appearance:none;
       background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236F6C66'/%3E%3C/svg%3E");
-      background-repeat:no-repeat;background-position:right 9px center;
-      outline:none;transition:border-color var(--motion-ui);
+      background-repeat:no-repeat;background-position:right 8px center;
+      outline:none;transition:border-color var(--motion-ui),background var(--motion-ui);
     }
-    .va-sel:focus{border-color:var(--accent);}
+    .va-sel:focus{background:rgba(255,255,255,.85);border-color:rgba(255,255,255,.90);}
     .va-price-stepper{
       display:flex;align-items:center;gap:2px;
       background:var(--surface);border:1px solid var(--border);

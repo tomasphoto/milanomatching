@@ -833,50 +833,48 @@
       cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;
     }
     .lc:hover{
-      border-color:rgba(201,169,110,.35);
-      box-shadow:0 6px 24px rgba(0,0,0,.35);
-      transform:translateY(-1px);
+      border-color:var(--bordhi);box-shadow:var(--shadow-md);transform:translateY(-1px);
     }
     .lc-header{padding:16px 18px 12px;display:flex;align-items:flex-start;gap:14px;}
     .lc-qual{
       width:28px;height:28px;border-radius:50%;background:var(--bg3);
-      border:1.5px solid var(--gold);color:var(--gold);font-size:11px;font-weight:600;
+      border:1.5px solid var(--accent);color:var(--accent);font-size:11px;font-weight:600;
       display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px;
     }
     .lc-main{flex:1;min-width:0;}
     .lc-name{
-      font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;
-      color:var(--text);line-height:1.1;margin-bottom:3px;
+      font-size:17px;font-weight:600;
+      color:var(--text);line-height:1.15;margin-bottom:3px;
     }
-    .lc-profilo{font-size:11px;color:var(--textdim);letter-spacing:.04em;margin-bottom:9px;}
+    .lc-profilo{font-size:12px;color:var(--textdim);margin-bottom:9px;}
     .lc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
     .lc-tag{
       background:var(--bg3);border:1px solid var(--border);
-      border-radius:3px;padding:3px 8px;font-size:11px;color:var(--textmid);
+      border-radius:var(--rxs);padding:3px 8px;font-size:11px;color:var(--textmid);
     }
     .lc-note{
-      font-size:11px;color:var(--textdim);line-height:1.5;margin-top:5px;
+      font-size:12px;color:var(--textdim);line-height:1.5;margin-top:5px;
       display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
     }
     .lc-acts{
       display:flex;gap:5px;padding:10px 18px;
-      border-top:1px solid var(--border);background:rgba(0,0,0,.12);
+      border-top:1px solid var(--border);background:var(--bg3);
     }
     .btn-lc{
-      background:var(--bg3);border:1px solid var(--border);color:var(--textmid);
-      padding:6px 12px;font-family:'Inter',sans-serif;font-size:11px;
-      border-radius:var(--rsm);cursor:pointer;transition:all .15s;
+      background:var(--bg2);border:1px solid var(--border);color:var(--textmid);
+      padding:6px 12px;font-size:12px;font-weight:500;
+      border-radius:var(--rsm);cursor:pointer;transition:all var(--dur-base);
     }
-    .btn-lc:hover{border-color:var(--gold);color:var(--gold);}
-    .btn-lc-del:hover{border-color:#f87171;color:#f87171;}
+    .btn-lc:hover{border-color:var(--bordhi);color:var(--text);}
+    .btn-lc-del:hover{border-color:var(--red);color:var(--red);}
 
     /* status badges */
-    .ls-nuovo     {background:rgba(110,224,160,.1);color:#6EE0A0;border-color:rgba(110,224,160,.3);}
-    .ls-contattato{background:rgba(201,169,110,.1);color:var(--gold);border-color:rgba(201,169,110,.3);}
-    .ls-visita    {background:rgba(147,197,253,.1);color:#93c5fd;border-color:rgba(147,197,253,.3);}
-    .ls-proposta  {background:rgba(251,191,36,.1); color:#fbbf24;border-color:rgba(251,191,36,.3);}
-    .ls-chiuso    {background:rgba(107,114,128,.1);color:#9ca3af;border-color:rgba(107,114,128,.3);}
-    .ls-perso     {background:rgba(248,113,113,.1);color:#f87171;border-color:rgba(248,113,113,.3);}
+    .ls-nuovo     {background:rgba(26,122,66,.1); color:var(--green);border-color:rgba(26,122,66,.3);}
+    .ls-contattato{background:rgba(42,50,64,.1);  color:var(--accent);border-color:rgba(42,50,64,.3);}
+    .ls-visita    {background:rgba(30,90,180,.1);  color:#3B72C8;border-color:rgba(30,90,180,.3);}
+    .ls-proposta  {background:rgba(154,104,16,.1); color:var(--amber);border-color:rgba(154,104,16,.3);}
+    .ls-chiuso    {background:rgba(100,100,100,.1);color:var(--textdim);border-color:rgba(100,100,100,.3);}
+    .ls-perso     {background:rgba(184,50,40,.1);  color:var(--red);border-color:rgba(184,50,40,.3);}
 
     /* match panel */
     .lc-matches{display:none;padding:0 18px 14px;border-top:1px solid var(--border);}

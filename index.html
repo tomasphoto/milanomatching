@@ -2992,40 +2992,24 @@ function showAdmin(){
   aRender();
   lUpdateTabCount();
   setTimeout(_warmGeoCache, 2000);
+  // Show boot error if Supabase didn't load
+  if(window._sbBootError){
+    setTimeout(()=>toast('⚠ Supabase offline: ' + window._sbBootError, 6000), 400);
+  }
 }
 function exitAdmin(){window.location.href=window.location.pathname;}
 
 async function sbRefresh(){
   toast('Ricarico da Supabase…', 2000);
-  const hdrs = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
   try {
-    const pRes = await fetch(SB_URL + '/rest/v1/properties?select=*,agencies(name)&limit=500', { headers: hdrs });
-    if(!pRes.ok){ toast('⚠ Errore caricamento: ' + pRes.status, 4000); return; }
-    const rows = await pRes.json();
-    const uuidToFk = {};
-    const newBP = rows.map(r => {
-      const p = {
-        g:r.agencies?.name||'', addr:r.address||'', id:r.internal_reference||'',
-        mq:r.surface_sqm||0, st:r.rooms||0, price:r.price||0,
-        avail:r.available_from||'', desc:r.description||'',
-        url:r.external_listing_url||undefined, piano:r.floor||undefined,
-        piani:r.total_floors||undefined, asc:r.elevator??undefined,
-        cam:r.bedrooms||undefined, bagni:r.bathrooms||undefined,
-        cucina:r.kitchen_type||undefined, arredato:r.furnished||undefined,
-        balcone:r.balcony??undefined, terrazzo:r.terrace??undefined,
-        risc:r.heating||undefined, clima:r.air_conditioning||undefined,
-        contratto:r.contract_type||undefined, spese:r.condominium_fees||undefined,
-        _sbId:r.id, _sbVis:r.visibility,
-      };
-      uuidToFk[r.id] = fk(p);
-      return p;
-    });
-    BP.length = 0; newBP.forEach(p => BP.push(p));
-    // Clear all local overrides — Supabase is source of truth
-    ST.edits = {};
-    stSave();
-    aRender();
-    toast('✓ ' + rows.length + ' proprietà aggiornate', 3000);
+    const result = await _bootLoadSB();
+    if(result.ok){
+      window._sbBootError = null;
+      aRender();
+      toast('✓ ' + result.count + ' proprietà caricate', 3000);
+    } else {
+      toast('⚠ ' + (result.detail || 'Errore HTTP ' + result.status), 6000);
+    }
   } catch(e){ toast('⚠ Errore: ' + e.message, 4000); }
 }
 

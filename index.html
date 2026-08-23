@@ -2285,7 +2285,7 @@ async function sbLoadLeads(){
       'proposal':'proposta','closed':'chiuso','lost':'perso',
       'second_option':'secondo','contract':'contratto'
     };
-    let changed = false;
+    let changed = false, newCount = 0;
     sbLeads.forEach(sl => {
       if(!sl.id) return;
       // Check if already tracked by _sbId
@@ -2317,11 +2317,13 @@ async function sbLoadLeads(){
           status: SB_STATUS_REV[sl.status] || 'nuovo',
           addedAt: sl.added_at ? new Date(sl.added_at).getTime() : Date.now()
         });
+        newCount++;
         changed = true;
       }
     });
     if(changed){
       stSave();
+      if(newCount > 0) toast(`✓ ${newCount} lead${newCount>1?'s':''} caricati da Supabase`, 3000);
       // Refresh the leads list if admin panel is open
       const va = document.getElementById('va');
       if(va && !va.classList.contains('hidden')) lRender();

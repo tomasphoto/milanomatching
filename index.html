@@ -332,12 +332,36 @@
     }
     .vc-thumb.on{opacity:1;border-color:var(--accent);}
 
+    /* spec §26 — dark glass info panel overlaid on hero */
+    .vc-hero-glass{
+      position:absolute;bottom:0;left:0;right:0;z-index:10;
+      padding:28px 36px 32px;
+      background:linear-gradient(to top, rgba(10,10,10,.72) 0%, rgba(10,10,10,.28) 60%, transparent 100%);
+    }
+    .vc-hero-addr{
+      font-size:clamp(22px,3vw,38px);font-weight:600;letter-spacing:-.03em;
+      color:#fff;line-height:1.1;margin-bottom:10px;
+      text-shadow:0 1px 4px rgba(0,0,0,.35);
+    }
+    .vc-hero-meta{
+      display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+    }
+    .vc-hero-price{
+      font-size:22px;font-weight:700;color:#fff;letter-spacing:-.02em;
+    }
+    .vc-hero-chip{
+      background:rgba(255,255,255,.18);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.22);border-radius:999px;
+      color:rgba(255,255,255,.90);font-size:12px;font-weight:500;
+      padding:4px 12px;
+    }
+
     /* content */
-    .vc-body{max-width:960px;margin:0 auto;padding:56px 40px 80px;width:100%;}
-    .vc-eyebrow{font-size:11px;font-weight:500;color:var(--gold);margin-bottom:12px;}
+    .vc-body{max-width:960px;margin:0 auto;padding:48px 40px 80px;width:100%;}
+    .vc-eyebrow{font-size:11px;font-weight:500;color:var(--text-secondary);margin-bottom:12px;letter-spacing:.04em;text-transform:uppercase;}
     .vc-addr{
-      font-size:clamp(32px,4.5vw,58px);font-weight:300;
-      line-height:1.05;letter-spacing:-.02em;color:var(--text);margin-bottom:44px;
+      font-size:clamp(28px,4vw,48px);font-weight:600;
+      line-height:1.05;letter-spacing:-.03em;color:var(--text);margin-bottom:40px;
     }
 
     /* stats (spec §28 — 4-col grid, no card wrapper, no background) */
@@ -1454,6 +1478,11 @@
     <button class="hero-nav hero-next" id="hero-next" onclick="event.stopPropagation();heroNav(1)">&#8250;</button>
     <div class="hero-counter hidden" id="hero-counter"></div>
     <button class="hero-all-btn hidden" id="hero-all-btn" onclick="event.stopPropagation();openGallery()">&#9638; Tutte le foto</button>
+    <!-- spec §26 glass info panel -->
+    <div class="vc-hero-glass" id="vc-hero-glass" style="display:none">
+      <div class="vc-hero-addr" id="vc-hero-addr-gl"></div>
+      <div class="vc-hero-meta" id="vc-hero-meta-gl"></div>
+    </div>
   </div>
 
   <!-- content -->
@@ -2586,6 +2615,19 @@ function showCard(encoded){
   document.getElementById('vc-stats').innerHTML=stats.map(s=>
     `<div class="vc-stat"><span class="vc-stat-val">${s.v}</span><span class="vc-stat-lbl">${s.l}</span></div>`
   ).join('');
+  // spec §26 — populate hero glass panel
+  const glassEl=document.getElementById('vc-hero-glass');
+  if(glassEl){
+    document.getElementById('vc-hero-addr-gl').textContent=p.addr;
+    const chips=[
+      p.price>0?`<span class="vc-hero-price">€${p.price.toLocaleString('it-IT')}<small style="font-size:14px;font-weight:400"> /mese</small></span>`:'',
+      `<span class="vc-hero-chip">${rl}</span>`,
+      p.mq>0?`<span class="vc-hero-chip">${p.mq} mq</span>`:'',
+      `<span class="vc-hero-chip">${now?'Disponibile subito':p.avail}</span>`,
+    ].filter(Boolean);
+    document.getElementById('vc-hero-meta-gl').innerHTML=chips.join('');
+    glassEl.style.display='block';
+  }
   document.getElementById('vc-desc').textContent=p.desc;
 
   // Caratteristiche grid

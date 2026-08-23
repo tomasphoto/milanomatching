@@ -2214,7 +2214,9 @@ function showLanding(){
 }
 
 function askAdmin(){
-  showAdmin();
+  const ov=document.getElementById('pw-overlay');
+  ov.style.display='flex';
+  setTimeout(()=>document.getElementById('pw-input').focus(),80);
 }
 function closePwOverlay(){
   document.getElementById('pw-overlay').style.display='none';

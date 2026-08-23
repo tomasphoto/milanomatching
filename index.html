@@ -2330,31 +2330,7 @@ function swipeSetup(el, onLeft, onRight){
 // ════════════════════════════════════════════════════════════════
 //  GITHUB DIRECT UPLOAD
 // ════════════════════════════════════════════════════════════════
-const GH={
-  token:'ghp_YJ9JyYc271'+atob('ZkV4YlhwQzVtdlY4dTV3R3FLOTM0WHV6Qlg='),
-  user:'tomasphoto',repo:'milanomatching',
-  base:'https://www.link-mi.it'
-};
-
-async function ghAPI(method,path,body){
-  const r=await fetch(`https://api.github.com/repos/${GH.user}/${GH.repo}/contents${path}`,{
-    method,
-    cache:'no-store', // always fresh — prevents stale-SHA 409 errors
-    headers:{'Authorization':'token '+GH.token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
-    body:body?JSON.stringify(body):undefined
-  });
-  if(!r.ok&&r.status!==404){const t=await r.text();throw new Error('GitHub '+r.status+': '+t.slice(0,200));}
-  return r.status===404?null:r.json();
-}
-
-async function ghPut(path,b64,msg,sha){
-  const body={message:msg,content:b64};
-  if(sha)body.sha=sha;
-  return ghAPI('PUT',path,body);
-}
-
-function ghB64(str){return btoa(unescape(encodeURIComponent(str)));}
-function ghDecode(b64){return decodeURIComponent(escape(atob(b64.replace(/\n/g,''))));}
+const SITE_BASE = 'https://www.link-mi.it';
 
 async function sbUploadPhoto(propKey, dataUrl){
   const p = allP().find(x => fk(x) === propKey);

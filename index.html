@@ -414,20 +414,26 @@
     }
     /* badges */
     .vc-badge-agency{
-      position:absolute;top:24px;left:32px;z-index:2;
+      position:absolute;top:16px;left:16px;z-index:2;
       font-size:11px;font-weight:500;color:var(--text);
-      padding:6px 12px;border-radius:var(--rxs);
-      background:var(--glass-panel);backdrop-filter:blur(12px);
-      border:1px solid var(--border);
+      padding:6px 12px;border-radius:9px;
+      background:rgba(250,249,246,.72);
+      border:1px solid rgba(255,255,255,.65);
+      backdrop-filter:blur(14px) saturate(135%);
+      -webkit-backdrop-filter:blur(14px) saturate(135%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 5px 16px rgba(0,0,0,.08);
     }
     .vc-badge-avail{
-      position:absolute;top:24px;right:32px;z-index:2;
+      position:absolute;top:16px;right:16px;z-index:10;
       font-size:11px;font-weight:500;
-      padding:6px 12px;border-radius:var(--rxs);
-      backdrop-filter:blur(12px);border:1px solid transparent;
+      padding:6px 12px;border-radius:9px;
+      backdrop-filter:blur(14px) saturate(135%);
+      -webkit-backdrop-filter:blur(14px) saturate(135%);
+      border:1px solid rgba(255,255,255,.65);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 5px 16px rgba(0,0,0,.08);
     }
-    .av-now {background:rgba(235,248,240,.92);color:var(--green);border-color:rgba(26,122,66,.15);}
-    .av-later{background:rgba(255,248,235,.92);color:var(--amber);border-color:rgba(154,104,16,.15);}
+    .av-now {background:rgba(236,245,239,.72);color:var(--success);}
+    .av-later{background:rgba(255,248,235,.72);color:var(--warning);}
 
     /* photo thumbs */
     .vc-thumbs{

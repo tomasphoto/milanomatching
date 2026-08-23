@@ -4293,7 +4293,13 @@ function aCard(p){
       <button class="ac-nav ac-nav-next" onclick="event.stopPropagation();acPhNav(event,'${ek}',1)">&#8250;</button>
       <div class="ac-img-n">${idx+1}/${photos.length}</div>
     `:photos.length===1?`<div class="ac-img-n">1 foto</div>`:''}
+    <div class="ac-photo-status${now?' avail-now':' avail-later'}">${now?'✓ Disponibile':''+p.avail}</div>
     ${hid?'<div class="ac-hid-tag">Nascosta</div>':''}
+    <!-- Glass quick actions — visible on hover, overlapping photo -->
+    <div class="ac-quick" onclick="event.stopPropagation()">
+      <button class="btn-ac-quick" title="Condividi" onclick="vaepShare(${kj})">🔗</button>
+      <button class="btn-ac-quick" title="Foto" onclick="vaepPhotos(${kj})">🖼</button>
+    </div>
   </div>
   <div class="ac-body">
     <div class="ac-g">${p.g}</div>

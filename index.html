@@ -340,22 +340,22 @@
       line-height:1.05;letter-spacing:-.02em;color:var(--text);margin-bottom:44px;
     }
 
-    /* stats */
+    /* stats (spec §28 — 4-col grid, no card wrapper, no background) */
     .vc-stats{
-      display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
-      margin-bottom:48px;background:var(--bg2);border-radius:var(--r);
-      overflow:hidden;box-shadow:var(--shadow-xs);
+      display:grid;grid-template-columns:repeat(4,1fr);
+      border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      margin-bottom:48px;
     }
     .vc-stat{
-      flex:1;padding:24px 16px;text-align:center;
+      padding:24px 16px;text-align:center;
       border-right:1px solid var(--border);
     }
     .vc-stat:last-child{border-right:none;}
     .vc-stat-val{
-      font-size:28px;font-weight:300;letter-spacing:-.02em;
+      font-size:28px;font-weight:300;letter-spacing:-.03em;
       color:var(--text);display:block;line-height:1.1;margin-bottom:6px;
     }
-    .vc-stat-lbl{font-size:11px;color:var(--textdim);font-weight:400;}
+    .vc-stat-lbl{font-size:11px;color:var(--text-tertiary);font-weight:500;letter-spacing:.02em;}
 
     /* desc */
     .vc-desc-hd{font-size:11px;font-weight:600;color:var(--textdim);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;}
@@ -1334,8 +1334,9 @@
       .vc-body{padding:28px 18px 80px;}
       .vc-badge-agency{top:86px;left:16px;}
       .vc-badge-avail{top:86px;right:16px;}
-      .vc-stats{flex-wrap:wrap;}
-      .vc-stat{min-width:50%;border-bottom:1px solid var(--border);}
+      .vc-stats{grid-template-columns:repeat(2,1fr);}
+      .vc-stat:nth-child(odd){border-right:1px solid var(--border);}
+      .vc-stat{border-bottom:1px solid var(--border);}
       .vc-cara-grid{grid-template-columns:repeat(2,1fr);}
       .vc-ctas{flex-direction:column;}
       .btn-cta-p,.btn-cta-s{justify-content:center;}

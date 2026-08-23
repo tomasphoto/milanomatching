@@ -2172,15 +2172,25 @@ const SB_KEY = 'sb_publishable_MEKmMRwcuCG-AQ3ka9wbZw_lz2c2Y9Z';
 let _adminPw = null; // set on admin login
 
 async function sbRpc(fn, params){
-  if(!_adminPw) return;
+  if(!_adminPw) return false;
   try {
     const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_admin_pw: _adminPw, ...params })
     });
-    if(!r.ok){ const t=await r.text(); console.warn('[SB]', fn, r.status, t.slice(0,200)); }
-  } catch(e){ console.warn('[SB]', fn, e.message); }
+    if(!r.ok){
+      const t=await r.text();
+      console.warn('[SB]', fn, r.status, t.slice(0,200));
+      toast('⚠ Errore Supabase ' + r.status + ' — ' + fn, 5000);
+      return false;
+    }
+    return true;
+  } catch(e){
+    console.warn('[SB]', fn, e.message);
+    toast('⚠ Errore di rete: ' + e.message, 4000);
+    return false;
+  }
 }
 
 const SB_STATUS_MAP = {

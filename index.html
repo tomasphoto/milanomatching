@@ -545,16 +545,15 @@
     .vc-cara-val.yes{color:var(--green);}
     .vc-cara-val.no{color:var(--textdim);font-weight:400;}
     @media(max-width:767px){
-      /* Hero: shrink but keep photographic */
-      .vc-hero{height:64vw;min-height:280px;max-height:520px;margin-top:53px;}
+      /* Hero: shrink but keep photographic, account for fixed nav */
+      .vc-hero{height:65vw;min-height:280px;max-height:520px;margin-top:80px;}
       .vc-thumbs{display:none;}
       /* Stats grid is duplicated by .property-summary — hide */
       .vc-stats{display:none;}
       /* Address in body is shown in .property-summary on mobile — hide */
       .vc-eyebrow,.vc-addr{display:none;}
-    }
-    @media(max-width:600px){
-      .vc-body{padding:20px 18px 90px;}
+      /* Body padding tighter on mobile */
+      .vc-body{padding:24px 18px 90px;}
     }
 
     /* ── Property summary (mobile-only, below hero) ─────────────── */

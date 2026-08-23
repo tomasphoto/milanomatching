@@ -4417,87 +4417,100 @@ stLoad();
   }
 })();
 
-// ── Load live data from Supabase, then route ─────────────────
-(async function boot(){
-  const hdrs = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
-  try {
-    // 1. Properties (with agency name via FK join)
-    const pRes = await fetch(
-      SB_URL + '/rest/v1/properties?select=*,agencies(name)&limit=500',
-      { headers: hdrs }
-    );
-    if(pRes.ok){
-      const rows = await pRes.json();
-      // Build UUID→fk map and replace BP array in-place
-      const uuidToFk = {};
-      const newBP = rows.map(r => {
-        const p = {
-          g:         r.agencies?.name        || '',
-          addr:      r.address               || '',
-          id:        r.internal_reference    || '',
-          mq:        r.surface_sqm           || 0,
-          st:        r.rooms                 || 0,
-          price:     r.price                 || 0,
-          avail:     r.available_from        || '',
-          desc:      r.description           || '',
-          url:       r.external_listing_url  || undefined,
-          piano:     r.floor                 || undefined,
-          piani:     r.total_floors          || undefined,
-          asc:       r.elevator              ?? undefined,
-          cam:       r.bedrooms              || undefined,
-          bagni:     r.bathrooms             || undefined,
-          cucina:    r.kitchen_type          || undefined,
-          arredato:  r.furnished             || undefined,
-          balcone:   r.balcony               ?? undefined,
-          terrazzo:  r.terrace               ?? undefined,
-          risc:      r.heating               || undefined,
-          clima:     r.air_conditioning      || undefined,
-          contratto: r.contract_type         || undefined,
-          spese:     r.condominium_fees      || undefined,
-          _sbId:     r.id,        // UUID stored for future writes
-          _sbVis:    r.visibility,
-        };
-        uuidToFk[r.id] = fk(p);
-        return p;
-      });
-      BP.length = 0;
-      newBP.forEach(p => BP.push(p));
-      // Supabase is source of truth — discard stale localStorage overrides
-      // so that direct edits in Supabase are reflected immediately on reload
-      let stEditsChanged = false;
-      newBP.forEach(p => {
-        const k = fk(p);
-        if(ST.edits[k]){ delete ST.edits[k]; stEditsChanged = true; }
-      });
-      if(stEditsChanged) stSave();
+// ── Shared helper: build a property object from a Supabase row ──
+function _rowToP(r){
+  return {
+    g:         r.agencies?.name        || '',
+    addr:      r.address               || '',
+    id:        r.internal_reference    || '',
+    mq:        r.surface_sqm           || 0,
+    st:        r.rooms                 || 0,
+    price:     r.price                 || 0,
+    avail:     r.available_from        || '',
+    desc:      r.description           || '',
+    url:       r.external_listing_url  || undefined,
+    piano:     r.floor                 || undefined,
+    piani:     r.total_floors          || undefined,
+    asc:       r.elevator              ?? undefined,
+    cam:       r.bedrooms              || undefined,
+    bagni:     r.bathrooms             || undefined,
+    cucina:    r.kitchen_type          || undefined,
+    arredato:  r.furnished             || undefined,
+    balcone:   r.balcony               ?? undefined,
+    terrazzo:  r.terrace               ?? undefined,
+    risc:      r.heating               || undefined,
+    clima:     r.air_conditioning      || undefined,
+    contratto: r.contract_type         || undefined,
+    spese:     r.condominium_fees      || undefined,
+    _sbId:     r.id,
+    _sbVis:    r.visibility,
+  };
+}
 
-      // 2. Media — paginate in 1000-row chunks
-      let allMedia = [];
-      let offset = 0;
-      while(true){
-        const mRes = await fetch(
-          SB_URL + '/rest/v1/property_media?select=property_id,storage_path,sort_order' +
-          '&order=property_id,sort_order&limit=1000&offset=' + offset,
-          { headers: hdrs }
-        );
-        if(!mRes.ok) break;
-        const page = await mRes.json();
-        allMedia = allMedia.concat(page);
-        if(page.length < 1000) break;
-        offset += 1000;
-      }
-      // Group URLs by property fk (Supabase wins over baked-in PHOTO_DEFAULTS)
-      const sbPhotos = {};
-      allMedia.forEach(m => {
-        const k = uuidToFk[m.property_id];
-        if(!k) return;
-        if(!sbPhotos[k]) sbPhotos[k] = [];
-        sbPhotos[k].push(m.storage_path);
-      });
-      Object.assign(ST.photos, sbPhotos);
+// ── Load live data from Supabase via admin RPC, then route ─────
+// Uses admin_get_properties (password-protected) so no RLS needed
+async function _bootLoadSB(){
+  const hdrs = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+  // --- properties via admin RPC ---
+  const pRes = await fetch(`${SB_URL}/rest/v1/rpc/admin_get_properties`, {
+    method: 'POST',
+    headers: hdrs,
+    body: JSON.stringify({ p_admin_pw: 'milan2026' })
+  });
+  if(!pRes.ok){
+    const txt = await pRes.text();
+    console.warn('[SB] admin_get_properties failed:', pRes.status, txt.slice(0,200));
+    return { ok: false, status: pRes.status, detail: txt.slice(0,120) };
+  }
+  const rows = await pRes.json();
+  if(!Array.isArray(rows) || rows.length === 0){
+    console.warn('[SB] admin_get_properties returned empty');
+    return { ok: false, status: 200, detail: 'Nessuna proprietà in Supabase' };
+  }
+  const uuidToFk = {};
+  const newBP = rows.map(r => { const p=_rowToP(r); uuidToFk[r.id]=fk(p); return p; });
+  BP.length = 0;
+  newBP.forEach(p => BP.push(p));
+  // Supabase is source of truth — clear stale localStorage overrides
+  let changed = false;
+  newBP.forEach(p => { const k=fk(p); if(ST.edits[k]){delete ST.edits[k];changed=true;} });
+  if(changed) stSave();
+
+  // --- media ---
+  let allMedia = [], offset = 0;
+  while(true){
+    const mRes = await fetch(
+      SB_URL + '/rest/v1/property_media?select=property_id,storage_path,sort_order' +
+      '&order=property_id,sort_order&limit=1000&offset=' + offset,
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if(!mRes.ok) break;
+    const page = await mRes.json();
+    allMedia = allMedia.concat(page);
+    if(page.length < 1000) break;
+    offset += 1000;
+  }
+  const sbPhotos = {};
+  allMedia.forEach(m => {
+    const k = uuidToFk[m.property_id]; if(!k) return;
+    if(!sbPhotos[k]) sbPhotos[k] = [];
+    sbPhotos[k].push(m.storage_path);
+  });
+  Object.assign(ST.photos, sbPhotos);
+  return { ok: true, count: rows.length };
+}
+
+(async function boot(){
+  try {
+    const result = await _bootLoadSB();
+    if(!result.ok){
+      console.warn('[SB] Boot load failed — using baked-in data. Detail:', result.detail);
+      // Store the error so admin panel can show it
+      window._sbBootError = result.detail || ('HTTP ' + result.status);
     }
   } catch(e){
-    console.warn('[SB] Load failed, using baked-in data:', e.message);
+    console.warn('[SB] Boot exception:', e.message);
+    window._sbBootError = e.message;
   }
   route();
 })();

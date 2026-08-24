@@ -2502,6 +2502,11 @@ async function sbSyncLead(lead, localData){
   if('urg'       in localData) d.urgency      = localData.urg || null;
   if('qual'      in localData) d.quality      = localData.qual || null;
   if('status'    in localData) d.status       = SB_STATUS_MAP[localData.status] || localData.status;
+  if('linkedProp' in localData){
+    // Translate local fk string → Supabase property UUID (or null to unlink)
+    const prop = localData.linkedProp ? allP().find(x=>fk(x)===localData.linkedProp) : null;
+    d.property_id = prop?._sbId || null;
+  }
   if(Object.keys(d).length) await sbRpc('admin_update_lead', { p_sb_id: lead._sbId, p_data: d });
 }
 

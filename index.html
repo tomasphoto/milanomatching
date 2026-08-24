@@ -1642,6 +1642,23 @@
       .va-sb-item span:not(svg){display:none;}
       .va-main{margin-left:64px;}
     }
+    /* ── Desktop split layout — leads ─────────────────────────── */
+    @media(min-width:1024px){
+      #vp-leads.vl-split-mode{padding-right:calc((100vw - 224px) * 0.62);box-sizing:border-box;}
+      #vp-leads.vl-split-mode .va-lead-grid{grid-template-columns:1fr !important;}
+      #vl-ep.vl-split-active{
+        left:calc(224px + (100vw - 224px) * 0.38) !important;
+        right:0 !important;top:0 !important;bottom:0 !important;
+        z-index:10 !important;border-left:1px solid var(--border);
+      }
+      #vl-ep.vl-split-active .vaep-close{display:none;}
+      .lc.lc-selected{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface);}
+      #vl-ep-empty{
+        position:absolute;inset:0;background:var(--bg);z-index:5;
+        flex-direction:column;align-items:center;justify-content:center;
+        gap:12px;color:var(--text-tertiary);font-size:14px;
+      }
+    }
   </style>
 </head>
 <body>

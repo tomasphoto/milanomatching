@@ -4148,7 +4148,7 @@ function genProposta(){
       if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
       txt+='   '+msgPropUrl(p)+'\n\n';
     });
-    txt+='Let me know if any of these interest you and we can arrange a viewing.\n\nSpeak soon,\nTommaso Vizzardi';
+    txt+='Let me know if any of these interest you and we can arrange a viewing.\n\nSpeak soon,\nTommaso';
   } else {
     txt='Ciao '+first+',\n\nin base alle sue richieste, ecco alcune soluzioni che potrebbero fare al caso suo:\n\n';
     selected.forEach((p,i)=>{
@@ -4159,7 +4159,7 @@ function genProposta(){
       if(p.desc)txt+='   '+p.desc.replace(/\s{2,}/g,' ').trim()+'\n';
       txt+='   '+msgPropUrl(p)+'\n\n';
     });
-    txt+='Mi faccia sapere se qualcuna di queste soluzioni la interessa e organizziamo una visita.\n\nA presto,\nTommaso Vizzardi';
+    txt+='Mi faccia sapere se qualcuna di queste soluzioni la interessa e organizziamo una visita.\n\nA presto,\nTommaso';
   }
   document.getElementById('msg-pr-out').value=txt;
 }

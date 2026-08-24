@@ -3824,19 +3824,24 @@ function openMsgModal(id){
   msgLang('nr','it',true);
   msgLang('pr','it',true);
 
-  // Build proposta checklist
+  // Build proposta checklist — linked property goes first
   const matches=matchLead(lead);
   _msgMatches=matches.slice(0,8).map(k=>allP().find(x=>fk(x)===k)).filter(Boolean);
+  if(lead.linkedProp){
+    const lp=allP().find(x=>fk(x)===lead.linkedProp);
+    if(lp) _msgMatches=[lp,..._msgMatches.filter(p=>fk(p)!==lead.linkedProp)].slice(0,8);
+  }
   const listEl=document.getElementById('msg-prop-list');
   if(_msgMatches.length===0){
     listEl.innerHTML='<div style="padding:16px;text-align:center;font-size:12px;color:var(--textdim)">Nessuna proprietà compatibile</div>';
   } else {
     listEl.innerHTML=_msgMatches.map((p,i)=>{
       const rl=p.st>=5?'5+ locali':(RL[p.st]||'');
+      const isLinked=lead.linkedProp && fk(p)===lead.linkedProp;
       return `<label class="msg-prop-row">
         <input type="checkbox" id="mpchk-${i}" checked>
         <div class="msg-prop-info">
-          <div class="msg-prop-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span></div>
+          <div class="msg-prop-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${p.g}</span>${isLinked?'<span style="background:var(--accent);color:#fff;font-size:9px;padding:1px 5px;border-radius:3px;margin-left:6px;font-weight:700">RICHIESTA</span>':''}</div>
           <div class="msg-prop-meta">${rl}${p.mq?' · '+p.mq+'mq':''} · €${p.price.toLocaleString('it-IT')}/mese · ${p.avail}</div>
         </div>
       </label>`;

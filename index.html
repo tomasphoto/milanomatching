@@ -3003,6 +3003,8 @@ async function submitPw(){
     if(error) throw error;
     _adminPw = 'milan2026';
     _adminAuthenticated = true;
+    // Fallback token — survives getSession() failures (24h)
+    localStorage.setItem('_lm_admin_tok', JSON.stringify({ts: Date.now(), v: 1}));
     closePwOverlay();
     showAdmin();
     sbLoadLeads();

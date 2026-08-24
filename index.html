@@ -2648,6 +2648,9 @@ async function sbLoadLeads(){
       }
       if(local) {
         if(!local._sbId){ local._sbId = sl.id; changed = true; }
+        // Always sync addedAt from received_at (or added_at) so sort order is correct
+        const sbTime = sl.received_at ? new Date(sl.received_at).getTime() : (sl.added_at ? new Date(sl.added_at).getTime() : null);
+        if(sbTime && local.addedAt !== sbTime){ local.addedAt = sbTime; changed = true; }
         // Sync property link from Supabase if not already set locally
         if(sl.property_id && !local.linkedProp){
           const lp = allP().find(x=>x._sbId===sl.property_id);

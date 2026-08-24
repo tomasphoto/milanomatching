@@ -2463,6 +2463,7 @@ async function sbSyncProp(k, localData){
   if(!p?._sbId) return;
   const d = {};
   if('price'    in localData) d.price                = localData.price;
+  if('addr'     in localData) d.address              = localData.addr;
   if('avail'    in localData) d.available_from       = localData.avail;
   if('desc'     in localData) d.description          = localData.desc;
   if('mq'       in localData) d.surface_sqm          = localData.mq;
@@ -4444,13 +4445,17 @@ async function saveAdminCard(){
       delete ST.edits[k];
       toast('✓ Salvato');
     } else {
-      // Supabase write failed — keep a local fallback in ST.edits
+      // Supabase write failed — update in-memory for this session but warn clearly
+      Object.assign(bpEntry, d);
       ST.edits[k]=d;
-      toast('Salvato in locale (Supabase non raggiunto)', 4000);
+      toast('⚠ Errore Supabase — modifiche visibili solo in questa sessione. Riprova.', 6000);
     }
   } else {
     const i=ST.customProps.findIndex(p=>fk(p)===k);
-    if(i>=0)Object.assign(ST.customProps[i],d);
+    if(i<0){toast('⚠ Proprietà non trovata — ricarica la pagina', 4000);return;}
+    Object.assign(ST.customProps[i],d);
+    // If this custom prop was promoted to Supabase (has _sbId), sync it back
+    sbSyncProp(k, d);
     toast('✓ Salvato');
   }
   stSave();

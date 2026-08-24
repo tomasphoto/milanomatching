@@ -3477,6 +3477,7 @@ function showAdmin(){
 }
 async function exitAdmin(){
   await _sbAuthClient.auth.signOut();
+  localStorage.removeItem('_lm_admin_tok');
   _adminAuthenticated = false;
   _adminPw = null;
   window.location.href = window.location.pathname;
@@ -5127,11 +5128,20 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
-  // Restore admin session if a valid JWT session already exists in localStorage
+  // 1. Try Supabase Auth session
   try {
     const { data: { session } } = await _sbAuthClient.auth.getSession();
     if(session){ _adminPw = 'milan2026'; _adminAuthenticated = true; }
-  } catch(e){ /* non-fatal */ }
+  } catch(e){ console.warn('[Auth] getSession error:', e.message); }
+  // 2. Fallback: custom 24h token (covers getSession() failures)
+  if(!_adminAuthenticated){
+    try {
+      const tok = JSON.parse(localStorage.getItem('_lm_admin_tok') || 'null');
+      if(tok && tok.v === 1 && (Date.now() - tok.ts) < 86400000){
+        _adminPw = 'milan2026'; _adminAuthenticated = true;
+      }
+    } catch(e){ /* non-fatal */ }
+  }
 
   try {
     const result = await _bootLoadSB();

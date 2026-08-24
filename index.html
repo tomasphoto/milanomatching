@@ -3001,11 +3001,8 @@ async function submitPw(){
       password: pw
     });
     if(error) throw error;
-    const access_token = data.session?.access_token;
-    if(!access_token) throw new Error('no token');
-    // Store token manually for reliable persistence across reloads
-    localStorage.setItem('_lm_session', JSON.stringify({ access_token, expires_at: data.session.expires_at }));
-    document.cookie = '_lm_tok=' + encodeURIComponent(access_token) + '; max-age=2592000; path=/; secure; samesite=strict';
+    if(!data.session) throw new Error('no session');
+    // Supabase client auto-persists session (with refresh_token) in localStorage
     _adminPw = 'milan2026';
     _adminAuthenticated = true;
     closePwOverlay();

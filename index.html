@@ -5133,16 +5133,14 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
-  // Server-side session verification via Edge Function
+  // Server-side session verification via getUser() — no Edge Function needed
   try {
     let token = null;
     try { const s = JSON.parse(localStorage.getItem('_lm_session') || 'null'); if(s?.access_token) token = s.access_token; } catch(e){}
     if(!token){ const m = document.cookie.match(/(?:^|;\s*)_lm_tok=([^;]+)/); if(m) token = decodeURIComponent(m[1]); }
     if(token){
-      const vr = await fetch(SB_URL + '/functions/v1/admin-verify', {
-        headers: { 'Authorization': 'Bearer ' + token, 'apikey': SB_KEY }
-      });
-      if(vr.ok){ const vd = await vr.json(); if(vd.valid){ _adminPw = 'milan2026'; _adminAuthenticated = true; } }
+      const { data: { user }, error: verifyErr } = await _sbAuthClient.auth.getUser(token);
+      if(!verifyErr && user){ _adminPw = 'milan2026'; _adminAuthenticated = true; }
     }
   } catch(e){ console.warn('[Auth] verify error:', e.message); }
 

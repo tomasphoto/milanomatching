@@ -405,8 +405,11 @@
       display:flex;align-items:center;justify-content:center;
       height:100%;font-size:48px;opacity:.18;background:var(--bg-soft);
     }
+    .share-mosaic-secondary{
+      grid-row:1/3;display:flex;flex-direction:column;gap:4px;
+    }
     .share-mosaic-thumb{
-      background:#ccc center/cover no-repeat;cursor:pointer;
+      flex:1;background:#ccc center/cover no-repeat;cursor:pointer;
       position:relative;transition:filter 200ms;overflow:hidden;
     }
     .share-mosaic-thumb:hover{filter:brightness(.88);}

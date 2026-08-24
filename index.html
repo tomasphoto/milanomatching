@@ -1042,6 +1042,36 @@
       justify-content:center;flex-direction:column;gap:8px;
       font-size:13px;color:var(--textdim);letter-spacing:.05em;opacity:.35;
     }
+    /* Hero carousel nav (used in admin edit panel) */
+    .hero-nav{
+      position:absolute;top:50%;transform:translateY(-50%);z-index:4;
+      width:40px;height:40px;border-radius:50%;font-size:18px;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      user-select:none;-webkit-user-select:none;border:none;
+      background:rgba(25,30,28,.42);border:1px solid rgba(255,255,255,.16);
+      backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+      color:#fff;transition:border-color 180ms ease,background 180ms ease;
+    }
+    @media(hover:hover) and (pointer:fine){
+      .hero-nav:hover{background:rgba(25,30,28,.68);border-color:rgba(255,255,255,.28);}
+    }
+    .hero-prev{left:14px;} .hero-next{right:14px;}
+    .hero-counter{
+      position:absolute;bottom:16px;right:14px;z-index:4;color:#fff;
+      padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;
+      background:rgba(25,30,28,.44);border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    }
+    .hero-all-btn{
+      position:absolute;bottom:16px;left:14px;z-index:4;color:#fff;border:none;
+      padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;
+      cursor:pointer;display:flex;align-items:center;gap:5px;
+      background:rgba(25,30,28,.44);border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    }
+    @media(hover:hover) and (pointer:fine){
+      .hero-all-btn:hover{background:rgba(25,30,28,.68);}
+    }
     .vaep-body{padding:36px max(24px,min(40px,(100vw - 900px)/2)) 40px;}
     .vaep-agency-in{
       font-size:13px;font-weight:500;color:var(--text-secondary);

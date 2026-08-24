@@ -2490,11 +2490,24 @@ const SB_URL = 'https://xrweqafccpjjlemmicuj.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyd2VxYWZjY3BqamxlbW1pY3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0OTI3NzMsImV4cCI6MjEwMzA2ODc3M30.bYGE46F9zleN54IND4zlh9D-KPfdDiGj3JhfArb2-LY'; // anon key
 
 // Supabase JS auth client — handles JWT session + auto-refresh
-const _sbAuthClient = window.supabase.createClient(SB_URL, SB_KEY);
+const _sbAuthClient = window.supabase.createClient(SB_URL, SB_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage
+  }
+});
+
+// Auth state change diagnostics (temporary)
+_sbAuthClient.auth.onAuthStateChange((event, session) => {
+  console.log('[Auth state]', event, session?.user?.email || 'no user');
+});
 
 // ── Supabase admin writes (Phase I) ──────────────────────────
 let _adminPw = null;       // set on admin login
-let _adminAuthenticated = false; // true when valid session exists
+// null = auth still loading, true = authenticated, false = unauthenticated
+let _adminAuthenticated = null;
 
 async function sbRpc(fn, params){
   if(!_adminPw) return false;

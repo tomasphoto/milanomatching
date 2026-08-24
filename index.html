@@ -3480,8 +3480,10 @@ function showAdmin(){
   }
 }
 async function exitAdmin(){
-  await _sbAuthClient.auth.signOut();
+  localStorage.removeItem('_lm_session');
   localStorage.removeItem('_lm_admin_tok');
+  document.cookie = '_lm_tok=; max-age=0; path=/';
+  try { await _sbAuthClient.auth.signOut(); } catch(e){}
   _adminAuthenticated = false;
   _adminPw = null;
   window.location.href = window.location.pathname;
@@ -5132,20 +5134,18 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
-  // 1. Try Supabase Auth session
+  // Server-side session verification via Edge Function
   try {
-    const { data: { session } } = await _sbAuthClient.auth.getSession();
-    if(session){ _adminPw = 'milan2026'; _adminAuthenticated = true; }
-  } catch(e){ console.warn('[Auth] getSession error:', e.message); }
-  // 2. Fallback: custom 24h token (covers getSession() failures)
-  if(!_adminAuthenticated){
-    try {
-      const tok = JSON.parse(localStorage.getItem('_lm_admin_tok') || 'null');
-      if(tok && tok.v === 1 && (Date.now() - tok.ts) < 86400000){
-        _adminPw = 'milan2026'; _adminAuthenticated = true;
-      }
-    } catch(e){ /* non-fatal */ }
-  }
+    let token = null;
+    try { const s = JSON.parse(localStorage.getItem('_lm_session') || 'null'); if(s?.access_token) token = s.access_token; } catch(e){}
+    if(!token){ const m = document.cookie.match(/(?:^|;\s*)_lm_tok=([^;]+)/); if(m) token = decodeURIComponent(m[1]); }
+    if(token){
+      const vr = await fetch(SB_URL + '/functions/v1/admin-verify', {
+        headers: { 'Authorization': 'Bearer ' + token, 'apikey': SB_KEY }
+      });
+      if(vr.ok){ const vd = await vr.json(); if(vd.valid){ _adminPw = 'milan2026'; _adminAuthenticated = true; } }
+    }
+  } catch(e){ console.warn('[Auth] verify error:', e.message); }
 
   try {
     const result = await _bootLoadSB();

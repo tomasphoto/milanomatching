@@ -4591,9 +4591,10 @@ function delCustom(k){
 function openShare(k,addr){
   const p=allP().find(x=>fk(x)===k);if(!p)return;
   const sharePage=SHARE_PAGES[k];
+  const v='&v='+Math.floor(Date.now()/1000);
   const url=sharePage
-    ? location.origin+'/'+sharePage
-    : location.origin+location.pathname+'?s='+enc(p);
+    ? location.origin+'/'+sharePage+v
+    : location.origin+location.pathname+'?s='+enc(p)+v;
   document.getElementById('m-share-sub').textContent=addr
     +(sharePage?' · ✓ Anteprima WhatsApp':', · link diretto');
   document.getElementById('share-url').value=url;

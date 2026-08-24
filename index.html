@@ -2865,83 +2865,84 @@ function showCard(encoded){
   const cal=calLink||(email?'mailto:'+email:'#');
   const calTgt=calLink?'_blank':'_self';
 
-  ['vc-call','vc-cta-call'].forEach(id=>{const el=document.getElementById(id);el.href=tel;});
-  ['vc-book','vc-cta-book'].forEach(id=>{const el=document.getElementById(id);el.href=cal;el.target=calTgt;});
+  // Wire call/book links across all instances
+  ['vc-call','vc-call-sidebar'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.href=tel;
+  });
+  ['vc-book','vc-cta-book','vc-book-sidebar','vc-book-sticky'].forEach(id=>{
+    const el=document.getElementById(id); if(el){el.href=cal;el.target=calTgt;}
+  });
+  const ctaCall=document.getElementById('vc-cta-call'); if(ctaCall) ctaCall.href=tel;
 
-  // Hero carousel
+  // Gallery
   const photos=ST.photos[k]||[];
-  heroSetup(photos, p.addr);
+  galSetup(photos,p);
 
-  // Availability badge
-  const ab=document.getElementById('vc-badge-av');
+  // Availability
   const now=isNow(p.avail);
-  ab.className='vc-badge-avail '+(now?'av-now':'av-later');
-  ab.textContent=now?'✓ Disponibile subito':p.avail;
+  const availBadge=document.getElementById('vc-avail-badge');
+  if(availBadge){availBadge.classList.toggle('hidden',!now);}
 
-  // Content
-  document.getElementById('vc-addr').textContent=p.addr;
+  // Property header
   const rl=p.st>=5?'5+ locali':(RL[p.st]||p.st+' locali');
-  const stats=[
-    {v:p.price>0?'€'+p.price.toLocaleString('it-IT'):'—',l:'al mese'},
-    {v:rl,l:'tipologia'},
-    ...(p.mq>0?[{v:p.mq+' mq',l:'superficie'}]:[]),
-    {v:now?'Subito':p.avail,l:'disponibile'},
-  ];
-  document.getElementById('vc-stats').innerHTML=stats.map(s=>
-    `<div class="vc-stat"><span class="vc-stat-val">${s.v}</span><span class="vc-stat-lbl">${s.l}</span></div>`
-  ).join('');
-  // Desktop glass panel — address + price + one meta line only (no chips)
-  const glassEl=document.getElementById('vc-hero-glass');
-  if(glassEl){
-    document.getElementById('vc-hero-addr-gl').textContent=p.addr;
-    const metaParts=[rl,p.mq>0?p.mq+' m²':null].filter(Boolean);
-    document.getElementById('vc-hero-meta-gl').innerHTML=[
-      p.price>0?`<span class="vc-hero-price">€${p.price.toLocaleString('it-IT')}<small style="font-size:13px;font-weight:400"> /mese</small></span>`:'',
-      metaParts.length?`<span class="vc-hero-meta-line">${metaParts.join(' · ')}</span>`:''
-    ].filter(Boolean).join('');
-    glassEl.style.display='block';
-  }
-  // Mobile property summary — address / price / meta below photo
-  const psAddr=document.getElementById('ps-addr');
-  const psPrice=document.getElementById('ps-price');
-  const psMeta=document.getElementById('ps-meta');
-  if(psAddr) psAddr.textContent=p.addr;
-  if(psPrice) psPrice.textContent=p.price>0?'€'+p.price.toLocaleString('it-IT')+' / mese':'';
-  if(psMeta){
-    const metaRow=[rl,p.mq>0?p.mq+' m²':null,now?'Disponibile subito':p.avail].filter(Boolean);
-    psMeta.textContent=metaRow.join(' · ');
-  }
-  // Mobile sticky CTA
-  const mobilePrice=document.getElementById('vc-mobile-price');
-  const mobileCta=document.getElementById('vc-mobile-cta-btn');
-  if(mobilePrice) mobilePrice.textContent=p.price>0?'€'+p.price.toLocaleString('it-IT')+' /mese':'';
-  if(mobileCta){ mobileCta.href=cal; if(calLink) mobileCta.target='_blank'; }
+  const titleEl=document.getElementById('vc-prop-title');
+  if(titleEl) titleEl.textContent=p.addr;
 
-  document.getElementById('vc-desc').textContent=p.desc;
+  const locEl=document.getElementById('vc-prop-location');
+  if(locEl) locEl.textContent=p.zone||'Milano';
 
-  // Caratteristiche grid
+  const priceStr=p.price>0?'€'+p.price.toLocaleString('it-IT')+' / mese':'';
+  ['vc-prop-price','vc-sidebar-price','vc-sticky-price'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=priceStr;
+  });
+
+  // Main facts row
+  const factsEl=document.getElementById('vc-prop-facts');
+  if(factsEl){
+    const facts=[];
+    facts.push({icon:'🏠',label:rl});
+    if(p.mq>0) facts.push({icon:'📐',label:p.mq+' m²'});
+    if(p.cam!=null) facts.push({icon:'🛏',label:p.cam+(p.cam===1?' camera':' camere')});
+    if(p.bagni!=null) facts.push({icon:'🚿',label:p.bagni+(p.bagni===1?' bagno':' bagni')});
+    if(p.piano!=null) facts.push({icon:'🏢',label:'Piano '+p.piano});
+    if(!now&&p.avail) facts.push({icon:'📅',label:'Dal '+p.avail});
+    factsEl.innerHTML=facts.map(f=>
+      `<span class="share-fact"><span>${f.icon}</span>${f.label}</span>`
+    ).join('');
+  }
+
+  // Description
+  document.getElementById('vc-desc').textContent=p.desc||'';
+
+  // Caratteristiche — Idealista-style rows
   const caraDiv=document.getElementById('vc-cara');
   const caraGrid=document.getElementById('vc-cara-grid');
-  const hasCara=p.piano!=null||p.cam!=null||p.bagni!=null||p.cucina!=null;
+  const hasCara=p.piano!=null||p.cam!=null||p.bagni!=null||p.cucina!=null||
+                p.piani!=null||p.asc!=null||p.arredato!=null||p.balcone!=null||
+                p.terrazzo!=null||p.risc!=null||p.clima!=null||p.contratto!=null||p.spese!=null;
   if(hasCara){
-    const yn=(v,yes,no)=>v?`<span class="vc-cara-val yes">${yes||'Sì'}</span>`:`<span class="vc-cara-val no">${no||'No'}</span>`;
+    const yn=(v,y,n)=>v?`<span class="vc-cara-val yes">${y||'Sì'}</span>`:`<span class="vc-cara-val no">${n||'No'}</span>`;
     const tv=v=>v!=null&&v!==''&&v!=='—'?`<span class="vc-cara-val">${v}</span>`:`<span class="vc-cara-val no">—</span>`;
     const rows=[
+      ...(p.tipologia?[{l:'Tipologia',v:`<span class="vc-cara-val">${p.tipologia}</span>`}]:[]),
       ...(p.piano!=null?[{l:'Piano',v:`<span class="vc-cara-val">${p.piano}</span>`}]:[]),
       ...(p.piani!=null?[{l:'Piani edificio',v:`<span class="vc-cara-val">${p.piani}</span>`}]:[]),
-      ...(p.asc!=null?[{l:'Ascensore',v:yn(p.asc)}]:[]),
+      ...(p.mq>0?[{l:'Superficie',v:`<span class="vc-cara-val">${p.mq} m²</span>`}]:[]),
       ...(p.cam!=null?[{l:'Camere da letto',v:`<span class="vc-cara-val">${p.cam}</span>`}]:[]),
       ...(p.bagni!=null?[{l:'Bagni',v:`<span class="vc-cara-val">${p.bagni}</span>`}]:[]),
       ...(p.cucina!=null?[{l:'Cucina',v:`<span class="vc-cara-val">${p.cucina}</span>`}]:[]),
+      ...(p.asc!=null?[{l:'Ascensore',v:yn(p.asc)}]:[]),
       ...(p.arredato!=null?[{l:'Arredato',v:tv(p.arredato)}]:[]),
       ...(p.balcone!=null?[{l:'Balcone',v:yn(p.balcone)}]:[]),
       ...(p.terrazzo!=null?[{l:'Terrazzo',v:yn(p.terrazzo)}]:[]),
       ...(p.risc!=null?[{l:'Riscaldamento',v:tv(p.risc)}]:[]),
       ...(p.clima!=null?[{l:'Climatizzazione',v:tv(p.clima)}]:[]),
       ...(p.contratto!=null?[{l:'Contratto',v:`<span class="vc-cara-val">${p.contratto}</span>`}]:[]),
-      ...(p.spese!=null?[{l:'Spese cond.',v:`<span class="vc-cara-val">€${p.spese}/mese</span>`}]:[]),
+      ...(p.spese!=null?[{l:'Spese condominiali',v:`<span class="vc-cara-val">€${p.spese}/mese</span>`}]:[]),
     ];
-    caraGrid.innerHTML=rows.map(r=>`<div class="vc-cara-item"><div class="vc-cara-lbl">${r.l}</div>${r.v}</div>`).join('');
+    caraGrid.innerHTML=rows.map(r=>
+      `<div class="vc-cara-row"><span class="vc-cara-lbl">${r.l}</span>${r.v}</div>`
+    ).join('');
     caraDiv.classList.remove('hidden');
   } else {
     caraDiv.classList.add('hidden');
@@ -2954,14 +2955,21 @@ function showCard(encoded){
   if(fpUrl){fpImg.src=fpUrl;fpDiv.classList.remove('hidden');}
   else{fpDiv.classList.add('hidden');}
 
-  // Map (dark-themed via CSS invert)
+  // Map
   const mapQ=encodeURIComponent(p.addr+', Milano, Italia');
   document.getElementById('vc-map-frame').src=
     `https://maps.google.com/maps?q=${mapQ}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
+  // Footer email
   const em=email;
   document.getElementById('vc-foot-em').innerHTML=em
     ?`<a href="mailto:${em}" style="color:inherit">${em}</a>`:'';
+
+  // Scroll nav update
+  const bar=document.getElementById('vc-bar');
+  if(bar){
+    window.onscroll=()=>bar.classList.toggle('scrolled',window.scrollY>60);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2969,53 +2977,83 @@ function showCard(encoded){
 // ════════════════════════════════════════════════════════════════
 let _photos=[], _heroIdx=0;
 
-function heroSetup(photos, addr){
+function galSetup(photos, p){
   _photos=photos; _heroIdx=0;
-  const hero=document.getElementById('vc-hero');
-  const ph=document.getElementById('vc-hero-ph');
-  // remove old img
-  hero.querySelector('img.hero-img')?.remove();
-  if(photos.length){
-    ph.style.display='none';
-    const img=document.createElement('img');
-    img.className='hero-img';img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;';
-    img.src=photos[0];img.alt=addr;
-    img.onerror=()=>{img.remove();ph.style.display='flex';};
-    img.onload=()=>img.classList.add('loaded');
-    hero.insertBefore(img,hero.firstChild);
-    // counter + gallery button
-    const cnt=document.getElementById('hero-counter');
-    const btn=document.getElementById('hero-all-btn');
-    const pv=document.getElementById('hero-prev');
-    const nx=document.getElementById('hero-next');
-    if(photos.length>1){
-      cnt.classList.remove('hidden');
-      btn.classList.remove('hidden');
-      pv.classList.remove('hidden');
-      nx.classList.remove('hidden');
-      cnt.textContent='1 / '+photos.length;
-      btn.innerHTML='&#9638; '+photos.length+' foto';
-    } else {
-      cnt.classList.add('hidden');
-      btn.classList.add('hidden');
-      pv.classList.add('hidden');
-      nx.classList.add('hidden');
-    }
-    // swipe support
-    swipeSetup(hero, ()=>heroNav(1), ()=>heroNav(-1));
-  } else {
-    ph.style.display='flex';
-    ['hero-counter','hero-all-btn','hero-prev','hero-next'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  }
-}
+  const addr=p?p.addr||'':'';
 
-function heroNav(dir){
-  if(!_photos.length) return;
-  _heroIdx=(_heroIdx+dir+_photos.length)%_photos.length;
-  const img=document.getElementById('vc-hero').querySelector('img.hero-img');
-  if(img) img.src=_photos[_heroIdx];
-  const cnt=document.getElementById('hero-counter');
-  if(cnt) cnt.textContent=(_heroIdx+1)+' / '+_photos.length;
+  // ── Desktop mosaic ──
+  const mosaicMain=document.getElementById('share-mosaic-main');
+  const mosaicSec=document.getElementById('share-mosaic-secondary');
+  const mosaicAllBtn=document.getElementById('share-mosaic-allbtn');
+  if(mosaicMain){
+    const ph=mosaicMain.querySelector('.share-mosaic-ph');
+    if(photos.length){
+      mosaicMain.style.backgroundImage='url('+photos[0]+')';
+      if(ph) ph.style.display='none';
+    } else {
+      mosaicMain.style.backgroundImage='none';
+      if(ph) ph.style.display='flex';
+    }
+  }
+  if(mosaicSec){
+    mosaicSec.innerHTML='';
+    const thumbCount=Math.min(2, photos.length-1);
+    for(let i=1;i<=thumbCount;i++){
+      const isLast=i===2;
+      const div=document.createElement('div');
+      div.className='share-mosaic-thumb';
+      div.style.backgroundImage='url('+photos[i]+')';
+      div.onclick=()=>openGallery();
+      if(isLast && photos.length>3){
+        const ov=document.createElement('div');
+        ov.className='share-mosaic-overlay';
+        ov.textContent='+'+(photos.length-3)+' foto';
+        div.appendChild(ov);
+      }
+      mosaicSec.appendChild(div);
+    }
+  }
+  if(mosaicAllBtn){
+    if(photos.length>0){
+      mosaicAllBtn.textContent='🗂 Tutte le '+photos.length+' foto';
+      mosaicAllBtn.classList.remove('hidden');
+    } else mosaicAllBtn.classList.add('hidden');
+  }
+
+  // ── Mobile swipe gallery ──
+  const mobGal=document.getElementById('share-mob-gallery');
+  const mobCnt=document.getElementById('share-mob-counter');
+  const mobAllBtn=document.getElementById('share-mob-allbtn');
+  if(mobGal){
+    mobGal.querySelectorAll('.share-mob-slide').forEach(el=>el.remove());
+    if(photos.length){
+      photos.forEach((url,idx)=>{
+        const slide=document.createElement('div');
+        slide.className='share-mob-slide';
+        const img=document.createElement('img');
+        img.src=url; img.alt=addr;
+        img.loading=idx===0?'eager':'lazy';
+        slide.appendChild(img);
+        mobGal.insertBefore(slide,mobCnt);
+      });
+      mobGal.onscroll=()=>{
+        const idx=Math.round(mobGal.scrollLeft/mobGal.offsetWidth);
+        _heroIdx=idx;
+        if(mobCnt) mobCnt.textContent=(idx+1)+' / '+photos.length;
+      };
+      if(mobCnt){
+        mobCnt.textContent='1 / '+photos.length;
+        mobCnt.classList.toggle('hidden', photos.length<=1);
+      }
+      if(mobAllBtn){
+        mobAllBtn.textContent='Tutte le '+photos.length+' foto';
+        mobAllBtn.classList.remove('hidden');
+      }
+    } else {
+      if(mobCnt) mobCnt.classList.add('hidden');
+      if(mobAllBtn) mobAllBtn.classList.add('hidden');
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════

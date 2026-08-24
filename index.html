@@ -2079,6 +2079,11 @@
 
 <!-- ══ LEAD PANEL ════════════════════════════════════════════ -->
 <div id="vl-ep" class="hidden">
+  <!-- Desktop empty state (shown when no lead selected in split view) -->
+  <div id="vl-ep-empty" style="display:none;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <span>Seleziona un lead dalla lista</span>
+  </div>
   <!-- Top bar -->
   <div class="vlep-bar">
     <button class="vaep-close" onclick="closeLeadPanel()">&#10005;&nbsp;&nbsp;Chiudi</button>
@@ -3480,8 +3485,23 @@ function vaTab(tab){
   if(addBtn)addBtn.innerHTML=tab==='leads'
     ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Lead'
     :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Aggiungi';
-  if(tab==='leads'){lRender();}
-  else{aRender();}
+  if(tab==='leads'){
+    lRender();
+    if(lDesktop()&&_lcView==='list'){
+      const ep=document.getElementById('vl-ep');
+      ep.classList.remove('hidden');ep.classList.add('vl-split-active');
+      document.getElementById('vp-leads').classList.add('vl-split-mode');
+      const empty=document.getElementById('vl-ep-empty');
+      if(empty)empty.style.display=_vlepId?'none':'flex';
+    }
+  } else {
+    aRender();
+    const ep=document.getElementById('vl-ep');
+    if(ep.classList.contains('vl-split-active')){
+      ep.classList.remove('vl-split-active');ep.classList.add('hidden');
+      document.getElementById('vp-leads').classList.remove('vl-split-mode');
+    }
+  }
 }
 function vaAddClick(){
   if(_vaTab==='leads')openLeadAdd();
@@ -3551,6 +3571,7 @@ function lRender(){
     grid.innerHTML=leads.length?leads.map(l=>lCard(l,false)).join(''):'<div class="va-empty">Nessun lead trovato</div>';
   }
   lUpdateTabCount();
+  if(_vlepId){const c=document.getElementById('lc-'+_vlepId);if(c)c.classList.add('lc-selected');}
 }
 
 function lRenderPipeline(leads,grid){
@@ -3628,6 +3649,18 @@ function lSetView(v){
     const btn=document.getElementById('lcrm-btn-'+k);
     if(btn)btn.classList.toggle('active',k===v);
   });
+  const ep=document.getElementById('vl-ep');
+  if(lDesktop()){
+    if(v==='list'){
+      ep.classList.remove('hidden');ep.classList.add('vl-split-active');
+      document.getElementById('vp-leads').classList.add('vl-split-mode');
+      const empty=document.getElementById('vl-ep-empty');
+      if(empty)empty.style.display=_vlepId?'none':'flex';
+    } else {
+      if(ep.classList.contains('vl-split-active')){ep.classList.remove('vl-split-active');ep.classList.add('hidden');}
+      document.getElementById('vp-leads').classList.remove('vl-split-mode');
+    }
+  }
   lRender();
 }
 
@@ -3653,6 +3686,7 @@ function lSetStatus(id,status,e){
 
 // ── Lead panel ────────────────────────────────────────────────
 let _vlepId=null;
+function lDesktop(){return window.innerWidth>=1024;}
 
 function openLeadPanel(id){
   const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
@@ -3692,12 +3726,30 @@ function openLeadPanel(id){
   // Matches
   vlepRenderMatches(lead);
   // Show panel
-  hide('va');show('vl-ep');
-  window.scrollTo(0,0);
+  if(lDesktop()&&_lcView==='list'){
+    document.querySelectorAll('.lc').forEach(el=>el.classList.remove('lc-selected'));
+    const card=document.getElementById('lc-'+id);
+    if(card){card.classList.add('lc-selected');card.scrollIntoView({block:'nearest'});}
+    const ep=document.getElementById('vl-ep');
+    ep.classList.remove('hidden');ep.classList.add('vl-split-active');
+    document.getElementById('vp-leads').classList.add('vl-split-mode');
+    const empty=document.getElementById('vl-ep-empty');
+    if(empty)empty.style.display='none';
+  } else {
+    hide('va');show('vl-ep');
+    window.scrollTo(0,0);
+  }
 }
 
 function closeLeadPanel(){
-  hide('vl-ep');show('va');
+  const ep=document.getElementById('vl-ep');
+  if(lDesktop()&&ep.classList.contains('vl-split-active')){
+    const empty=document.getElementById('vl-ep-empty');
+    if(empty)empty.style.display='flex';
+    document.querySelectorAll('.lc').forEach(el=>el.classList.remove('lc-selected'));
+  } else {
+    hide('vl-ep');show('va');
+  }
   _vlepId=null;
 }
 

@@ -2861,7 +2861,8 @@ function closePwOverlay(){
 function submitPw(){
   const pw=document.getElementById('pw-input').value;
   if(pw===(ST.adminPw||'milan2026')||pw==='linkmi-admin'){
-    _adminPw=pw;
+    // Custom ST.adminPw is local-only; Supabase only accepts 'milan2026'/'linkmi-admin'
+    _adminPw = pw==='linkmi-admin' ? 'linkmi-admin' : 'milan2026';
     closePwOverlay();
     showAdmin();
     sbLoadLeads();

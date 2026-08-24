@@ -2996,15 +2996,19 @@ async function submitPw(){
   const btn = document.querySelector('#pw-overlay button:last-child');
   if(btn){ btn.disabled = true; btn.textContent = '…'; }
   try {
-    const { data, error } = await _sbAuthClient.auth.signInWithPassword({
-      email: 'tommaso.vizzardiestate@gmail.com',
-      password: pw
+    const res = await fetch(SB_URL + '/functions/v1/admin-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY },
+      body: JSON.stringify({ password: pw })
     });
-    if(error) throw error;
+    if(!res.ok) throw new Error('auth failed');
+    const { access_token, refresh_token, expires_at } = await res.json();
+    if(!access_token) throw new Error('no token');
+    // Store server-issued token in both localStorage and cookie (30 days)
+    localStorage.setItem('_lm_session', JSON.stringify({ access_token, refresh_token, expires_at }));
+    document.cookie = '_lm_tok=' + encodeURIComponent(access_token) + '; max-age=2592000; path=/; secure; samesite=strict';
     _adminPw = 'milan2026';
     _adminAuthenticated = true;
-    // Fallback token — survives getSession() failures (24h)
-    localStorage.setItem('_lm_admin_tok', JSON.stringify({ts: Date.now(), v: 1}));
     closePwOverlay();
     showAdmin();
     sbLoadLeads();

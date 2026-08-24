@@ -3687,12 +3687,17 @@ document.addEventListener('keydown',function(e){
 // ── Helpers ───────────────────────────────────────────────────
 function relDate(ts){
   if(!ts)return '';
-  const d=Math.floor((Date.now()-ts)/86400000);
-  if(d===0)return 'oggi';
-  if(d===1)return 'ieri';
-  if(d<7)return d+' giorni fa';
-  if(d<14)return '1 sett. fa';
-  return Math.floor(d/7)+' sett. fa';
+  const d=new Date(ts);
+  const months=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  const dayStr=d.getDate()+' '+months[d.getMonth()];
+  const ageMs=Date.now()-ts;
+  if(ageMs<7*86400000){
+    const h=String(d.getHours()).padStart(2,'0');
+    const m=String(d.getMinutes()).padStart(2,'0');
+    return dayStr+' '+h+':'+m;
+  }
+  if(d.getFullYear()!==new Date().getFullYear())return dayStr+' '+d.getFullYear();
+  return dayStr;
 }
 
 function lSetStatus(id,status,e){

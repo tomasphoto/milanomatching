@@ -2966,7 +2966,7 @@ function route(){
   const s = q.get('s');
   const a = q.get('admin');
   if(s) showCard(s);
-  else if(a!==null) { if(_adminAuthenticated){ showAdmin(); sbLoadLeads(); } else { askAdmin(); } }
+  else if(a!==null) { if(_adminAuthenticated === true){ showAdmin(); sbLoadLeads(); } else if(_adminAuthenticated === false){ askAdmin(); } }
   else showLanding();
   // nav scroll state (spec §16)
   window.addEventListener('scroll',()=>{

@@ -3015,7 +3015,14 @@ async function submitPw(){
     });
     if(error) throw error;
     if(!data.session) throw new Error('no session');
-    // Supabase client auto-persists session (with refresh_token) in localStorage
+    // Server-side validation
+    const { data: { user }, error: verifyError } = await _sbAuthClient.auth.getUser();
+    if(verifyError || !user || user.email !== 'tommaso.vizzardiestate@gmail.com'){
+      await _sbAuthClient.auth.signOut();
+      throw new Error('Unauthorized user');
+    }
+    // Log localStorage state after login
+    console.log('[Auth] login OK, sb keys:', Object.keys(localStorage).filter(k=>k.startsWith('sb-')));
     _adminPw = 'milan2026';
     _adminAuthenticated = true;
     closePwOverlay();
@@ -5143,11 +5150,34 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
-  // Session restore — Supabase getSession() reads persisted session and auto-refreshes if expired
+  // Session restore — getSession() reads localStorage, getUser() validates server-side
+  console.log('[Auth] origin:', location.origin);
   try {
-    const { data: { session } } = await _sbAuthClient.auth.getSession();
-    if(session?.user){ _adminPw = 'milan2026'; _adminAuthenticated = true; }
-  } catch(e){ console.warn('[Auth] verify error:', e.message); }
+    // Log all Supabase-related localStorage keys
+    const sbKeys = Object.keys(localStorage).filter(k => k.startsWith('sb-'));
+    console.log('[Auth] Supabase localStorage keys:', sbKeys);
+
+    const { data: { session }, error: sessionError } = await _sbAuthClient.auth.getSession();
+    console.log('[Auth] getSession result:', session ? 'session found' : 'no session', sessionError?.message || '');
+
+    if(session){
+      // Server-side validation
+      const { data: { user }, error: userError } = await _sbAuthClient.auth.getUser();
+      console.log('[Auth] getUser result:', user?.email || 'no user', userError?.message || '');
+      if(!userError && user && user.email === 'tommaso.vizzardiestate@gmail.com'){
+        _adminPw = 'milan2026';
+        _adminAuthenticated = true;
+      } else {
+        await _sbAuthClient.auth.signOut();
+        _adminAuthenticated = false;
+      }
+    } else {
+      _adminAuthenticated = false;
+    }
+  } catch(e){
+    console.warn('[Auth] boot error:', e.message);
+    _adminAuthenticated = false;
+  }
 
   try {
     const result = await _bootLoadSB();

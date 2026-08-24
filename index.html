@@ -1959,7 +1959,7 @@
         </div>
       </div>
       <div class="va-filters">
-        <div class="va-toolbar-glass">
+        <div class="va-toolbar-glass" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <select class="va-sel" id="lf-status" onchange="lRender()">
             <option value="">Tutti gli stati</option>
             <option value="nuovo">Nuovo</option>
@@ -1971,6 +1971,10 @@
           </select>
           <input type="text" class="va-search" id="lf-search" placeholder="Cerca nome, profilo…"
                  oninput="lRender()" style="max-width:260px;">
+          <div class="lcrm-view-toggle" style="margin-left:auto;">
+            <button class="lcrm-vbtn active" id="lcrm-btn-list" onclick="lSetView('list')">Lista</button>
+            <button class="lcrm-vbtn" id="lcrm-btn-pipeline" onclick="lSetView('pipeline')">Pipeline</button>
+          </div>
         </div>
       </div>
       <div class="va-wrap">
@@ -3559,6 +3563,37 @@ function lCard(lead){
 }
 
 function toggleLeadMatches(id){/* no-op — cards now use full panel */}
+
+// ── View mode ─────────────────────────────────────────────────
+let _lcView='list';
+function lSetView(v){
+  _lcView=v;
+  ['list','pipeline'].forEach(k=>{
+    const btn=document.getElementById('lcrm-btn-'+k);
+    if(btn)btn.classList.toggle('active',k===v);
+  });
+  lRender();
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function relDate(ts){
+  if(!ts)return '';
+  const d=Math.floor((Date.now()-ts)/86400000);
+  if(d===0)return 'oggi';
+  if(d===1)return 'ieri';
+  if(d<7)return d+' giorni fa';
+  if(d<14)return '1 sett. fa';
+  return Math.floor(d/7)+' sett. fa';
+}
+
+function lSetStatus(id,status,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
+  lead.status=status;
+  stSave();scheduleSync();
+  sbSyncLead(lead,{status});
+  lRender();
+}
 
 // ── Lead panel ────────────────────────────────────────────────
 let _vlepId=null;

@@ -3735,7 +3735,7 @@ function saveLead(){
   if(!d.nome){toast('Inserisci almeno il nome');return;}
   if(!ST.leads)ST.leads=[];
   if(id){const i=ST.leads.findIndex(l=>l.id===id);if(i>=0)Object.assign(ST.leads[i],d);}
-  else{d.id='L'+Date.now();d.addedAt=Date.now();ST.leads.push(d);}
+  else{d.id='L'+Date.now();d.addedAt=Date.now();ST.leads.push(d);sbInsertLead(d.id,d);}
   stSave();closeM('m-lead');lRender();scheduleSync();
 }
 function deleteLead(id){

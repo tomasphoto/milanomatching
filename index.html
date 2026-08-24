@@ -2488,6 +2488,35 @@ async function sbSyncProp(k, localData){
   return true; // nothing to update — treat as success
 }
 
+async function sbInsertLead(localId, d){
+  if(!_adminPw) return;
+  try {
+    const prop = d.linkedProp ? allP().find(x=>fk(x)===d.linkedProp) : null;
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/admin_insert_lead`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_admin_pw: _adminPw, p_data: {
+        name:         d.nome         || null,
+        phone:        d.tel          || null,
+        email:        d.email        || null,
+        profile:      d.profilo      || null,
+        status:       SB_STATUS_MAP[d.status] || 'new',
+        notes:        d.note         || null,
+        budget_max:   d.budgetMax    || null,
+        move_in:      d.ingresso     || null,
+        urgency:      d.urg          || null,
+        quality:      d.qual         || null,
+        request_text: d.richiesta    || null,
+        property_id:  prop?._sbId    || null,
+      }})
+    });
+    if(!r.ok){ console.warn('[SB] insert lead', await r.text()); return; }
+    const uuid = await r.json();
+    const local = (ST.leads||[]).find(l=>l.id===localId);
+    if(local && uuid){ local._sbId = uuid; stSave(); }
+  } catch(e){ console.warn('[SB] sbInsertLead', e.message); }
+}
+
 async function sbSyncLead(lead, localData){
   if(!lead?._sbId) return;
   const d = {};

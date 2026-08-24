@@ -2999,6 +2999,7 @@ function showLanding(){
 }
 
 function askAdmin(){
+  console.trace('[Auth diagnostic] PASSWORD OVERLAY SHOWN');
   const ov=document.getElementById('pw-overlay');
   ov.style.display='flex';
   setTimeout(()=>document.getElementById('pw-input').focus(),80);
@@ -3026,6 +3027,8 @@ async function submitPw(){
     }
     // Log localStorage state after login
     console.log('[Auth] login OK, sb keys:', Object.keys(localStorage).filter(k=>k.startsWith('sb-')));
+    // Independent diagnostic marker — NOT used for auth
+    localStorage.setItem('__linkmi_admin_login_test', JSON.stringify({ loggedInAt: new Date().toISOString() }));
     _adminPw = 'milan2026';
     _adminAuthenticated = true;
     closePwOverlay();
@@ -3487,6 +3490,7 @@ async function savePhotos(){
 //  ADMIN
 // ════════════════════════════════════════════════════════════════
 function showAdmin(){
+  console.trace('[Auth diagnostic] SHOW ADMIN');
   hide('vl');hide('vc');show('va');
   document.title='Admin — Link Milano';
   _vaTab='props';
@@ -5153,6 +5157,18 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
+  // ── Storage canary (independent of auth) ─────────────────────
+  const STORAGE_CANARY_KEY = '__linkmi_persistence_canary';
+  const previousCanary = localStorage.getItem(STORAGE_CANARY_KEY);
+  console.log('[Storage canary] previous:', previousCanary ? JSON.parse(previousCanary) : null);
+  if(!previousCanary){
+    localStorage.setItem(STORAGE_CANARY_KEY, JSON.stringify({ createdAt: new Date().toISOString(), random: crypto.randomUUID() }));
+  }
+  console.log('[Storage canary] current:', JSON.parse(localStorage.getItem(STORAGE_CANARY_KEY)));
+
+  // ── Independent login marker check ────────────────────────────
+  console.log('[Auth diagnostic] independent login marker:', localStorage.getItem('__linkmi_admin_login_test'));
+
   // Session restore — getSession() reads localStorage, getUser() validates server-side
   console.log('[Auth] origin:', location.origin);
   try {
@@ -5192,6 +5208,21 @@ async function _bootLoadSB(){
     console.warn('[SB] Boot exception:', e.message);
     window._sbBootError = e.message;
   }
+
+  // Route diagnostic
+  const q = new URLSearchParams(location.search);
+  console.log('[Route diagnostic]', {
+    href: location.href,
+    search: location.search,
+    isAdminRoute: q.has('admin'),
+    adminAuthenticated: _adminAuthenticated,
+    adminPwPresent: !!_adminPw,
+    supabaseKeyPresent: localStorage.getItem('sb-xrweqafccpjjlemmicuj-auth-token') !== null,
+    independentLoginMarker: localStorage.getItem('__linkmi_admin_login_test') !== null,
+    persistenceCanary: localStorage.getItem('__linkmi_persistence_canary') !== null,
+    buildId: LINKMI_BUILD_ID
+  });
+
   route();
 })();
 </script>

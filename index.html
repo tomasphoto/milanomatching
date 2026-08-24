@@ -3759,7 +3759,7 @@ function saveContact(id){
     const lp=allP().find(x=>fk(x)===lead.linkedProp);
     if(lp){
       const pid=lead.linkedProp.split('::')[2]||'';
-      displayName=`${nome} · ${lp.addr}${pid?' ('+pid+')':''} · €${lp.price.toLocaleString('it-IT')}/mese`;
+      displayName=`${nome} · ${lp.addr}${pid?' '+pid:''}`;
       propLine=`${lp.addr}${pid?' ('+pid+')':''} · €${lp.price.toLocaleString('it-IT')}/mese`;
     }
   } else if(lead.richiesta){
@@ -3882,8 +3882,8 @@ function genNonRaggiungibile(){
   const lead=(ST.leads||[]).find(l=>l.id===_msgLeadId);if(!lead)return;
   const lang=_msgLangNr;
   const first=lead.nome.split(' ')[0];
-  // Use first matched property if available
-  const p=_msgMatches[0]||null;
+  // Use linked property if set, otherwise first algorithm match
+  const p=(lead.linkedProp ? allP().find(x=>fk(x)===lead.linkedProp) : null) || _msgMatches[0] || null;
   let txt;
   if(lang==='en'){
     txt='Hi '+first+',\n\n'

@@ -1630,8 +1630,8 @@
 ══════════════════════════════════════════════════════════ -->
 <div id="vc" class="hidden">
 
-  <!-- top bar -->
-  <div class="vc-bar">
+  <!-- ── Top bar (glass pill nav) ── -->
+  <div class="vc-bar" id="vc-bar">
     <div class="vc-brand">LINK MI</div>
     <div class="vc-bar-btns">
       <a href="#" class="btn-bar-call" id="vc-call">Chiama</a>
@@ -1639,75 +1639,98 @@
     </div>
   </div>
 
-  <!-- hero carousel -->
-  <div class="vc-hero" id="vc-hero" onclick="openGallery()">
-    <div class="vc-hero-ph" id="vc-hero-ph">
-      <div class="vc-hero-ph-inner">
-        <span class="vc-hero-ph-icon">◻</span>
-        <span class="vc-hero-ph-lbl">Foto in arrivo</span>
+  <!-- ── Main page content ── -->
+  <div class="share-page">
+
+    <!-- Desktop mosaic gallery (hidden on mobile) -->
+    <div class="share-mosaic" id="share-mosaic">
+      <div class="share-mosaic-main" id="share-mosaic-main" onclick="openGallery()">
+        <div class="share-mosaic-ph">◻</div>
       </div>
-    </div>
-    <div class="vc-badge-avail" id="vc-badge-av"></div>
-    <button class="hero-nav hero-prev" id="hero-prev" onclick="event.stopPropagation();heroNav(-1)">&#8249;</button>
-    <button class="hero-nav hero-next" id="hero-next" onclick="event.stopPropagation();heroNav(1)">&#8250;</button>
-    <div class="hero-counter hidden" id="hero-counter"></div>
-    <button class="hero-all-btn hidden" id="hero-all-btn" onclick="event.stopPropagation();openGallery()">&#9638; Tutte le foto</button>
-    <!-- spec §26 glass info panel -->
-    <div class="vc-hero-glass" id="vc-hero-glass" style="display:none">
-      <div class="vc-hero-addr" id="vc-hero-addr-gl"></div>
-      <div class="vc-hero-meta" id="vc-hero-meta-gl"></div>
-    </div>
-  </div>
-
-  <!-- Mobile property summary — shows address/price/meta below the hero photo on mobile -->
-  <div class="property-summary" id="vc-prop-summary">
-    <div class="ps-addr" id="ps-addr"></div>
-    <div class="ps-price" id="ps-price"></div>
-    <div class="ps-meta" id="ps-meta"></div>
-  </div>
-
-  <!-- content -->
-  <div class="vc-body">
-    <h1 class="vc-addr" id="vc-addr"></h1>
-    <div class="vc-stats" id="vc-stats"></div>
-    <div class="vc-desc-hd">Descrizione</div>
-    <p class="vc-desc" id="vc-desc"></p>
-
-    <!-- caratteristiche grid (hidden when no data) -->
-    <div class="vc-cara hidden" id="vc-cara">
-      <div class="vc-cara-hd">Caratteristiche</div>
-      <div class="vc-cara-grid" id="vc-cara-grid"></div>
+      <div class="share-mosaic-secondary" id="share-mosaic-secondary"></div>
+      <button class="share-mosaic-allbtn hidden" id="share-mosaic-allbtn" onclick="openGallery()">🗂 Tutte le foto</button>
     </div>
 
-    <!-- floor plan (hidden when no image) -->
-    <div class="vc-fp hidden" id="vc-fp">
-      <div class="vc-fp-hd">Planimetria</div>
-      <img id="vc-fp-img" src="" alt="Planimetria">
+    <!-- Mobile swipe gallery (hidden on desktop) -->
+    <div class="share-mob-gallery" id="share-mob-gallery">
+      <div class="share-mob-counter hidden" id="share-mob-counter"></div>
+      <button class="share-mob-allbtn hidden" id="share-mob-allbtn" onclick="openGallery()">Tutte le foto</button>
     </div>
 
-    <!-- map -->
-    <div class="vc-map">
-      <div class="vc-map-hd">Posizione</div>
-      <iframe id="vc-map-frame" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="" loading="lazy" allowfullscreen></iframe>
+    <!-- Property header: title · price · facts -->
+    <div class="share-prop-header">
+      <h1 class="share-prop-title" id="vc-prop-title"></h1>
+      <p class="share-prop-location" id="vc-prop-location">Milano</p>
+      <div class="share-prop-price" id="vc-prop-price"></div>
+      <div class="share-prop-avail hidden" id="vc-avail-badge">✓ Disponibile subito</div>
+      <div class="share-main-facts" id="vc-prop-facts"></div>
     </div>
 
-    <div class="vc-ctas">
-      <a href="#" class="btn-cta-p" id="vc-cta-call">📞 &nbsp;Chiama ora</a>
-      <a href="#" class="btn-cta-s" id="vc-cta-book" target="_blank">📅 &nbsp;Prenota una visita</a>
-    </div>
-    <div id="vc-portal"></div>
-  </div>
+    <!-- Two-column content layout -->
+    <div class="share-content-layout">
 
+      <!-- Left: main content column -->
+      <div class="share-content-main">
+
+        <!-- Description -->
+        <section class="share-section">
+          <h2 class="share-section-title">Descrizione</h2>
+          <p class="vc-desc" id="vc-desc"></p>
+        </section>
+
+        <!-- Caratteristiche (hidden when empty) -->
+        <section class="share-section hidden" id="vc-cara">
+          <h2 class="share-section-title">Caratteristiche</h2>
+          <div class="vc-cara-grid" id="vc-cara-grid"></div>
+        </section>
+
+        <!-- Floor plan (hidden when no image) -->
+        <section class="share-section hidden" id="vc-fp">
+          <h2 class="share-section-title">Planimetria</h2>
+          <img id="vc-fp-img" src="" alt="Planimetria" class="vc-fp-img">
+        </section>
+
+        <!-- Map -->
+        <section class="share-section">
+          <h2 class="share-section-title">Posizione</h2>
+          <div class="vc-map-wrap">
+            <iframe id="vc-map-frame" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="" loading="lazy" allowfullscreen></iframe>
+          </div>
+        </section>
+
+        <!-- Mobile CTAs (shown below ≤900px) -->
+        <div class="share-mobile-ctas">
+          <a href="#" class="share-cta-primary" id="vc-cta-book" target="_blank">📅 Prenota una visita</a>
+          <a href="#" class="share-cta-sec" id="vc-cta-call">📞 Chiama ora</a>
+        </div>
+
+        <div id="vc-portal"></div>
+      </div>
+
+      <!-- Right: sticky contact sidebar (desktop only) -->
+      <aside class="share-contact">
+        <div class="share-sidebar-price" id="vc-sidebar-price"></div>
+        <a href="#" class="share-cta-primary" id="vc-book-sidebar" target="_blank">📅 Prenota una visita</a>
+        <a href="#" class="share-cta-sec" id="vc-call-sidebar">📞 Chiama ora</a>
+        <div class="share-sidebar-brand">LINK MI</div>
+      </aside>
+
+    </div><!-- /.share-content-layout -->
+
+  </div><!-- /.share-page -->
+
+  <!-- Footer -->
   <div class="vc-foot">
     <div class="vc-foot-brand">LINK MI</div>
     <div class="vc-foot-em" id="vc-foot-em"></div>
   </div>
 
-  <!-- Mobile sticky glass CTA (hidden on desktop via CSS) -->
-  <div class="property-mobile-cta glass-light-strong" id="vc-mobile-cta">
-    <span class="pmc-price" id="vc-mobile-price"></span>
-    <a href="#" class="pmc-btn" id="vc-mobile-cta-btn">Richiedi visita</a>
+  <!-- Mobile sticky CTA bar (fixed, ≤900px) -->
+  <div class="share-sticky-cta" id="share-sticky-cta">
+    <span class="share-sticky-price" id="vc-sticky-price"></span>
+    <a href="#" class="share-cta-primary" id="vc-book-sticky" target="_blank">Prenota visita</a>
   </div>
+
 </div>
 
 <!-- ══════════════════════════════════════════════════════════

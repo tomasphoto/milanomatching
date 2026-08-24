@@ -3585,7 +3585,7 @@ function lCard(lead, pipeline){
   const nextKey=curIdx>=0&&curIdx<_PIPELINE_STAGES.length-1?_PIPELINE_STAGES[curIdx+1]:null;
   const nextLabel=nextKey?(STATUSES[nextKey]||{}).label:'';
   const footerLeft=pipeline
-    ?(nextKey?`<button class="lc-advance-btn" onclick="lSetStatus('${eid}','${nextKey}',event)">→ ${nextLabel}</button>`:'<span class="lc-status-text">${st.label.toUpperCase()}</span>')
+    ?(nextKey?`<button class="lc-advance-btn" onclick="lSetStatus('${eid}','${nextKey}',event)">→ ${nextLabel}</button>`:`<span class="lc-status-text">${st.label.toUpperCase()}</span>`)
     :`<span class="lc-status-text">${st.label.toUpperCase()}</span>`;
   const footerRight=lead.budgetMax?`<span class="lc-budget-text">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:'';
 

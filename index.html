@@ -2537,6 +2537,11 @@ async function sbLoadLeads(){
       }
       if(local) {
         if(!local._sbId){ local._sbId = sl.id; changed = true; }
+        // Sync property link from Supabase if not already set locally
+        if(sl.property_id && !local.linkedProp){
+          const lp = allP().find(x=>x._sbId===sl.property_id);
+          if(lp){ local.linkedProp = fk(lp); changed = true; }
+        }
       } else {
         // Supabase-only lead — import into local state
         if(!ST.leads) ST.leads = [];
@@ -2556,6 +2561,7 @@ async function sbLoadLeads(){
           note: sl.notes || '',
           richiesta: sl.request_text || '',
           status: SB_STATUS_REV[sl.status] || 'nuovo',
+          linkedProp: (()=>{ if(!sl.property_id) return ''; const lp=allP().find(x=>x._sbId===sl.property_id); return lp?fk(lp):''; })(),
           addedAt: sl.added_at ? new Date(sl.added_at).getTime() : Date.now()
         });
         newCount++;
@@ -3574,7 +3580,8 @@ function saveLeadPanel(){
   else{tb.textContent='☎️ —';tb.style.opacity='.45';}
   stSave();lRender();scheduleSync();
   sbSyncLead(lead,{nome:lead.nome,tel:lead.tel,email:lead.email,profilo:lead.profilo,
-    budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status});
+    budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status,
+    linkedProp:lead.linkedProp||''});
   vlepRenderMatches(lead);
   toast('✓ Lead aggiornato');
 }

@@ -2671,7 +2671,7 @@ async function sbLoadLeads(){
           richiesta: sl.request_text || '',
           status: SB_STATUS_REV[sl.status] || 'nuovo',
           linkedProp: (()=>{ if(!sl.property_id) return ''; const lp=allP().find(x=>x._sbId===sl.property_id); return lp?fk(lp):''; })(),
-          addedAt: sl.added_at ? new Date(sl.added_at).getTime() : Date.now()
+          addedAt: sl.received_at ? new Date(sl.received_at).getTime() : (sl.added_at ? new Date(sl.added_at).getTime() : Date.now())
         });
         newCount++;
         changed = true;

@@ -2489,8 +2489,12 @@ const LSK = 'mm-v1';
 const SB_URL = 'https://xrweqafccpjjlemmicuj.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhyd2VxYWZjY3BqamxlbW1pY3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0OTI3NzMsImV4cCI6MjEwMzA2ODc3M30.bYGE46F9zleN54IND4zlh9D-KPfdDiGj3JhfArb2-LY'; // legacy JWT anon key — works with PostgREST
 
+// Supabase JS auth client — handles JWT session + auto-refresh
+const _sbAuthClient = window.supabase.createClient(SB_URL, SB_KEY);
+
 // ── Supabase admin writes (Phase I) ──────────────────────────
-let _adminPw = null; // set on admin login
+let _adminPw = null;       // set on admin login
+let _adminAuthenticated = false; // true when valid session exists
 
 async function sbRpc(fn, params){
   if(!_adminPw) return false;
@@ -2949,7 +2953,7 @@ function route(){
   const s = q.get('s');
   const a = q.get('admin');
   if(s) showCard(s);
-  else if(a!==null) askAdmin();
+  else if(a!==null) { if(_adminAuthenticated){ showAdmin(); sbLoadLeads(); } else { askAdmin(); } }
   else showLanding();
   // nav scroll state (spec §16)
   window.addEventListener('scroll',()=>{
@@ -2986,18 +2990,28 @@ function askAdmin(){
 function closePwOverlay(){
   document.getElementById('pw-overlay').style.display='none';
 }
-function submitPw(){
-  const pw=document.getElementById('pw-input').value;
-  if(pw===(ST.adminPw||'milan2026')||pw==='linkmi-admin'){
-    // Custom ST.adminPw is local-only; Supabase only accepts 'milan2026'/'linkmi-admin'
-    _adminPw = pw==='linkmi-admin' ? 'linkmi-admin' : 'milan2026';
+async function submitPw(){
+  const pw = document.getElementById('pw-input').value;
+  document.getElementById('pw-error').textContent = '';
+  const btn = document.querySelector('#pw-overlay button:last-child');
+  if(btn){ btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const { data, error } = await _sbAuthClient.auth.signInWithPassword({
+      email: 'tommaso.vizzardiestate@gmail.com',
+      password: pw
+    });
+    if(error) throw error;
+    _adminPw = 'milan2026';
+    _adminAuthenticated = true;
     closePwOverlay();
     showAdmin();
     sbLoadLeads();
-  } else {
-    document.getElementById('pw-error').textContent='⚠ Password errata';
-    document.getElementById('pw-input').value='';
+  } catch(e) {
+    document.getElementById('pw-error').textContent = '⚠ Password errata';
+    document.getElementById('pw-input').value = '';
     document.getElementById('pw-input').focus();
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Accedi'; }
   }
 }
 
@@ -3459,7 +3473,12 @@ function showAdmin(){
     setTimeout(()=>toast('⚠ Supabase offline: ' + window._sbBootError, 6000), 400);
   }
 }
-function exitAdmin(){window.location.href=window.location.pathname;}
+async function exitAdmin(){
+  await _sbAuthClient.auth.signOut();
+  _adminAuthenticated = false;
+  _adminPw = null;
+  window.location.href = window.location.pathname;
+}
 
 async function sbRefresh(){
   toast('Ricarico da Supabase…', 2000);
@@ -5106,11 +5125,16 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
+  // Restore admin session if a valid JWT session already exists in localStorage
+  try {
+    const { data: { session } } = await _sbAuthClient.auth.getSession();
+    if(session){ _adminPw = 'milan2026'; _adminAuthenticated = true; }
+  } catch(e){ /* non-fatal */ }
+
   try {
     const result = await _bootLoadSB();
     if(!result.ok){
       console.warn('[SB] Boot load failed — using baked-in data. Detail:', result.detail);
-      // Store the error so admin panel can show it
       window._sbBootError = result.detail || ('HTTP ' + result.status);
     }
   } catch(e){

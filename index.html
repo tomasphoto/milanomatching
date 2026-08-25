@@ -3086,7 +3086,7 @@ async function submitPw(){
 // ════════════════════════════════════════════════════════════════
 function showCard(encoded){
   const k=dec(encoded); if(!k){showLanding();return;}
-  const p=allP().find(x=>fk(x)===k); if(!p){showLanding();return;}
+  const p=allP().find(x=>fk(x)===k); if(!p){showLanding();return;}  // fallback: property not found
   hide('vl'); hide('va'); show('vc');
   document.title=p.addr+' — Link Milano';
 

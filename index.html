@@ -779,6 +779,20 @@
     }
     .va-btn-primary:active{transform:scale(.985);}
 
+    /* Square icon add button */
+    .va-btn-add{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:44px;height:44px;flex-shrink:0;
+      background:var(--accent);color:#fff;border:none;
+      border-radius:10px;cursor:pointer;
+      transition:background var(--motion-ui) var(--ease-premium),
+                 transform var(--motion-fast);
+    }
+    @media(hover:hover) and (pointer:fine){
+      .va-btn-add:hover{background:var(--accent-hover);transform:translateY(-1px);}
+    }
+    .va-btn-add:active{transform:scale(.985);}
+
     /* Filter bar — grouped glass control surface */
     .va-filters{
       display:flex;gap:6px;align-items:center;flex-wrap:wrap;

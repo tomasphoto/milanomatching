@@ -4256,8 +4256,22 @@ function vlepDelete(){
   if(!confirm('Eliminare questo lead?'))return;
   const _delLead=(ST.leads||[]).find(l=>l.id===_vlepId);
   ST.leads=(ST.leads||[]).filter(l=>l.id!==_vlepId);
+  // Tombstone: persist the sbId so sbLoadLeads won't re-import it
+  // even if the async delete doesn't complete before the app is backgrounded
+  if(_delLead?._sbId){
+    if(!ST.deletedSbIds) ST.deletedSbIds=[];
+    if(!ST.deletedSbIds.includes(_delLead._sbId)) ST.deletedSbIds.push(_delLead._sbId);
+  }
   stSave();scheduleSync();
-  if(_delLead?._sbId) sbRpc('admin_delete_lead',{p_sb_id:_delLead._sbId});
+  if(_delLead?._sbId){
+    sbRpc('admin_delete_lead',{p_sb_id:_delLead._sbId}).then(ok=>{
+      if(ok!==false){
+        // Confirmed deleted in DB — remove from tombstone
+        ST.deletedSbIds=(ST.deletedSbIds||[]).filter(id=>id!==_delLead._sbId);
+        stSave();
+      }
+    });
+  }
   closeLeadPanel();
   lRender();
   toast('✓ Lead rimosso');

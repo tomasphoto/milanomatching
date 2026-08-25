@@ -1687,7 +1687,7 @@
 <!-- ══════════════════════════════════════════════════════════
      VIEW: LANDING
 ══════════════════════════════════════════════════════════ -->
-<div id="vl" style="min-height:100vh;background:#F5F4F0;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
+<div id="vl" style="min-height:100vh;background:#F5F4F0;display:none;align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
   <div style="width:min(320px,88vw);text-align:center;">
     <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#B0ADA8;margin-bottom:52px;">Link &nbsp; Milano</div>
     <input id="lp-input" type="password" placeholder="Password" autocomplete="current-password"
@@ -2997,7 +2997,8 @@ function route(){
 // ════════════════════════════════════════════════════════════════
 let _taps=0,_tt;
 function showLanding(){
-  show('vl'); hide('vc'); hide('va');
+  const vl=document.getElementById('vl');
+  vl.style.display='flex'; hide('vc'); hide('va');
   document.title='Link Milano';
   setTimeout(()=>{ const i=document.getElementById('lp-input'); if(i) i.focus(); }, 80);
 }

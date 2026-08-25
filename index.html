@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25b -->
+<!-- build: 2026-08-25c -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -712,7 +712,8 @@
       width:224px;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;
       background:linear-gradient(180deg,#E7E8E2 0%,#ECEAE5 100%);
       display:flex;flex-direction:column;
-      padding:20px 14px;overflow-y:auto;
+      padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));
+      overflow-y:auto;
     }
     .va-sb-brand{
       font-size:18px;font-weight:700;letter-spacing:-.025em;

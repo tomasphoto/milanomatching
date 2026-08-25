@@ -1845,7 +1845,21 @@
   </nav>
 
   <!-- ── Main ── -->
-  <div class="va-main">
+  <div class="va-main" id="va-main">
+    <!-- Pull-to-refresh indicator -->
+    <div id="ptr-indicator" style="
+      position:absolute;top:0;left:0;right:0;
+      display:flex;align-items:center;justify-content:center;
+      height:0;overflow:hidden;transition:height .2s ease;
+      z-index:50;pointer-events:none;
+    ">
+      <div id="ptr-spinner" style="
+        width:28px;height:28px;border-radius:50%;
+        border:2.5px solid rgba(42,50,64,.12);
+        border-top-color:#2A3240;
+        animation:none;opacity:0;transition:opacity .15s;
+      "></div>
+    </div>
 
     <!-- Properties panel -->
     <div id="vp-props">

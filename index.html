@@ -5470,6 +5470,16 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
+  // Deep-link handler: notification tap while app is open
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'openLead' && e.data.leadId) {
+      const lead = (ST.leads||[]).find(l => l._sbId === e.data.leadId || l.id === e.data.leadId);
+      if (lead && _adminAuthenticated === true) {
+        vaTab('leads');
+        setTimeout(() => openLeadPanel(lead.id), 100);
+      }
+    }
+  });
 }
 </script>
 </body>

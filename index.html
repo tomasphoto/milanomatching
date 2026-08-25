@@ -5195,6 +5195,11 @@ async function _bootLoadSB(){
 }
 
 (async function boot(){
+  // ── Share card: show immediately, skip auth entirely ──────────
+  const _bootQ = new URLSearchParams(location.search);
+  const _bootS = _bootQ.get('s');
+  if(_bootS){ showCard(_bootS); return; }
+
   // ── Storage canary (independent of auth) ─────────────────────
   const STORAGE_CANARY_KEY = '__linkmi_persistence_canary';
   const previousCanary = localStorage.getItem(STORAGE_CANARY_KEY);

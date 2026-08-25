@@ -2367,7 +2367,7 @@
   </div>
 </div>
 
-<!-- Lead Add / Edit -->
+<!-- Lead Add -->
 <div class="mbg" id="m-lead">
   <div class="mbox">
     <h2 id="m-lead-title">Aggiungi lead</h2>
@@ -2375,53 +2375,48 @@
     <input type="hidden" id="li-id">
     <div class="fr2">
       <div>
-        <label class="fl">Nome</label>
+        <label class="fl">Nome *</label>
         <input class="fi" id="li-nome" placeholder="Mario Rossi">
       </div>
       <div>
         <label class="fl">Profilo</label>
-        <input class="fi" id="li-profilo" placeholder="Privato, Coppia, Azienda…">
+        <input class="fi" id="li-profilo" placeholder="Privato, Coppia…">
       </div>
     </div>
     <div class="fr2">
       <div>
         <label class="fl">Telefono</label>
-        <input class="fi" id="li-tel" placeholder="+39 345…" type="tel">
+        <input class="fi" id="li-tel" type="tel" placeholder="+39 345…">
       </div>
       <div>
         <label class="fl">Email</label>
-        <input class="fi" id="li-email" placeholder="email@…" type="email">
+        <input class="fi" id="li-email" type="email" placeholder="email@…">
+      </div>
+    </div>
+    <div class="fr">
+      <label class="fl">Budget max (€/mese)</label>
+      <input class="fi" type="number" id="li-budget" placeholder="es. 2500">
+    </div>
+    <div class="fr">
+      <label class="fl">Locali richiesti</label>
+      <div class="vlep-rooms" id="li-rooms">
+        <span class="vlep-room-opt" data-val="1" onclick="liToggleRoom(this)">Mono</span>
+        <span class="vlep-room-opt" data-val="2" onclick="liToggleRoom(this)">Bilo</span>
+        <span class="vlep-room-opt" data-val="3" onclick="liToggleRoom(this)">Tri</span>
+        <span class="vlep-room-opt" data-val="4" onclick="liToggleRoom(this)">Quadri</span>
+        <span class="vlep-room-opt" data-val="5" onclick="liToggleRoom(this)">5+</span>
       </div>
     </div>
     <div class="fr2">
       <div>
-        <label class="fl">Budget max €/mese</label>
-        <input class="fi" type="number" id="li-budget" placeholder="2500">
-      </div>
-      <div>
-        <label class="fl">Locali (es. 2, 3)</label>
-        <input class="fi" id="li-stanze" placeholder="2, 3 — lascia vuoto = indifferente">
-      </div>
-    </div>
-    <div class="fr2">
-      <div>
-        <label class="fl">Ingresso</label>
-        <input class="fi" id="li-ingresso" placeholder="Subito / Set 2026">
-      </div>
-      <div>
-        <label class="fl">Urgenza</label>
-        <select class="fi" id="li-urg">
-          <option value="Urgente">🔴 Urgente</option>
-          <option value="Alta">🟡 Alta</option>
-          <option value="Media" selected>🟢 Media</option>
-          <option value="Bassa">⚪ Bassa</option>
+        <label class="fl">Disponibilità</label>
+        <select class="fi" id="li-ingresso">
+          <option value="Flessibile">Flessibile</option>
+          <option value="Subito">Subito</option>
+          <option value="1 mese">1 mese</option>
+          <option value="2 mesi">2 mesi</option>
+          <option value="3 mesi">3 mesi</option>
         </select>
-      </div>
-    </div>
-    <div class="fr2">
-      <div>
-        <label class="fl">Qualità (1–5)</label>
-        <input class="fi" type="number" id="li-qual" min="1" max="5" placeholder="3" value="3">
       </div>
       <div>
         <label class="fl">Stato pipeline</label>
@@ -2436,16 +2431,22 @@
       </div>
     </div>
     <div class="fr">
-      <label class="fl">Zone preferite (gestori)</label>
-      <input class="fi" id="li-zones" placeholder="Limido, Cavallaro… — lascia vuoto = ovunque">
-    </div>
-    <div class="fr">
-      <label class="fl">Richiesta / dettagli</label>
-      <textarea class="fi" id="li-richiesta" rows="2" placeholder="Cosa cerca esattamente…"></textarea>
+      <label class="fl">Collega a proprietà</label>
+      <div class="vlep-prop-wrap">
+        <input class="fi" id="li-prop-input" type="text"
+          placeholder="Cerca per indirizzo, agenzia, locali…"
+          autocomplete="off"
+          oninput="liPropSearch(this.value)"
+          onfocus="liPropSearch(this.value)"
+          onblur="setTimeout(()=>document.getElementById('li-prop-drop').classList.remove('open'),160)"
+          style="width:100%;box-sizing:border-box;">
+        <div class="vlep-prop-drop" id="li-prop-drop"></div>
+        <input type="hidden" id="li-prop-link">
+      </div>
     </div>
     <div class="fr">
       <label class="fl">Note interne</label>
-      <textarea class="fi" id="li-note" rows="2" placeholder="Note, proprietà suggerite, osservazioni…"></textarea>
+      <textarea class="fi" id="li-note" rows="3" placeholder="Note private…"></textarea>
     </div>
     <div class="macts">
       <button class="btn-mc" onclick="closeM('m-lead')">Annulla</button>

@@ -1363,16 +1363,14 @@
     .vlep-bar-acts{display:none;}
     .vlep-mob-acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
     .vlep-act-btn{
-      flex:1;min-width:0;height:48px;padding:0 10px;
-      display:inline-flex;align-items:center;justify-content:center;gap:7px;
+      flex:1;min-width:0;height:52px;padding:0;
+      display:inline-flex;align-items:center;justify-content:center;
       background:var(--surface);border:1px solid var(--border);
-      color:var(--text-secondary);font-size:13px;font-weight:500;font-family:'Inter',sans-serif;
-      border-radius:var(--radius-md);cursor:pointer;white-space:nowrap;
+      color:var(--text-secondary);
+      border-radius:var(--radius-md);cursor:pointer;
       transition:border-color var(--motion-ui),color var(--motion-ui);
     }
     @media(hover:hover) and (pointer:fine){.vlep-act-btn:hover{border-color:var(--border-strong);color:var(--text);}}
-    .vlep-act-tel{color:var(--success);border-color:rgba(82,117,99,.22);}
-    .vlep-act-msg{color:var(--accent);border-color:rgba(38,57,47,.22);}
     .vlep-status-sel{
       background:var(--surface-soft);border:1px solid var(--border);color:var(--text);
       padding:7px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;

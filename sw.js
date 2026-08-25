@@ -3,8 +3,7 @@
 
 const CACHE = 'linkmi-v1';
 const SHELL = [
-  '/milanomatching/',
-  '/milanomatching.html',
+  '/',
   '/icon-192.png',
   '/icon-512.png',
   '/apple-touch-icon.png'
@@ -29,7 +28,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET') return;
 
-  if (url.pathname === '/milanomatching/' || url.pathname.endsWith('.html')) {
+  if (url.pathname === '/' || url.pathname.endsWith('.html')) {
     // Network first — ensures fresh admin data
     e.respondWith(
       fetch(e.request).then(res => {

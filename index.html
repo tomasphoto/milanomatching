@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25e -->
+<!-- build: 2026-08-25f -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -3555,6 +3555,8 @@ function showAdmin(){
   aRender();
   lUpdateTabCount();
   setTimeout(_warmGeoCache, 2000);
+  // Subscribe to push notifications (after user gesture — required by browsers)
+  setTimeout(subscribeToPush, 1000);
   // Show boot error if Supabase didn't load
   if(window._sbBootError){
     setTimeout(()=>toast('⚠ Supabase offline: ' + window._sbBootError, 6000), 400);
@@ -5228,6 +5230,43 @@ async function _bootLoadSB(){
   });
   Object.assign(ST.photos, sbPhotos);
   return { ok: true, count: rows.length };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  WEB PUSH SUBSCRIPTION
+// ════════════════════════════════════════════════════════════════
+function _urlB64ToUint8(b64){
+  const pad='='.repeat((4-b64.length%4)%4);
+  const raw=atob((b64+pad).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(raw,c=>c.charCodeAt(0));
+}
+
+async function subscribeToPush(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    // Check permission — don't ask if already denied
+    if(Notification.permission === 'denied') return;
+    const existing = await reg.pushManager.getSubscription();
+    if(existing){ await _savePushSub(existing); return; }
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: _urlB64ToUint8(VAPID_PUBLIC_KEY)
+    });
+    await _savePushSub(sub);
+  } catch(e){ console.warn('[Push] subscribe error:', e.message); }
+}
+
+async function _savePushSub(sub){
+  try {
+    const keys = sub.toJSON().keys || {};
+    await fetch(SB_URL+'/rest/v1/rpc/admin_save_push_subscription',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_admin_pw:'milan2026',p_endpoint:sub.endpoint,p_p256dh:keys.p256dh,p_auth:keys.auth})
+    });
+    console.log('[Push] subscription saved');
+  } catch(e){ console.warn('[Push] save error:', e.message); }
 }
 
 // ════════════════════════════════════════════════════════════════

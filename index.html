@@ -2502,10 +2502,42 @@ const _sbAuthClient = window.supabase.createClient(SB_URL, SB_KEY, {
   }
 });
 
-// Auth state change diagnostics (temporary)
+// Auth state change diagnostics
 _sbAuthClient.auth.onAuthStateChange((event, session) => {
-  console.log('[Auth state]', event, session?.user?.email || 'no user');
+  console.log('[Auth state event]', {
+    event,
+    email: session?.user?.email || null,
+    supabaseKeyPresent: localStorage.getItem('sb-xrweqafccpjjlemmicuj-auth-token') !== null
+  });
 });
+
+// Consolidated diagnostic snapshot
+async function authDiagnosticSnapshot(label) {
+  let session = null, sessionError = null;
+  try {
+    const result = await _sbAuthClient.auth.getSession();
+    session = result.data?.session || null;
+    sessionError = result.error || null;
+  } catch(e) { sessionError = e; }
+  console.log(`[Auth snapshot] ${label}`, {
+    buildId: LINKMI_BUILD_ID,
+    href: location.href,
+    origin: location.origin,
+    pathname: location.pathname,
+    search: location.search,
+    localStorageWritable: (() => {
+      try { localStorage.setItem('__lm_test_write','1'); const ok = localStorage.getItem('__lm_test_write')==='1'; localStorage.removeItem('__lm_test_write'); return ok; } catch { return false; }
+    })(),
+    persistenceCanaryPresent: localStorage.getItem('__linkmi_persistence_canary') !== null,
+    independentLoginMarkerPresent: localStorage.getItem('__linkmi_admin_login_test') !== null,
+    supabaseKeyPresent: localStorage.getItem('sb-xrweqafccpjjlemmicuj-auth-token') !== null,
+    sessionPresent: !!session,
+    sessionUserEmail: session?.user?.email || null,
+    sessionError: sessionError?.message || null,
+    adminAuthenticated: _adminAuthenticated,
+    adminPwPresent: typeof _adminPw !== 'undefined' ? !!_adminPw : 'not defined'
+  });
+}
 
 // ── Supabase admin writes (Phase I) ──────────────────────────
 let _adminPw = null;       // set on admin login

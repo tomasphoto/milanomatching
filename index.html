@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25ag -->
+<!-- build: 2026-08-25ah -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -758,6 +758,7 @@
     .va-sticky-hd{
       position:sticky;top:0;z-index:30;
       background:var(--bg);
+      border-bottom:1px solid var(--border);
     }
 
     /* Page header */
@@ -775,31 +776,33 @@
     /* Collapse chevron button */
     .va-collapse-btn{
       display:inline-flex;align-items:center;justify-content:center;
-      width:36px;height:36px;margin-top:2px;
+      width:44px;height:44px;
       background:none;border:none;cursor:pointer;
-      color:var(--textdim,#999);flex-shrink:0;
+      color:#8a8480;flex-shrink:0;
       -webkit-tap-highlight-color:transparent;
     }
     .va-collapse-btn svg{
-      transition:transform 320ms cubic-bezier(.4,0,.2,1);
+      transition:transform 300ms cubic-bezier(.4,0,.2,1);
+      transform:rotate(-90deg); /* default: pointing right [>] */
     }
-    .va-collapse-btn.va-collapsed svg{
-      transform:rotate(-90deg);
+    .va-collapse-btn.va-expanded svg{
+      transform:rotate(0deg); /* expanded: pointing down [v] */
     }
 
-    /* Filter bar — collapsible */
+    /* Filter bar — collapsible (default: collapsed) */
     .va-filters{
       overflow:hidden;
-      max-height:700px;
-      opacity:1;
-      transition:max-height 380ms cubic-bezier(.4,0,.2,1),
-                 opacity 220ms,
-                 padding-bottom 320ms cubic-bezier(.4,0,.2,1);
-    }
-    .va-filters.va-collapsed{
       max-height:0;
       opacity:0;
       padding-bottom:0 !important;
+      transition:max-height 360ms cubic-bezier(.4,0,.2,1),
+                 opacity 200ms,
+                 padding-bottom 300ms cubic-bezier(.4,0,.2,1);
+    }
+    .va-filters.va-expanded{
+      max-height:700px;
+      opacity:1;
+      padding-bottom:unset !important;
     }
 
     /* Primary button (admin) */
@@ -1213,7 +1216,7 @@
 
     /* ══ PROPS SUB-TABS ═════════════════════════════════════ */
     .vp-subtab-strip{
-      background:var(--bg);border-bottom:1px solid var(--border);
+      background:var(--bg);
       padding:0 36px;display:flex;gap:0;flex-shrink:0;
     }
     .vp-subtab{
@@ -4196,8 +4199,8 @@ function toggleFilters(page){
   const f=document.getElementById(fId);
   const b=document.getElementById(bId);
   if(!f||!b)return;
-  const nowCollapsed=f.classList.toggle('va-collapsed');
-  b.classList.toggle('va-collapsed',nowCollapsed);
+  const nowExpanded=f.classList.toggle('va-expanded');
+  b.classList.toggle('va-expanded',nowExpanded);
 }
 
 // ════════════════════════════════════════════════════════════════

@@ -2999,17 +2999,37 @@ let _taps=0,_tt;
 function showLanding(){
   show('vl'); hide('vc'); hide('va');
   document.title='Link Milano';
-  const {phone,calLink,email}=ST.settings;
-  const tel=phone?(phone.startsWith('tel:')?phone:'tel:'+phone.replace(/\s/g,'')):'';
-  const cal=calLink||(email?'mailto:'+email:'');
-  const btns=document.getElementById('l-btns');
-  btns.innerHTML='';
-  if(tel) btns.innerHTML+=`<a href="${tel}" class="btn-l">📞 &nbsp;${phone}</a>`;
-  else btns.innerHTML+=`<a href="#" class="btn-l" onclick="return false">📞 &nbsp;Contattaci</a>`;
-  if(cal) btns.innerHTML+=`<a href="${cal}" ${calLink?'target="_blank"':''} class="btn-l">📅 &nbsp;Prenota una visita</a>`;
-  else if(email) btns.innerHTML+=`<a href="mailto:${email}" class="btn-l">✉ &nbsp;${email}</a>`;
-  const logo=document.getElementById('l-logo');
-  logo.onclick=()=>{ _taps++; clearTimeout(_tt); if(_taps>=5){_taps=0;askAdmin();}else{_tt=setTimeout(()=>{_taps=0;},2000);} };
+  setTimeout(()=>{ const i=document.getElementById('lp-input'); if(i) i.focus(); }, 80);
+}
+
+async function lpSubmit(){
+  const pw = document.getElementById('lp-input').value;
+  document.getElementById('lp-error').textContent = '';
+  const btn = document.getElementById('lp-btn');
+  if(btn){ btn.disabled=true; btn.textContent='…'; }
+  try {
+    const { data, error } = await _sbAuthClient.auth.signInWithPassword({
+      email: 'tommaso.vizzardiestate@gmail.com', password: pw
+    });
+    if(error) throw error;
+    if(!data.session) throw new Error('no session');
+    await authDiagnosticSnapshot('LOGIN AFTER SIGNIN');
+    const { data: { user }, error: verifyError } = await _sbAuthClient.auth.getUser();
+    if(verifyError || !user || user.email !== 'tommaso.vizzardiestate@gmail.com'){
+      await _sbAuthClient.auth.signOut(); throw new Error('Unauthorized');
+    }
+    localStorage.setItem('__linkmi_admin_login_test', JSON.stringify({ loggedInAt: new Date().toISOString() }));
+    _adminPw = 'milan2026'; _adminAuthenticated = true;
+    await authDiagnosticSnapshot('LOGIN BEFORE SHOWADMIN');
+    showAdmin(); sbLoadLeads();
+  } catch(e) {
+    console.error('[Auth] lpSubmit failed:', { name: e?.name||null, message: e?.message||String(e), status: e?.status||null });
+    document.getElementById('lp-error').textContent = '⚠ Password errata';
+    document.getElementById('lp-input').value = '';
+    document.getElementById('lp-input').focus();
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Accedi'; }
+  }
 }
 
 function askAdmin(){

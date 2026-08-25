@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25g -->
+<!-- build: 2026-08-25h -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -1643,7 +1643,9 @@
       .vaep-body{padding:20px 16px 100px;}
       .vaep-quick{gap:10px;}
       /* lead panel */
-      .vlep-bar{padding-top:env(safe-area-inset-top,0px);height:calc(60px + env(safe-area-inset-top,0px));}
+      .vlep-bar{padding-top:calc(12px + env(safe-area-inset-top,0px));padding-bottom:12px;}
+      .vlep-bar-acts{display:none;}
+      .vlep-mob-acts{display:flex;}
       .vlep-body{padding:20px 16px 80px;}
       .vlep-grid{grid-template-columns:1fr;}
       /* modals */
@@ -2103,9 +2105,12 @@
     <button class="vaep-close" onclick="closeLeadPanel()">&#10005;&nbsp;&nbsp;Chiudi</button>
     <select class="vlep-status-sel" id="vlep-status" onchange="vlepSetStatus(this.value)"></select>
     <div style="flex:1"></div>
-    <button class="vaep-btn" id="vlep-tel-btn" style="opacity:.45" onclick="vlepCall()">&#128222; &#8212;</button>
-    <button class="vaep-btn" onclick="vlepMsg()">Messaggio</button>
-    <button class="vaep-btn" onclick="saveContact(_vlepId)">Salva Contatto</button>
+    <!-- Desktop-only actions -->
+    <div class="vlep-bar-acts">
+      <button class="vaep-btn" id="vlep-tel-btn" style="opacity:.45" onclick="vlepCall()">&#9990;&#65039; &#8212;</button>
+      <button class="vaep-btn" onclick="vlepMsg()">Messaggio</button>
+      <button class="vaep-btn" onclick="saveContact(_vlepId)">Salva Contatto</button>
+    </div>
   </div>
   <!-- Scrollable body -->
   <div class="vlep-body">
@@ -2116,6 +2121,12 @@
         <input class="vlep-name-in" id="vlep-nome" type="text" placeholder="Nome lead">
         <input class="vlep-sub-in" id="vlep-profilo" type="text" placeholder="Profilo (es. Famiglia, Lavoratore&#8230;)">
       </div>
+    </div>
+    <!-- Mobile-only quick actions -->
+    <div class="vlep-mob-acts">
+      <button class="vlep-act-btn vlep-act-tel" id="vlep-tel-btn-m" onclick="vlepCall()">&#9990;&#65039; Chiama</button>
+      <button class="vlep-act-btn" onclick="vlepMsg()">&#128172; Messaggio</button>
+      <button class="vlep-act-btn" onclick="saveContact(_vlepId)">&#128100; Contatto</button>
     </div>
     <!-- Fields grid -->
     <div class="vaep-sec-hd">Contatti &amp; Dettagli</div>
@@ -3874,10 +3885,16 @@ function openLeadPanel(id){
   // Pipeline status select
   const stSel=document.getElementById('vlep-status');
   stSel.innerHTML=Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('');
-  // Tel button
+  // Tel buttons (desktop bar + mobile row)
   const tb=document.getElementById('vlep-tel-btn');
-  if(lead.tel){tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';}
-  else{tb.textContent='☎️ —';tb.style.opacity='.45';}
+  const tbm=document.getElementById('vlep-tel-btn-m');
+  if(lead.tel){
+    tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';
+    if(tbm){tbm.textContent='✆ '+lead.tel;tbm.style.opacity='1';}
+  }else{
+    tb.textContent='☎️ —';tb.style.opacity='.45';
+    if(tbm){tbm.textContent='✆ Chiama';tbm.style.opacity='.45';}
+  }
   // Matches
   vlepRenderMatches(lead);
   // Show panel
@@ -3953,10 +3970,16 @@ function saveLeadPanel(){
   lead.status=document.getElementById('vlep-status').value;
   lead.stanze=Array.from(document.querySelectorAll('#vlep-rooms .vlep-room-opt.active')).map(el=>+el.dataset.val);
   lead.linkedProp=document.getElementById('vlep-prop-link').value||'';
-  // Update tel button
+  // Update tel buttons (desktop bar + mobile row)
   const tb=document.getElementById('vlep-tel-btn');
-  if(lead.tel){tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';}
-  else{tb.textContent='☎️ —';tb.style.opacity='.45';}
+  const tbm=document.getElementById('vlep-tel-btn-m');
+  if(lead.tel){
+    tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';
+    if(tbm){tbm.textContent='✆ '+lead.tel;tbm.style.opacity='1';}
+  }else{
+    tb.textContent='☎️ —';tb.style.opacity='.45';
+    if(tbm){tbm.textContent='✆ Chiama';tbm.style.opacity='.45';}
+  }
   stSave();lRender();scheduleSync();
   sbSyncLead(lead,{nome:lead.nome,tel:lead.tel,email:lead.email,profilo:lead.profilo,
     budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status,

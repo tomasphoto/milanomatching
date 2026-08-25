@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25o -->
+<!-- build: 2026-08-25p -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -2827,6 +2827,153 @@ async function markLeadViewed(lead){
   syncUnreadBadge();
 }
 
+// ── iOS Long-Press Context Menu ───────────────────────────────
+let _ctxMenuOpen = false;
+let _lpTimer = null, _lpStartX = 0, _lpStartY = 0, _lpMoved = false;
+const _LP_DELAY = 500, _LP_MOVE = 8;
+
+function setupLeadLongPress(cardEl, leadId){
+  if(cardEl._lpSetup) return;
+  cardEl._lpSetup = true;
+  let _pointerId = null;
+
+  cardEl.addEventListener('pointerdown', e => {
+    if(e.button && e.button !== 0) return;
+    _pointerId = e.pointerId;
+    _lpStartX = e.clientX; _lpStartY = e.clientY; _lpMoved = false;
+    _lpTimer = setTimeout(() => {
+      _lpTimer = null;
+      if(_lpMoved) return;
+      try { cardEl.releasePointerCapture(_pointerId); } catch(e){}
+      openLeadContextMenu(leadId, cardEl);
+    }, _LP_DELAY);
+  }, { passive: true });
+
+  cardEl.addEventListener('pointermove', e => {
+    if(!_lpTimer) return;
+    const dx = e.clientX - _lpStartX, dy = e.clientY - _lpStartY;
+    if(Math.sqrt(dx*dx + dy*dy) > _LP_MOVE){ _lpMoved = true; clearTimeout(_lpTimer); _lpTimer = null; }
+  }, { passive: true });
+
+  const cancelLp = () => { if(_lpTimer){ clearTimeout(_lpTimer); _lpTimer = null; } };
+  cardEl.addEventListener('pointerup', cancelLp, { passive: true });
+  cardEl.addEventListener('pointercancel', cancelLp, { passive: true });
+  cardEl.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+function lAttachLongPress(){
+  document.querySelectorAll('#la-grid .lc[id^="lc-"]').forEach(cardEl => {
+    setupLeadLongPress(cardEl, cardEl.id.replace('lc-',''));
+  });
+}
+
+function openLeadContextMenu(leadId, cardEl){
+  const lead = (ST.leads||[]).find(l => l.id === leadId);
+  if(!lead) return;
+  _ctxMenuOpen = true;
+
+  const rect = cardEl.getBoundingClientRect();
+  const MENU_H = 54 + 1 + 54; // two rows + separator
+  const GAP = 10;
+  const SAFE_B = 34; // iPhone home indicator
+  let cardTop = rect.top;
+  const spaceNeeded = cardTop + rect.height + GAP + MENU_H + SAFE_B;
+  if(spaceNeeded > window.innerHeight){
+    cardTop = Math.max(8, cardTop - (spaceNeeded - window.innerHeight));
+  }
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'lp-overlay';
+  overlay.addEventListener('pointerdown', e => {
+    if(e.target === overlay) closeLeadContextMenu();
+  });
+
+  // Floating clone of the actual card
+  const floatCard = cardEl.cloneNode(true);
+  floatCard.id = 'lp-float-card';
+  floatCard.removeAttribute('onclick');
+  floatCard.style.left = rect.left + 'px';
+  floatCard.style.top  = cardTop + 'px';
+  floatCard.style.width = rect.width + 'px';
+
+  // Action menu
+  const isUnread = lead._sbId && _unreadLeadIds.has(lead._sbId);
+  const menu = document.createElement('div');
+  menu.id = 'lp-menu';
+  menu.style.left  = rect.left + 'px';
+  menu.style.top   = (cardTop + rect.height + GAP) + 'px';
+  menu.style.width = rect.width + 'px';
+  menu.innerHTML = `
+    ${!isUnread ? `<button class="lp-menu-row" onclick="lpMarkUnread('${leadId.replace(/'/g,"\\'")}')">
+      <span>Segna come non letto</span>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button><div class="lp-sep"></div>` : ''}
+    <button class="lp-menu-row lp-menu-row-del" onclick="lpDelete('${leadId.replace(/'/g,"\\'")}')">
+      <span>Elimina</span>
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+    </button>`;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(floatCard);
+  document.body.appendChild(menu);
+
+  // Keyboard dismiss
+  document._lpKey = e => { if(e.key==='Escape') closeLeadContextMenu(); };
+  document.addEventListener('keydown', document._lpKey);
+
+  // Animate in next frame
+  requestAnimationFrame(() => {
+    overlay.classList.add('lp-visible');
+    floatCard.classList.add('lp-visible');
+    menu.classList.add('lp-visible');
+  });
+}
+
+function closeLeadContextMenu(cb){
+  const overlay = document.getElementById('lp-overlay');
+  const floatCard = document.getElementById('lp-float-card');
+  const menu = document.getElementById('lp-menu');
+  if(!overlay){ _ctxMenuOpen = false; if(cb) cb(); return; }
+  if(document._lpKey){ document.removeEventListener('keydown', document._lpKey); document._lpKey = null; }
+  overlay.classList.remove('lp-visible');
+  if(floatCard) floatCard.classList.remove('lp-visible');
+  if(menu) menu.classList.remove('lp-visible');
+  setTimeout(() => {
+    overlay?.remove(); floatCard?.remove(); menu?.remove();
+    _ctxMenuOpen = false;
+    if(cb) cb();
+  }, 230);
+}
+
+function lpMarkUnread(leadId){
+  closeLeadContextMenu(() => {
+    const lead = (ST.leads||[]).find(l => l.id === leadId);
+    if(!lead || !lead._sbId) return;
+    _unreadLeadIds.add(lead._sbId);
+    // Immediate UI update
+    const card = document.getElementById('lc-' + leadId);
+    if(card){
+      card.classList.add('lc-unread');
+      const right = card.querySelector('.lc-toprow-right');
+      if(right && !right.querySelector('.lc-unread-dot')){
+        const dot = document.createElement('span');
+        dot.className = 'lc-unread-dot';
+        right.appendChild(dot);
+      }
+    }
+    sbRpc('mark_lead_unread', { p_lead_id: lead._sbId });
+    syncUnreadBadge();
+  });
+}
+
+function lpDelete(leadId){
+  closeLeadContextMenu(() => {
+    _vlepId = leadId;
+    vlepDelete();
+  });
+}
+
 async function processDeepLink(){
   const q = new URLSearchParams(location.search);
   const leadId = q.get('lead');
@@ -3861,6 +4008,7 @@ function lRender(){
   }
   lUpdateTabCount();
   if(_vlepId){const c=document.getElementById('lc-'+_vlepId);if(c)c.classList.add('lc-selected');}
+  lAttachLongPress();
 }
 
 function lRenderPipeline(leads,grid){
@@ -4007,6 +4155,7 @@ let _vlepId=null;
 function lDesktop(){return window.innerWidth>=1024;}
 
 function openLeadPanel(id){
+  if(_ctxMenuOpen) return; // long-press menu is active — suppress the post-release click
   const lead=(ST.leads||[]).find(l=>l.id===id);if(!lead)return;
   _vlepId=id;
   // Identity

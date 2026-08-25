@@ -3043,7 +3043,18 @@ function route(){
   const s = q.get('s');
   const a = q.get('admin');
   if(s) showCard(s);
-  else if(a!==null) { if(_adminAuthenticated === true){ showAdmin(); sbLoadLeads(); } else if(_adminAuthenticated === false){ askAdmin(); } }
+  else if(a!==null) {
+    if(_adminAuthenticated === true){
+      const _deepLead = q.get('lead');
+      showAdmin();
+      sbLoadLeads().then(() => {
+        if(_deepLead){
+          const _dl = (ST.leads||[]).find(l => l._sbId === _deepLead || l.id === _deepLead);
+          if(_dl){ vaTab('leads'); setTimeout(() => openLeadPanel(_dl.id), 150); }
+        }
+      });
+    } else if(_adminAuthenticated === false){ askAdmin(); }
+  }
   else showLanding();
   // nav scroll state (spec §16)
   window.addEventListener('scroll',()=>{

@@ -3526,6 +3526,7 @@ async function savePhotos(){
 // ════════════════════════════════════════════════════════════════
 function showAdmin(){
   console.trace('[Auth diagnostic] SHOW ADMIN');
+  if(!location.search.includes('admin')) history.pushState(null,'','/?admin');
   hide('vl');hide('vc');show('va');
   document.title='Admin — Link Milano';
   _vaTab='props';

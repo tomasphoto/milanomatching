@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25r -->
+<!-- build: 2026-08-25s -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -2805,6 +2805,32 @@ async function loadUnreadIds(){
   } catch(e){ console.warn('[Unread] loadUnreadIds',e.message); }
 }
 
+async function loadLastSync(){
+  if(_adminAuthenticated !== true) return;
+  try {
+    const runs = await sbRpc('admin_get_last_import_run',{});
+    const run = Array.isArray(runs) ? runs[0] : null;
+    if(!run) return;
+    const bar = document.getElementById('last-sync-bar');
+    const timeEl = document.getElementById('last-sync-time');
+    const iconEl = document.getElementById('last-sync-icon');
+    if(!bar || !timeEl || !iconEl) return;
+    const d = new Date(run.started_at);
+    timeEl.textContent = d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+    const minutesAgo = (Date.now() - d.getTime()) / 60000;
+    if(run.status === 'ok'){
+      iconEl.textContent = '✓'; iconEl.style.color = '#34c759';
+    } else if(run.status === 'error'){
+      iconEl.textContent = '⚠'; iconEl.style.color = '#ff3b30';
+    } else if(run.status === 'running' && minutesAgo > 15){
+      iconEl.textContent = '!'; iconEl.style.color = '#ff9500';
+    } else {
+      iconEl.textContent = '·'; iconEl.style.color = 'var(--text-2)';
+    }
+    bar.style.display = '';
+  } catch(e){ /* silent */ }
+}
+
 async function syncUnreadBadge(){
   if(_adminAuthenticated !== true) return;
   try {
@@ -3336,6 +3362,7 @@ function route(){
       sbLoadLeads().then(() => {
         loadUnreadIds().then(() => { lRender(); syncUnreadBadge(); });
         processDeepLink();
+        loadLastSync();
       });
     } else if(_adminAuthenticated === false){ askAdmin(); }
   }
@@ -5785,6 +5812,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && _adminAuthenticated === true) {
     processDeepLink();
     syncUnreadBadge();
+    loadLastSync();
   }
 });
 </script>

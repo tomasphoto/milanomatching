@@ -1114,16 +1114,26 @@
     }
     .vaep-addr-in:focus{border-bottom-color:var(--accent);}
     .vaep-quick{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;align-items:flex-end;}
-    .vaep-field{display:flex;flex-direction:column;gap:6px;}
-    /* spec §43 */
-    .vaep-lbl{font-size:13px;font-weight:500;color:var(--text);}
-    .vaep-in{
-      height:44px;padding:0 12px;
-      background:var(--surface);border:1px solid rgba(23,23,22,.12);color:var(--text);
-      font-size:14px;border-radius:10px;outline:none;
-      transition:border-color var(--motion-ui),box-shadow var(--motion-ui);
+    .vaep-field{display:flex;flex-direction:column;gap:3px;}
+    /* Field labels — small muted caps */
+    .vaep-lbl,.vaep-label{
+      font-size:11px;font-weight:600;letter-spacing:.055em;
+      text-transform:uppercase;color:var(--textdim);
     }
-    .vaep-in:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(38,57,47,.10);}
+    /* Fields — text-like at rest, bottom line on focus */
+    .vaep-in{
+      height:auto;min-height:26px;padding:2px 0;
+      background:none;border:none;
+      border-bottom:1px solid transparent;
+      color:var(--text);font-size:15px;
+      border-radius:0;outline:none;
+      width:100%;box-sizing:border-box;
+      font-family:'Inter',sans-serif;
+      transition:border-bottom-color 140ms;
+    }
+    .vaep-in:focus{border-bottom-color:rgba(0,0,0,.18);}
+    /* Native iOS picker for selects */
+    select.vaep-in{-webkit-appearance:auto;appearance:auto;cursor:pointer;}
     .vaep-price-row{
       display:flex;align-items:baseline;gap:10px;
       margin-bottom:32px;padding-bottom:28px;border-top:1px solid var(--border);
@@ -1138,13 +1148,15 @@
     .vaep-price-unit{font-size:14px;color:var(--text-secondary);}
     .vaep-sec-hd{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;}
     .vaep-desc-in{
-      width:100%;max-width:660px;min-height:120px;box-sizing:border-box;
-      background:var(--surface);border:1px solid rgba(23,23,22,.12);color:var(--text);
-      padding:12px;font-size:14px;line-height:1.55;
-      border-radius:10px;outline:none;resize:vertical;margin-bottom:40px;display:block;
-      transition:border-color var(--motion-ui),box-shadow var(--motion-ui);
+      width:100%;max-width:660px;min-height:72px;box-sizing:border-box;
+      background:none;border:none;border-bottom:1px solid transparent;
+      color:var(--text);padding:2px 0;
+      font-size:15px;line-height:1.6;font-family:'Inter',sans-serif;
+      border-radius:0;outline:none;resize:none;
+      margin-bottom:32px;display:block;
+      transition:border-bottom-color 140ms;
     }
-    .vaep-desc-in:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(38,57,47,.10);}
+    .vaep-desc-in:focus{border-bottom-color:rgba(0,0,0,.18);}
     .vaep-cara-grid{
       display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:0;
       border-top:1px solid var(--border);border-left:1px solid var(--border);

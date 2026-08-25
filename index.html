@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25ak -->
+<!-- build: 2026-08-25al -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -3243,11 +3243,9 @@ async function sbLoadLeads(){
     let changed = false, newCount = 0;
     sbLeads.forEach(sl => {
       if(!sl.id) return;
-      // If locally marked as deleted, skip re-import and retry DB delete
+      // If locally marked as deleted, block re-import and retry DB delete
       if(_tombstones.has(sl.id)){
-        sbRpc('admin_delete_lead',{p_sb_id:sl.id}).then(ok=>{
-          if(ok!==false){ ST.deletedSbIds=(ST.deletedSbIds||[]).filter(id=>id!==sl.id); stSave(); }
-        });
+        sbRpc('admin_delete_lead',{p_sb_id:sl.id}); // retry; tombstone cleanup deferred below
         return;
       }
       // Check if already tracked by _sbId
@@ -3292,6 +3290,14 @@ async function sbLoadLeads(){
         changed = true;
       }
     });
+    // Tombstone cleanup: if a tombstoned sbId is no longer returned by Supabase,
+    // the row was truly deleted — safe to remove the tombstone entry
+    if(ST.deletedSbIds && ST.deletedSbIds.length){
+      const sbIdSet = new Set(sbLeads.map(sl=>sl.id));
+      const before = ST.deletedSbIds.length;
+      ST.deletedSbIds = ST.deletedSbIds.filter(id => sbIdSet.has(id));
+      if(ST.deletedSbIds.length !== before) changed = true;
+    }
     if(changed){
       stSave();
       if(newCount > 0) toast(`✓ ${newCount} lead${newCount>1?'s':''} caricati da Supabase`, 3000);

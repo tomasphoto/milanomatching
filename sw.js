@@ -1,7 +1,7 @@
 // Link Milano — Service Worker
 // Caches the app shell for fast loading
 
-const CACHE = 'linkmi-v1';
+const CACHE = 'linkmi-v2';
 const SHELL = [
   '/',
   '/icon-192.png',

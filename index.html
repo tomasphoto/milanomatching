@@ -753,16 +753,53 @@
       position:relative;overflow-y:auto;
     }
 
+    /* Sticky page header wrapper */
+    .va-sticky-hd{
+      position:sticky;top:0;z-index:30;
+      background:var(--bg);
+    }
+
     /* Page header */
     .va-page-hd{
-      display:flex;align-items:flex-start;justify-content:space-between;
+      display:flex;align-items:center;justify-content:space-between;
       padding:32px 36px 20px;flex-shrink:0;flex-wrap:wrap;gap:16px;
     }
+    .va-page-hd-left{display:flex;align-items:center;gap:8px;}
     .va-page-title{
       font-size:32px;font-weight:600;letter-spacing:-.035em;
       color:var(--text);line-height:1.1;
     }
     .va-page-sub{font-size:14px;color:var(--text-secondary);margin-top:6px;}
+
+    /* Collapse chevron button */
+    .va-collapse-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:36px;height:36px;margin-top:2px;
+      background:none;border:none;cursor:pointer;
+      color:var(--textdim,#999);flex-shrink:0;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .va-collapse-btn svg{
+      transition:transform 320ms cubic-bezier(.4,0,.2,1);
+    }
+    .va-collapse-btn.va-collapsed svg{
+      transform:rotate(-90deg);
+    }
+
+    /* Filter bar — collapsible */
+    .va-filters{
+      overflow:hidden;
+      max-height:700px;
+      opacity:1;
+      transition:max-height 380ms cubic-bezier(.4,0,.2,1),
+                 opacity 220ms,
+                 padding-bottom 320ms cubic-bezier(.4,0,.2,1);
+    }
+    .va-filters.va-collapsed{
+      max-height:0;
+      opacity:0;
+      padding-bottom:0 !important;
+    }
 
     /* Primary button (admin) */
     .va-btn-primary{

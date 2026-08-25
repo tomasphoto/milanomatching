@@ -2300,6 +2300,10 @@
     <!-- Fields grid -->
     <div class="vaep-sec-hd">Contatti &amp; Dettagli</div>
     <div class="vlep-grid">
+      <div class="vaep-field" style="grid-column:1/-1">
+        <div class="vaep-label">Profilo</div>
+        <input class="vaep-in" id="vlep-profilo" type="text" placeholder="es. Privato, Coppia&#8230;" oninput="vlepSyncMeta()">
+      </div>
       <div class="vaep-field">
         <div class="vaep-label">Telefono</div>
         <input class="vaep-in" id="vlep-tel" type="tel" placeholder="+39&#8230;">
@@ -4297,7 +4301,7 @@ function openLeadPanel(id){
   document.getElementById('vlep-email').value=lead.email||'';
   document.getElementById('vlep-budget').value=lead.budgetMax||'';
   document.getElementById('vlep-note').value=lead.note||'';
-  document.getElementById('vlep-qual').textContent=lead.qual||'—';
+  const qualEl=document.getElementById('vlep-qual');if(qualEl)qualEl.textContent=lead.qual||'—';
   // Ingresso
   document.getElementById('vlep-ingresso').value=lead.ingresso||'Flessibile';
   // Rooms toggles
@@ -4367,11 +4371,10 @@ function vlepSetStatus(status){
 
 /* ── Lead panel header helpers ──────────────────────────── */
 function vlepUpdateMeta(){
-  const nome=(document.getElementById('vlep-nome').value||'').trim();
-  document.getElementById('vlep-hd-name').textContent=nome||'—';
+  // Name input in header shows itself — no separate display element to sync
   const stSel=document.getElementById('vlep-status');
   const statusLabel=stSel&&stSel.selectedIndex>=0?stSel.options[stSel.selectedIndex].text:'—';
-  const profilo=(document.getElementById('vlep-profilo').value||'').trim();
+  const profilo=(document.getElementById('vlep-profilo')?document.getElementById('vlep-profilo').value||'':'').trim();
   const meta=profilo?statusLabel+' · '+profilo:statusLabel;
   const disp=document.getElementById('vlep-status-display');
   if(disp)disp.textContent=meta||'—';
@@ -4379,9 +4382,6 @@ function vlepUpdateMeta(){
   document.querySelectorAll('#vlep-status-pop .vlep-stat-opt').forEach(el=>{
     el.classList.toggle('active',el.dataset.val===curVal);
   });
-}
-function vlepSyncHdName(v){
-  document.getElementById('vlep-hd-name').textContent=v.trim()||'—';
 }
 function vlepSyncMeta(){vlepUpdateMeta();}
 function toggleVlepStatusPop(){

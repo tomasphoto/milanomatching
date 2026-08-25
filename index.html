@@ -1185,6 +1185,19 @@
     }
     .vp-subtab:hover{color:var(--text);}
     .vp-subtab.active{color:var(--accent);border-bottom-color:var(--accent);}
+    /* Icon wrapper for badge positioning */
+    .va-sb-ic-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+    /* Unread leads dot badge */
+    .va-leads-badge{
+      position:absolute;top:-5px;right:-8px;
+      min-width:15px;height:15px;padding:0 3.5px;
+      background:#FF3B30;color:#fff;
+      font-size:9px;font-weight:700;font-family:'Inter',sans-serif;
+      border-radius:999px;line-height:1;
+      display:inline-flex;align-items:center;justify-content:center;
+      box-sizing:border-box;pointer-events:none;
+    }
+    .va-leads-badge.hidden{display:none;}
     .va-tab-n{
       display:inline-flex;align-items:center;justify-content:center;
       background:var(--bg-soft);color:var(--text-tertiary);
@@ -1767,11 +1780,11 @@
       .va-sb-brand{display:none;}
       .va-sb-nav{
         flex-direction:row;flex:1;gap:0;
-        padding:calc(8px + env(safe-area-inset-bottom,0px)) 0 8px;
+        padding:5px 0 calc(5px + env(safe-area-inset-bottom,0px));
       }
       .va-sb-footer{display:none;}
       .va-sb-item{
-        flex:1;flex-direction:column;gap:3px;height:auto;padding:6px 8px;
+        flex:1;flex-direction:column;gap:2px;height:auto;padding:4px 8px;
         font-size:11px;border-radius:0;justify-content:center;
         text-align:center;
       }
@@ -1986,8 +1999,11 @@
         Proprietà
       </button>
       <button class="va-sb-item" id="vsb-leads" onclick="vaTab('leads')">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Lead <span class="va-tab-n" id="vtab-leads-n"></span>
+        <span class="va-sb-ic-wrap">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="va-leads-badge hidden" id="va-leads-badge"></span>
+        </span>
+        Lead
       </button>
     </div>
     <div class="va-sb-footer">
@@ -2986,6 +3002,7 @@ async function markLeadViewed(lead){
   if(!lead?._sbId || !_unreadLeadIds.has(lead._sbId)) return;
   // Optimistic local update — immediately reflect read state in UI
   _unreadLeadIds.delete(lead._sbId);
+  updateLeadsBadge();
   const card = document.getElementById('lc-'+lead.id);
   if(card){
     card.classList.remove('lc-unread');
@@ -4155,9 +4172,14 @@ function matchLead(lead){
 
 // ── Render ────────────────────────────────────────────────────
 function lUpdateTabCount(){
-  const n=(ST.leads||[]).filter(l=>l.status!=='chiuso'&&l.status!=='perso').length;
-  const el=document.getElementById('vtab-leads-n');
-  if(el)el.textContent=n?n:'';
+  updateLeadsBadge();
+}
+function updateLeadsBadge(){
+  const badge=document.getElementById('va-leads-badge');
+  if(!badge)return;
+  const n=_unreadLeadIds.size;
+  badge.textContent=n>99?'99+':n>0?String(n):'';
+  badge.classList.toggle('hidden',n===0);
 }
 
 function leadSortKey(l){

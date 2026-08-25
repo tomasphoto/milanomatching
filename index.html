@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25w -->
+<!-- build: 2026-08-25x -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -1965,9 +1965,8 @@
           <h1 class="va-page-title">Proprietà</h1>
           <p class="va-page-sub" id="va-count"></p>
         </div>
-        <button class="va-btn-primary" id="va-add-btn" onclick="vaAddClick()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Aggiungi
+        <button class="va-btn-add" id="va-add-btn" onclick="vaAddClick()" title="Aggiungi proprietà">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         </button>
       </div>
       <!-- Filter bar — glass toolbar surface -->
@@ -2069,12 +2068,17 @@
           <h1 class="va-page-title">Lead</h1>
           <p class="va-page-sub" id="la-count"></p>
         </div>
-        <div id="last-sync-bar" style="display:none;text-align:right;flex-shrink:0;">
-          <p style="font-size:11px;color:var(--text-2);margin:0 0 1px;">Ultimo sync</p>
-          <p style="font-size:12px;margin:0;display:flex;align-items:center;gap:4px;justify-content:flex-end;">
-            <span id="last-sync-time" style="color:var(--text-2);"></span>
-            <span id="last-sync-icon"></span>
-          </p>
+        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <div id="last-sync-bar" style="display:none;text-align:right;">
+            <p style="font-size:11px;color:var(--text-2);margin:0 0 1px;">Ultimo sync</p>
+            <p style="font-size:12px;margin:0;display:flex;align-items:center;gap:4px;justify-content:flex-end;">
+              <span id="last-sync-time" style="color:var(--text-2);"></span>
+              <span id="last-sync-icon"></span>
+            </p>
+          </div>
+          <button class="va-btn-add" onclick="openLeadAdd()" title="Aggiungi lead">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
         </div>
       </div>
       <div class="va-filters">
@@ -2762,6 +2766,7 @@ async function sbInsertLead(localId, d){
         phone:        d.tel          || null,
         email:        d.email        || null,
         profile:      d.profilo      || null,
+        source:       d.source       || 'Manuale',
         status:       SB_STATUS_MAP[d.status] || 'new',
         notes:        d.note         || null,
         budget_max:   d.budgetMax    || null,

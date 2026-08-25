@@ -23,6 +23,42 @@ self.addEventListener('activate', e => {
   );
 });
 
+// ── Push Notifications ───────────────────────────────────────
+self.addEventListener('push', e => {
+  const data = e.data?.json() ?? {};
+  const title = data.title || 'Link Milano';
+  const body  = data.body  || 'Nuovo lead ricevuto';
+  const count = data.badge || 0;
+  const url   = data.url   || '/?admin';
+
+  e.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon:  '/icon-192.png',
+      badge: '/icon-192.png',
+      data:  { url },
+      vibrate: [200, 100, 200]
+    }).then(() => {
+      if ('setAppBadge' in self.navigator) return self.navigator.setAppBadge(count);
+    })
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || '/?admin';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const client of list) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(url);
+    })
+  );
+});
+
 self.addEventListener('fetch', e => {
   // Network-first for HTML (always get latest), cache-first for assets
   const url = new URL(e.request.url);

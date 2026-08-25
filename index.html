@@ -1312,6 +1312,7 @@
     .lc-footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
     .lc-status-text{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary,var(--textdim));}
     .lc-budget-text{font-size:11px;color:var(--text-tertiary,var(--textdim));}
+    .lc-unread-dot{width:8px;height:8px;background:var(--accent,#0ea5e9);border-radius:50%;flex-shrink:0;margin-left:6px;}
     .lc-advance-btn{
       font-size:11px;font-weight:500;color:var(--text-secondary);
       background:none;border:none;cursor:pointer;padding:2px 0;
@@ -2717,6 +2718,64 @@ async function sbSyncLead(lead, localData){
   if(Object.keys(d).length) await sbRpc('admin_update_lead', { p_sb_id: lead._sbId, p_data: d });
 }
 
+// ── Unread / badge infrastructure ────────────────────────────
+// leadsReady resolves once sbLoadLeads() has populated ST.leads
+let _leadsReadyResolve;
+const _leadsReady = new Promise(r => { _leadsReadyResolve = r; });
+
+// Set of Supabase lead UUIDs that have never been opened
+let _unreadLeadIds = new Set();
+
+async function loadUnreadIds(){
+  if(!_adminPw) return;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/get_unread_lead_ids`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_admin_pw:_adminPw})
+    });
+    if(!r.ok) return;
+    const rows = await r.json();
+    _unreadLeadIds = new Set((rows||[]).map(row => row.id));
+  } catch(e){ console.warn('[Unread] loadUnreadIds',e.message); }
+}
+
+async function syncUnreadBadge(){
+  if(_adminAuthenticated !== true) return;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/get_unread_lead_count`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_admin_pw:_adminPw})
+    });
+    if(!r.ok) return;
+    const count = await r.json();
+    if('setAppBadge' in navigator){
+      count > 0 ? navigator.setAppBadge(count) : navigator.clearAppBadge();
+    }
+  } catch(e){ console.warn('[Unread] syncUnreadBadge',e.message); }
+}
+
+async function markLeadViewed(lead){
+  if(!lead?._sbId || !_unreadLeadIds.has(lead._sbId)) return;
+  // Optimistic local update
+  _unreadLeadIds.delete(lead._sbId);
+  const card = document.getElementById('lc-'+lead.id);
+  if(card) card.querySelector('.lc-unread-dot')?.remove();
+  // Persist + badge
+  await sbRpc('mark_lead_viewed',{p_lead_id:lead._sbId});
+  syncUnreadBadge();
+}
+
+async function processDeepLink(){
+  const q = new URLSearchParams(location.search);
+  const leadId = q.get('lead');
+  if(!leadId || _adminAuthenticated !== true) return;
+  await _leadsReady;
+  const lead = (ST.leads||[]).find(l => l._sbId === leadId || l.id === leadId);
+  if(lead){ vaTab('leads'); openLeadPanel(lead.id); }
+}
+
 async function sbLoadLeads(){
   try {
     const r = await fetch(`${SB_URL}/rest/v1/rpc/admin_get_leads`, {
@@ -2786,6 +2845,7 @@ async function sbLoadLeads(){
       if(va && !va.classList.contains('hidden')) lRender();
     }
   } catch(e){ console.warn('[SB] sbLoadLeads', e.message); }
+  _leadsReadyResolve(); // signal that ST.leads is populated
 }
 
 let ST = {
@@ -3045,13 +3105,10 @@ function route(){
   if(s) showCard(s);
   else if(a!==null) {
     if(_adminAuthenticated === true){
-      const _deepLead = q.get('lead');
       showAdmin();
       sbLoadLeads().then(() => {
-        if(_deepLead){
-          const _dl = (ST.leads||[]).find(l => l._sbId === _deepLead || l.id === _deepLead);
-          if(_dl){ vaTab('leads'); setTimeout(() => openLeadPanel(_dl.id), 150); }
-        }
+        loadUnreadIds().then(() => { lRender(); syncUnreadBadge(); });
+        processDeepLink();
       });
     } else if(_adminAuthenticated === false){ askAdmin(); }
   }
@@ -3797,9 +3854,10 @@ function lCard(lead, pipeline){
     :`<span class="lc-status-text">${st.label.toUpperCase()}</span>`;
   const footerRight=lead.budgetMax?`<span class="lc-budget-text">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:'';
 
+  const isUnread = lead._sbId && _unreadLeadIds.has(lead._sbId);
   return `<div class="lc${pipeline?' lc-pipeline':''}" id="lc-${id}" onclick="openLeadPanel('${eid}')">
   <div class="lc-toprow">
-    <div class="lc-name">${lead.nome}</div>
+    <div class="lc-name">${lead.nome}${isUnread?'<span class="lc-unread-dot"></span>':''}</div>
     ${dateText?`<div class="lc-date-text">${dateText}</div>`:''}
   </div>
   ${lead.profilo?`<div class="lc-profilo">${lead.profilo}</div>`:''}
@@ -3926,6 +3984,8 @@ function openLeadPanel(id){
   }
   // Matches
   vlepRenderMatches(lead);
+  // Mark as read (idempotent — only fires if not yet viewed)
+  markLeadViewed(lead);
   // Show panel
   if(lDesktop()&&_lcView==='list'){
     document.querySelectorAll('.lc').forEach(el=>el.classList.remove('lc-selected'));

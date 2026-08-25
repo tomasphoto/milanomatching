@@ -1448,12 +1448,19 @@
       transition:opacity 120ms;
     }
     .vlep-back-btn:active{opacity:.4;}
-    .vlep-hd-name{
+    /* Name — transparent editable input, looks like typography */
+    .vlep-hd-name-in{
       flex:1;min-width:0;
-      font-size:17px;font-weight:600;color:var(--text);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-      padding-right:8px;
+      font-size:17px;font-weight:600;letter-spacing:-.01em;
+      color:var(--text);font-family:'Inter',sans-serif;
+      background:none;border:none;outline:none;padding:0;margin:0;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      -webkit-appearance:none;cursor:text;
     }
+    .vlep-hd-name-in:focus{overflow:auto;text-overflow:clip;}
+    .vlep-hd-name-in::placeholder{color:var(--textdim);font-weight:400;}
+    /* Right icon cluster */
+    .vlep-hd-acts{display:flex;align-items:center;flex-shrink:0;margin-left:2px;}
     /* Status metadata row */
     .vlep-meta-row{
       position:relative;
@@ -2239,15 +2246,42 @@
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     <span>Seleziona un lead dalla lista</span>
   </div>
-  <!-- Sticky header: back chevron + name -->
+  <!-- Sticky header: ‹ Name ············ Phone  Sparkle  Person+ -->
   <div class="vlep-bar">
     <button class="vlep-back-btn" onclick="closeLeadPanel()" aria-label="Indietro">
-      <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 1 1 9 9 17"/></svg>
+      <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 1 1 9 9 17"/></svg>
     </button>
-    <span class="vlep-hd-name" id="vlep-hd-name">—</span>
+    <!-- Name — IS the canonical vlep-nome input; transparent in resting state -->
+    <input class="vlep-hd-name-in" id="vlep-nome" type="text"
+      placeholder="Nome lead"
+      spellcheck="false" autocorrect="off" autocapitalize="words"
+      oninput="vlepSyncMeta()">
     <!-- Hidden — kept for JS compatibility -->
     <select style="display:none" id="vlep-status" onchange="vlepSetStatus(this.value)"></select>
     <button style="display:none" id="vlep-tel-btn" onclick="vlepCall()"></button>
+    <!-- Action icon cluster -->
+    <div class="vlep-hd-acts">
+      <button class="vlep-ico-btn" id="vlep-tel-btn-m" onclick="vlepCall()" title="Chiama">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.32a2 2 0 0 1 1.95-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </button>
+      <button class="vlep-ico-btn" onclick="vlepMsg()" title="Genera messaggio AI">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3 13.5 8.5 19 10 13.5 11.5 12 17 10.5 11.5 5 10 10.5 8.5Z"/>
+          <path d="M19 2 19.7 4.3 22 5 19.7 5.7 19 8 18.3 5.7 16 5 18.3 4.3Z"/>
+        </svg>
+      </button>
+      <button class="vlep-ico-btn" onclick="saveContact(_vlepId)" title="Salva Contatto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+          <!-- + badge, upper-right of head -->
+          <line x1="18" y1="1" x2="18" y2="5.5"/>
+          <line x1="15.75" y1="3.25" x2="20.25" y2="3.25"/>
+        </svg>
+      </button>
+    </div>
   </div>
   <!-- Scrollable body -->
   <div class="vlep-body">
@@ -2261,34 +2295,6 @@
         <div class="vlep-stat-opt" data-val="proposta" onclick="vlepPickStatus('proposta')">Proposta<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
         <div class="vlep-stat-opt" data-val="chiuso" onclick="vlepPickStatus('chiuso')">Chiuso<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
         <div class="vlep-stat-opt" data-val="perso" onclick="vlepPickStatus('perso')">Perso<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
-      </div>
-    </div>
-    <!-- Bare outline action icons -->
-    <div class="vlep-icon-row">
-      <button class="vlep-ico-btn" id="vlep-tel-btn-m" onclick="vlepCall()" title="Chiama">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.32a2 2 0 0 1 1.95-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-        </svg>
-      </button>
-      <button class="vlep-ico-btn" onclick="vlepMsg()" title="Genera messaggio AI">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 3 13.5 8.5 19 10 13.5 11.5 12 17 10.5 11.5 5 10 10.5 8.5Z"/>
-          <path d="M19 2 19.7 4.3 22 5 19.7 5.7 19 8 18.3 5.7 16 5 18.3 4.3Z"/>
-        </svg>
-      </button>
-      <button class="vlep-ico-btn" onclick="saveContact(_vlepId)" title="Salva Contatto">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-      </button>
-    </div>
-    <!-- Identity (editable) -->
-    <div class="vlep-id-row">
-      <div class="vlep-qual-lg" id="vlep-qual">&#8212;</div>
-      <div class="vlep-id-info">
-        <input class="vlep-name-in" id="vlep-nome" type="text" placeholder="Nome lead" oninput="vlepSyncHdName(this.value)">
-        <input class="vlep-sub-in" id="vlep-profilo" type="text" placeholder="Profilo (es. Famiglia, Lavoratore&#8230;)" oninput="vlepSyncMeta()">
       </div>
     </div>
     <!-- Fields grid -->

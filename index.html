@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25d -->
+<!-- build: 2026-08-25e -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -3948,6 +3948,7 @@ function saveLeadPanel(){
     linkedProp:lead.linkedProp||''});
   vlepRenderMatches(lead);
   toast('✓ Lead aggiornato');
+  closeLeadPanel();
 }
 
 function vlepPropSearch(q){
@@ -4849,7 +4850,22 @@ async function saveAdminCard(){
 function vaepShare(){
   if(!_vaepK)return;
   const p=allP().find(x=>fk(x)===_vaepK);
-  if(p)openShare(_vaepK,p.addr);
+  if(!p)return;
+  const sharePage=SHARE_PAGES[_vaepK];
+  const ts=Math.floor(Date.now()/1000);
+  const url=sharePage
+    ? location.origin+'/'+sharePage+'?v='+ts
+    : location.origin+location.pathname+'?s='+enc(p)+'&v='+ts;
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(url).then(()=>toast('✓ Link copiato!')).catch(()=>_copyFallback(url));
+  } else { _copyFallback(url); }
+}
+function _copyFallback(url){
+  const inp=document.createElement('input');
+  inp.value=url;inp.style.position='fixed';inp.style.opacity='0';
+  document.body.appendChild(inp);inp.select();
+  try{document.execCommand('copy');toast('✓ Link copiato!');}catch(e){toast('Link: '+url,6000);}
+  document.body.removeChild(inp);
 }
 
 function vaepPhotos(){

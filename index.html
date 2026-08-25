@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25x -->
+<!-- build: 2026-08-25y -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -4462,37 +4462,55 @@ function openLeadAdd(){
   document.getElementById('m-lead-title').textContent='Aggiungi lead';
   document.getElementById('m-lead-sub').textContent='Inserisci i dati del cliente';
   document.getElementById('li-id').value='';
-  ['li-nome','li-profilo','li-tel','li-email','li-richiesta','li-note','li-zones'].forEach(id=>document.getElementById(id).value='');
+  ['li-nome','li-profilo','li-tel','li-email','li-note','li-prop-input','li-prop-link'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('li-budget').value='';
-  document.getElementById('li-stanze').value='';
   document.getElementById('li-ingresso').value='Flessibile';
-  document.getElementById('li-urg').value='Alta';
-  document.getElementById('li-qual').value='3';
   document.getElementById('li-status').value='nuovo';
+  document.querySelectorAll('#li-rooms .vlep-room-opt').forEach(el=>el.classList.remove('active'));
+  document.getElementById('li-prop-drop').classList.remove('open');
   openM('m-lead');
 }
 function openLeadEdit(id){
   openLeadPanel(id);
 }
+function liToggleRoom(el){el.classList.toggle('active');}
+function liPropSearch(q){
+  const drop=document.getElementById('li-prop-drop');
+  const qn=(q||'').trim().toLowerCase();
+  const props=allP();
+  const matches=qn
+    ?props.filter(p=>p.addr.toLowerCase().includes(qn)||p.g.toLowerCase().includes(qn)||(RL[p.st]||'').toLowerCase().includes(qn)||String(p.price).includes(qn)||(fk(p).split('::')[2]||'').toLowerCase().includes(qn))
+    :props.slice(0,40);
+  drop.innerHTML=matches.slice(0,25).map(p=>{
+    const k=fk(p);const rl=p.st>=5?'5+ locali':(RL[p.st]||'');const pid=k.split('::')[2]||'';
+    const label=`${p.addr}${pid?' ('+pid+')':''} · €${p.price.toLocaleString('it-IT')}/mese`;
+    const ek=k.replace(/\\/g,'\\\\').replace(/'/g,"\\'");const el=label.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<div class="vlep-prop-opt" tabindex="-1" onmousedown="liPropSelect('${ek}','${el}')">
+      <div class="vlep-prop-opt-addr">${p.addr} <span style="color:var(--textdim);font-size:10px">${pid}</span></div>
+      <div class="vlep-prop-opt-meta">${rl}${p.mq?' · '+p.mq+'mq':''} · €${p.price.toLocaleString('it-IT')}/mese · ${p.g}</div>
+    </div>`;
+  }).join('')+(matches.length===0?'<div style="padding:12px;font-size:12px;color:var(--textdim)">Nessun risultato</div>':'');
+  drop.classList.add('open');
+}
+function liPropSelect(key,label){
+  document.getElementById('li-prop-link').value=key;
+  document.getElementById('li-prop-input').value=label;
+  document.getElementById('li-prop-drop').classList.remove('open');
+}
 function saveLead(){
   const id=document.getElementById('li-id').value;
-  const stanze=document.getElementById('li-stanze').value
-    .split(/[,\s]+/).map(Number).filter(n=>n>0&&n<=9);
-  const zones=document.getElementById('li-zones').value
-    .split(',').map(s=>s.trim()).filter(Boolean);
+  const stanze=[...document.querySelectorAll('#li-rooms .vlep-room-opt.active')].map(el=>+el.dataset.val);
   const d={
-    nome:     document.getElementById('li-nome').value.trim(),
-    profilo:  document.getElementById('li-profilo').value.trim(),
-    tel:      document.getElementById('li-tel').value.trim(),
-    email:    document.getElementById('li-email').value.trim(),
-    budgetMax:+document.getElementById('li-budget').value||0,
-    stanze, zones,
-    ingresso: document.getElementById('li-ingresso').value.trim(),
-    urg:      document.getElementById('li-urg').value,
-    qual:     +document.getElementById('li-qual').value||3,
-    status:   document.getElementById('li-status').value,
-    richiesta:document.getElementById('li-richiesta').value.trim(),
-    note:     document.getElementById('li-note').value.trim(),
+    nome:       document.getElementById('li-nome').value.trim(),
+    profilo:    document.getElementById('li-profilo').value.trim(),
+    tel:        document.getElementById('li-tel').value.trim(),
+    email:      document.getElementById('li-email').value.trim(),
+    budgetMax:  +document.getElementById('li-budget').value||0,
+    stanze,
+    ingresso:   document.getElementById('li-ingresso').value,
+    status:     document.getElementById('li-status').value,
+    linkedProp: document.getElementById('li-prop-link').value||'',
+    note:       document.getElementById('li-note').value.trim(),
   };
   if(!d.nome){toast('Inserisci almeno il nome');return;}
   if(!ST.leads)ST.leads=[];

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25p -->
+<!-- build: 2026-08-25q -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -2872,6 +2872,8 @@ function openLeadContextMenu(leadId, cardEl){
   const lead = (ST.leads||[]).find(l => l.id === leadId);
   if(!lead) return;
   _ctxMenuOpen = true;
+  // Kill any text selection iOS made during the long-press hold
+  window.getSelection()?.removeAllRanges();
 
   const rect = cardEl.getBoundingClientRect();
   const MENU_H = 54 + 1 + 54; // two rows + separator

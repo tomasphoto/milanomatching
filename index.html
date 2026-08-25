@@ -1432,30 +1432,80 @@
       position:fixed;inset:0;z-index:400;
       background:var(--bg);display:flex;flex-direction:column;overflow:hidden;
     }
+    /* Lead panel — sticky header */
     .vlep-bar{
-      display:flex;align-items:center;gap:10px;
-      padding:14px 24px;background:var(--surface);
-      border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:nowrap;
+      display:flex;align-items:center;gap:4px;
+      padding:12px 6px 12px 4px;
+      background:var(--bg);
+      border-bottom:1px solid var(--border);flex-shrink:0;
     }
-    /* mobile-first: bar acts hidden by default, shown on desktop */
-    .vlep-bar-acts{display:none;}
-    .vlep-mob-acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
-    .vlep-act-btn{
-      flex:1;min-width:0;height:52px;padding:0;
+    .vlep-back-btn{
       display:inline-flex;align-items:center;justify-content:center;
+      width:44px;height:44px;flex-shrink:0;
+      background:none;border:none;cursor:pointer;
+      color:var(--text);
+      -webkit-tap-highlight-color:transparent;
+      transition:opacity 120ms;
+    }
+    .vlep-back-btn:active{opacity:.4;}
+    .vlep-hd-name{
+      flex:1;min-width:0;
+      font-size:17px;font-weight:600;color:var(--text);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      padding-right:8px;
+    }
+    /* Status metadata row */
+    .vlep-meta-row{
+      position:relative;
+      display:flex;align-items:center;
+      margin-bottom:14px;
+    }
+    .vlep-meta-btn{
+      background:none;border:none;padding:4px 0;cursor:pointer;
+      font-size:13px;color:var(--textdim);font-family:'Inter',sans-serif;
+      letter-spacing:.01em;
+      -webkit-tap-highlight-color:transparent;
+      transition:opacity 120ms;
+    }
+    .vlep-meta-btn:active{opacity:.5;}
+    /* Status popover */
+    .vlep-status-pop{
+      position:absolute;top:calc(100% + 6px);left:0;
       background:var(--surface);border:1px solid var(--border);
-      color:var(--text-secondary);
-      border-radius:var(--radius-md);cursor:pointer;
-      transition:border-color var(--motion-ui),color var(--motion-ui);
+      border-radius:var(--radius-md);
+      box-shadow:0 8px 28px rgba(0,0,0,.13);
+      min-width:170px;overflow:hidden;z-index:60;
     }
-    @media(hover:hover) and (pointer:fine){.vlep-act-btn:hover{border-color:var(--border-strong);color:var(--text);}}
-    .vlep-status-sel{
-      background:var(--surface-soft);border:1px solid var(--border);color:var(--text);
-      padding:7px 12px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;
-      border-radius:var(--radius-sm);cursor:pointer;min-width:150px;
-      transition:border-color var(--motion-ui) var(--ease-premium);
+    .vlep-status-pop.hidden{display:none;}
+    .vlep-stat-opt{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:11px 16px;
+      font-size:14px;color:var(--text);font-family:'Inter',sans-serif;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
+      transition:background 80ms;
     }
-    .vlep-status-sel:focus{outline:none;border-color:var(--accent);}
+    .vlep-stat-opt:active,.vlep-stat-opt:hover{background:var(--surface-soft);}
+    .vlep-stat-check{
+      width:16px;height:16px;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;flex-shrink:0;
+    }
+    .vlep-stat-opt.active .vlep-stat-check{opacity:1;}
+    /* Bare icon action row */
+    .vlep-icon-row{
+      display:flex;align-items:center;gap:0;
+      margin-bottom:22px;
+    }
+    .vlep-ico-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:44px;height:44px;
+      background:none;border:none;cursor:pointer;
+      color:#6e6560;
+      -webkit-tap-highlight-color:transparent;
+      transition:opacity 120ms,transform 120ms;
+    }
+    .vlep-ico-btn:active{opacity:.4;transform:scale(.93);}
     .vlep-body{flex:1;overflow-y:auto;padding:32px 40px 60px;}
     .vlep-id-row{display:flex;align-items:flex-start;gap:20px;margin-bottom:28px;}
     /* score circle removed per spec §40; replaced with score bar inline */
@@ -1749,8 +1799,6 @@
         z-index:10 !important;border-left:1px solid var(--border);
       }
       #vl-ep.vl-split-active .vaep-close{display:none;}
-      .vlep-bar-acts{display:flex;gap:8px;align-items:center;}
-      .vlep-mob-acts{display:none;}
       .lc.lc-selected{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface);}
       #vl-ep-empty{
         position:absolute;inset:0;background:var(--bg);z-index:5;
@@ -2191,17 +2239,15 @@
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.3"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     <span>Seleziona un lead dalla lista</span>
   </div>
-  <!-- Top bar -->
+  <!-- Sticky header: back chevron + name -->
   <div class="vlep-bar">
-    <button class="vaep-close" onclick="closeLeadPanel()">&#10005;&nbsp;&nbsp;Chiudi</button>
-    <select class="vlep-status-sel" id="vlep-status" onchange="vlepSetStatus(this.value)"></select>
-    <div style="flex:1"></div>
-    <!-- Desktop-only actions -->
-    <div class="vlep-bar-acts">
-      <button class="vaep-btn" id="vlep-tel-btn" style="opacity:.45" onclick="vlepCall()">&#9990;&#65039; &#8212;</button>
-      <button class="vaep-btn" onclick="vlepMsg()">Messaggio</button>
-      <button class="vaep-btn" onclick="saveContact(_vlepId)">Salva Contatto</button>
-    </div>
+    <button class="vlep-back-btn" onclick="closeLeadPanel()" aria-label="Indietro">
+      <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 1 1 9 9 17"/></svg>
+    </button>
+    <span class="vlep-hd-name" id="vlep-hd-name">—</span>
+    <!-- Hidden — kept for JS compatibility -->
+    <select style="display:none" id="vlep-status" onchange="vlepSetStatus(this.value)"></select>
+    <button style="display:none" id="vlep-tel-btn" onclick="vlepCall()"></button>
   </div>
   <!-- Scrollable body -->
   <div class="vlep-body">

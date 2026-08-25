@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25m -->
+<!-- build: 2026-08-25n -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -1300,7 +1300,7 @@
 
     /* ── Redesigned lead card ────────────────────────────────── */
     .lc-toprow{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
-    .lc-date-text{font-size:11px;color:var(--text-tertiary,var(--textdim));white-space:nowrap;margin-left:8px;flex-shrink:0;padding-top:2px;}
+    .lc-date-text{font-size:11px;color:var(--text-tertiary,var(--textdim));white-space:nowrap;flex-shrink:0;}
     .lc-prop-text{font-size:11px;color:var(--text-tertiary,var(--textdim));letter-spacing:.01em;margin-bottom:8px;}
     .lc-contact-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
     .lc-icon-btn{
@@ -1314,7 +1314,7 @@
     .lc-footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
     .lc-status-text{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-tertiary,var(--textdim));}
     .lc-budget-text{font-size:11px;color:var(--text-tertiary,var(--textdim));}
-    .lc-unread-dot{width:8px;height:8px;background:var(--accent,#0ea5e9);border-radius:50%;flex-shrink:0;margin-left:6px;}
+    .lc-unread-dot{width:10px;height:10px;background:#3b82f6;border-radius:50%;flex-shrink:0;}
     .lc-advance-btn{
       font-size:11px;font-weight:500;color:var(--text-secondary);
       background:none;border:none;cursor:pointer;padding:2px 0;
@@ -2760,11 +2760,14 @@ async function syncUnreadBadge(){
 
 async function markLeadViewed(lead){
   if(!lead?._sbId || !_unreadLeadIds.has(lead._sbId)) return;
-  // Optimistic local update
+  // Optimistic local update — immediately reflect read state in UI
   _unreadLeadIds.delete(lead._sbId);
   const card = document.getElementById('lc-'+lead.id);
-  if(card) card.querySelector('.lc-unread-dot')?.remove();
-  // Persist + badge
+  if(card){
+    card.classList.remove('lc-unread');
+    card.querySelector('.lc-unread-dot')?.remove();
+  }
+  // Persist to DB + sync badge
   await sbRpc('mark_lead_viewed',{p_lead_id:lead._sbId});
   syncUnreadBadge();
 }
@@ -3859,10 +3862,13 @@ function lCard(lead, pipeline){
   const footerRight=lead.budgetMax?`<span class="lc-budget-text">max €${lead.budgetMax.toLocaleString('it-IT')}</span>`:'';
 
   const isUnread = lead._sbId && _unreadLeadIds.has(lead._sbId);
-  return `<div class="lc${pipeline?' lc-pipeline':''}" id="lc-${id}" onclick="openLeadPanel('${eid}')">
+  return `<div class="lc${pipeline?' lc-pipeline':''}${isUnread?' lc-unread':''}" id="lc-${id}" onclick="openLeadPanel('${eid}')">
   <div class="lc-toprow">
-    <div class="lc-name">${lead.nome}${isUnread?'<span class="lc-unread-dot"></span>':''}</div>
-    ${dateText?`<div class="lc-date-text">${dateText}</div>`:''}
+    <div class="lc-name">${lead.nome}</div>
+    <div class="lc-toprow-right">
+      ${dateText?`<div class="lc-date-text">${dateText}</div>`:''}
+      ${isUnread?'<span class="lc-unread-dot"></span>':''}
+    </div>
   </div>
   ${lead.profilo?`<div class="lc-profilo">${lead.profilo}</div>`:''}
   ${propText?`<div class="lc-prop-text">${propText}</div>`:''}

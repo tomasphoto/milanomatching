@@ -2853,7 +2853,7 @@ let _adminPw = null;       // set on admin login
 let _adminAuthenticated = null;
 
 async function sbRpc(fn, params){
-  if(!_adminPw) return false;
+  if(!_adminPw) return {ok:false, error:'no password'};
   try {
     const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
       method: 'POST',
@@ -2861,16 +2861,19 @@ async function sbRpc(fn, params){
       body: JSON.stringify({ p_admin_pw: _adminPw, ...params })
     });
     if(!r.ok){
-      const t=await r.text();
-      console.warn('[SB]', fn, r.status, t.slice(0,200));
+      const text = await r.text();
+      console.warn('[SB]', fn, r.status, text.slice(0,200));
       toast('⚠ Errore Supabase ' + r.status + ' — ' + fn, 5000);
-      return false;
+      return {ok:false, status:r.status, error:text};
     }
-    return true;
+    const text = await r.text();
+    let data = null;
+    if(text){ try{ data = JSON.parse(text); } catch{ data = text; } }
+    return {ok:true, data};
   } catch(e){
     console.warn('[SB]', fn, e.message);
     toast('⚠ Errore di rete: ' + e.message, 4000);
-    return false;
+    return {ok:false, error:String(e)};
   }
 }
 

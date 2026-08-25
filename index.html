@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25al -->
+<!-- build: 2026-08-25am -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -3012,8 +3012,8 @@ async function loadUnreadIds(){
 async function loadLastSync(){
   if(_adminAuthenticated !== true) return;
   try {
-    const runs = await sbRpc('admin_get_last_import_run',{});
-    const run = Array.isArray(runs) ? runs[0] : null;
+    const res = await sbRpc('admin_get_last_import_run',{});
+    const run = res.ok && Array.isArray(res.data) ? res.data[0] : null;
     if(!run) return;
     const bar = document.getElementById('last-sync-bar');
     const timeEl = document.getElementById('last-sync-time');
@@ -3236,6 +3236,7 @@ async function sbLoadLeads(){
     if(!r.ok) return;
     const sbLeads = await r.json();
     if(!Array.isArray(sbLeads)) return;
+    console.log('[Sync] admin_get_leads returned', sbLeads.length, 'leads');
     // Reverse status map: Supabase English → App Italian
     const SB_STATUS_REV = {
       'new':'nuovo','contacted':'contattato','viewing_scheduled':'visita',
@@ -3293,12 +3294,26 @@ async function sbLoadLeads(){
         changed = true;
       }
     });
+    // Server-authoritative reconciliation:
+    // Any local lead with a _sbId that the server no longer returns was deleted elsewhere.
+    // Purely local leads (no _sbId) are never touched.
+    const serverIds = new Set(sbLeads.map(sl => sl.id));
+    const beforeCount = (ST.leads||[]).length;
+    ST.leads = (ST.leads||[]).filter(local => {
+      if(!local._sbId) return true;           // locally created, not yet in DB — keep
+      return serverIds.has(local._sbId);      // keep only if server still has it
+    });
+    const removed = beforeCount - ST.leads.length;
+    if(removed > 0){
+      console.log('[Sync] Removed', removed, 'local lead(s) absent from server');
+      changed = true;
+    }
+
     // Tombstone cleanup: if a tombstoned sbId is no longer returned by Supabase,
     // the row was truly deleted — safe to remove the tombstone entry
     if(ST.deletedSbIds && ST.deletedSbIds.length){
-      const sbIdSet = new Set(sbLeads.map(sl=>sl.id));
       const before = ST.deletedSbIds.length;
-      ST.deletedSbIds = ST.deletedSbIds.filter(id => sbIdSet.has(id));
+      ST.deletedSbIds = ST.deletedSbIds.filter(id => serverIds.has(id));
       if(ST.deletedSbIds.length !== before) changed = true;
     }
     if(changed){
@@ -4543,24 +4558,35 @@ function vlepMsg(){
   openMsgModal(_vlepId);
 }
 
-function vlepDelete(){
-  if(!_vlepId)return;
-  if(!confirm('Eliminare questo lead?'))return;
-  const _delLead=(ST.leads||[]).find(l=>l.id===_vlepId);
-  // Remove locally
-  ST.leads=(ST.leads||[]).filter(l=>l.id!==_vlepId);
-  // Tombstone: blocks re-import on this device until Supabase confirms deletion
-  // Cleanup happens in sbLoadLeads once the lead disappears from admin_get_leads
-  if(_delLead?._sbId){
-    if(!ST.deletedSbIds) ST.deletedSbIds=[];
-    if(!ST.deletedSbIds.includes(_delLead._sbId)) ST.deletedSbIds.push(_delLead._sbId);
+async function vlepDelete(){
+  if(!_vlepId) return;
+  if(!confirm('Eliminare questo lead?')) return;
+  const _delLead = (ST.leads||[]).find(l => l.id === _vlepId);
+  const sbId = _delLead?._sbId || null;
+
+  // 1. Remove locally — keep UI responsive
+  ST.leads = (ST.leads||[]).filter(l => l.id !== _vlepId);
+
+  // 2. Tombstone — blocks re-import on this device
+  //    Cleanup deferred to sbLoadLeads once UUID absent from server
+  if(sbId){
+    if(!ST.deletedSbIds) ST.deletedSbIds = [];
+    if(!ST.deletedSbIds.includes(sbId)) ST.deletedSbIds.push(sbId);
   }
-  stSave();scheduleSync();
+  stSave(); scheduleSync();
   closeLeadPanel();
   lRender();
   toast('✓ Lead rimosso');
-  // Fire DB delete — tombstone stays regardless; cleanup is deferred to sbLoadLeads
-  if(_delLead?._sbId) sbRpc('admin_delete_lead',{p_sb_id:_delLead._sbId});
+
+  // 3. Delete from Supabase
+  if(!sbId){ console.warn('[Delete] Lead has no _sbId — local only'); return; }
+  console.log('[Delete] admin_delete_lead →', sbId);
+  const result = await sbRpc('admin_delete_lead', {p_sb_id: sbId});
+  if(!result.ok){
+    console.warn('[Delete] RPC failed for', sbId, result.error || result.status);
+  } else {
+    console.log('[Delete] RPC confirmed for', sbId, '— row deleted:', result.data);
+  }
 }
 
 function saveLeadPanel(){

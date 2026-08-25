@@ -1006,46 +1006,43 @@
     .ph-thumb.ph-dragging{opacity:.3;}
     .ph-drag-hint{font-size:11px;color:var(--textdim);text-align:center;margin-bottom:10px;}
 
-    /* edit panel sticky footer (spec §47) */
+    /* edit panel sticky footer — delete-only row */
     .vaep-foot{
       position:sticky;bottom:0;z-index:10;
-      display:flex;align-items:center;justify-content:flex-end;gap:10px;
-      padding:16px 28px;
+      padding:0 0 env(safe-area-inset-bottom,0px);
       background:rgba(255,255,255,.90);backdrop-filter:blur(18px) saturate(130%);
       -webkit-backdrop-filter:blur(18px) saturate(130%);
       border-top:1px solid var(--border);
       flex-shrink:0;
     }
 
+    /* Delete row inside footer */
+    .vaep-del-row{
+      display:flex;align-items:center;justify-content:space-between;
+      width:100%;padding:18px 24px;
+      background:none;border:none;cursor:pointer;
+      color:#e5332a;
+      font-size:16px;font-weight:500;font-family:'Inter',sans-serif;
+      -webkit-tap-highlight-color:transparent;
+      transition:opacity 140ms;
+    }
+    .vaep-del-row:active{opacity:.5;}
+
     /* ══ ADMIN EDIT PANEL ═══════════════════════════════════════ */
     #va-ep{
       min-height:100vh;display:flex;flex-direction:column;background:var(--bg);
     }
     .vaep-bar{
-      position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;
-      padding:0 24px;height:60px;flex-shrink:0;flex-wrap:wrap;
+      position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:0;
+      padding:0 6px 0 4px;height:60px;flex-shrink:0;flex-wrap:nowrap;
       background:rgba(250,249,246,.76);
       border-bottom:1px solid rgba(255,255,255,.65);
       backdrop-filter:blur(22px) saturate(145%);
       -webkit-backdrop-filter:blur(22px) saturate(145%);
       box-shadow:0 8px 24px rgba(25,30,27,.06);
     }
-    .vaep-close{
-      display:inline-flex;align-items:center;gap:6px;
-      background:transparent;border:1px solid var(--border);color:var(--text-secondary);
-      height:36px;padding:0 14px;font-size:13px;font-weight:500;
-      border-radius:var(--radius-sm);cursor:pointer;margin-right:auto;
-      transition:all var(--motion-ui);
-    }
     .vaep-close:hover{border-color:var(--border-strong);color:var(--text);}
-    .vaep-save{
-      display:inline-flex;align-items:center;
-      height:36px;padding:0 18px;
-      background:var(--accent);color:#fff;border:none;
-      font-size:13px;font-weight:600;border-radius:var(--radius-sm);cursor:pointer;
-      transition:background var(--motion-ui);
-    }
-    .vaep-save:hover{background:var(--accent-hover);}
+    .vaep-save{display:none;}
     .vaep-btn{
       display:inline-flex;align-items:center;
       height:36px;padding:0 14px;
@@ -2180,12 +2177,29 @@
 
 <!-- ══ ADMIN EDIT PANEL ════════════════════════════════════ -->
 <div id="va-ep" class="hidden">
-  <!-- Top bar -->
+  <!-- Top bar: ‹ ············ Foto  Share  Eye -->
   <div class="vaep-bar">
-    <button class="vaep-close" onclick="closeAdminCard()">&#10005; &nbsp;Chiudi</button>
-    <button class="vaep-btn" onclick="vaepPhotos()">Foto</button>
-    <button class="vaep-btn" onclick="vaepShare()">Link cliente</button>
-    <button class="vaep-btn" id="vaep-hid-btn" onclick="vaepToggleHid()">Nascondi</button>
+    <button class="vlep-back-btn" onclick="saveAdminCard()" aria-label="Indietro">
+      <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 1 1 9 9 17"/></svg>
+    </button>
+    <div style="flex:1"></div>
+    <div class="vlep-hd-acts">
+      <button class="vlep-ico-btn" onclick="vaepPhotos()" title="Foto">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
+      <button class="vlep-ico-btn" onclick="vaepShare()" title="Link cliente">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+      </button>
+      <button class="vlep-ico-btn" id="vaep-hid-btn" onclick="vaepToggleHid()" title="Nascondi">
+        <!-- Icon set dynamically by vaepHidIcon() -->
+      </button>
+    </div>
   </div>
   <!-- Hero carousel -->
   <div class="vaep-hero" id="vaep-hero">
@@ -2245,10 +2259,18 @@
       src="" loading="lazy" allowfullscreen
       style="width:100%;height:320px;border:1px solid var(--border);border-radius:var(--radius-md);display:block;margin-bottom:16px;"></iframe>
   </div>
-  <!-- Sticky footer: actions -->
+  <!-- Sticky footer: delete -->
   <div class="vaep-foot">
-    <button class="vaep-btn vaep-btn-del" onclick="vaepDelete()">Rimuovi</button>
-    <button class="vaep-save" onclick="saveAdminCard()">Salva modifiche</button>
+    <button class="vaep-del-row" onclick="vaepDelete()">
+      <span>Elimina</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+        <line x1="10" y1="11" x2="10" y2="17"/>
+        <line x1="14" y1="11" x2="14" y2="17"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </button>
   </div>
 </div>
 

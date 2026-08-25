@@ -1,7 +1,7 @@
 // Link Milano — Service Worker
 // Caches the app shell for fast loading
 
-const CACHE = 'linkmi-v2';
+const CACHE = 'linkmi-v3';
 const SHELL = [
   '/',
   '/icon-192.png',
@@ -47,19 +47,19 @@ self.addEventListener('push', e => {
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const url = e.notification.data?.url || '/?admin';
-  const leadId = new URL(url, self.location.origin).searchParams.get('lead');
 
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async list => {
       for (const client of list) {
         if (client.url.includes(self.location.origin)) {
+          // Navigate the existing window to the deep-link URL, then focus.
+          // The SPA handles ?lead= after leadsReady resolves — no race condition.
+          if ('navigate' in client) await client.navigate(url);
           await client.focus();
-          // Tell the running app to open the lead card
-          if (leadId) client.postMessage({ type: 'openLead', leadId });
           return;
         }
       }
-      // No window open — launch fresh with deep link
+      // No window open — launch fresh with deep link URL
       return self.clients.openWindow(url);
     })
   );

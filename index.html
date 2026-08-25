@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-25f -->
+<!-- build: 2026-08-25g -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -3913,8 +3913,8 @@ function vlepCall(){
 
 function vlepMsg(){
   if(!_vlepId)return;
-  hide('vl-ep');
-  setTimeout(()=>openMsgModal(_vlepId),80);
+  // msg modal is z-index:500, lead panel is z-index:400 — no need to hide panel
+  openMsgModal(_vlepId);
 }
 
 function vlepDelete(){

@@ -783,10 +783,10 @@
     }
     .va-collapse-btn svg{
       transition:transform 300ms cubic-bezier(.4,0,.2,1);
-      transform:rotate(-90deg); /* default: pointing right [>] */
+      transform:rotate(0deg); /* default: pointing right [>] */
     }
     .va-collapse-btn.va-expanded svg{
-      transform:rotate(0deg); /* expanded: pointing down [v] */
+      transform:rotate(90deg); /* expanded: pointing down [v] */
     }
 
     /* Filter bar — collapsible (default: collapsed) */
@@ -2091,8 +2091,8 @@
             <h1 class="va-page-title">Proprietà</h1>
             <p class="va-page-sub" id="va-count"></p>
           </div>
-          <button class="va-collapse-btn" id="va-props-collapse" onclick="toggleFilters('props')" aria-label="Filtri">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          <button class="va-collapse-btn va-expanded" id="va-props-collapse" onclick="toggleFilters('props')" aria-label="Filtri">
+            <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 9 9 1 17"/></svg>
           </button>
         </div>
         <button class="va-btn-add" id="va-add-btn" onclick="vaAddClick()" title="Aggiungi proprietà">
@@ -2100,7 +2100,7 @@
         </button>
       </div>
       <!-- Filter bar — glass toolbar surface -->
-      <div class="va-filters" id="va-props-filters">
+      <div class="va-filters va-expanded" id="va-props-filters">
         <div class="va-toolbar-glass">
           <input type="text" class="va-search" id="af-zone" placeholder="Cerca indirizzo, zona, agenzia…"
                  list="af-zone-list" oninput="aRender()" autocomplete="off">
@@ -2202,7 +2202,7 @@
             <p class="va-page-sub" id="la-count"></p>
           </div>
           <button class="va-collapse-btn" id="va-leads-collapse" onclick="toggleFilters('leads')" aria-label="Filtri">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 1 9 9 1 17"/></svg>
           </button>
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">

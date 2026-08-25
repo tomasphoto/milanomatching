@@ -1687,35 +1687,17 @@
 <!-- ══════════════════════════════════════════════════════════
      VIEW: LANDING
 ══════════════════════════════════════════════════════════ -->
-<div id="vl">
-  <!-- Photographic hero -->
-  <div class="home-hero">
-    <img class="home-hero-img" id="home-hero-img" src="VC01-hero.jpg" alt="Appartamento Milano">
-
-    <!-- Floating glass nav over the photograph -->
-    <nav class="home-nav glass-light">
-      <div class="home-nav-brand" id="l-logo">LINK MI</div>
-      <div class="home-nav-links">
-        <span class="home-nav-link">Proprietà</span>
-        <span class="home-nav-accedi" onclick="askAdmin()">accedi</span>
-      </div>
-    </nav>
-
-    <!-- Left-aligned hero copy + glass CTA overlapping the photo -->
-    <div class="home-hero-copy">
-      <h1 class="home-hero-h1">Trova casa<br>a Milano.</h1>
-      <p class="home-hero-sub">Case d'eccezione selezionate per te.</p>
-      <div class="home-search-glass glass-dark">
-        <span class="home-search-label">Esplora gli appartamenti disponibili</span>
-        <div id="l-btns" class="l-btns"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer hint below hero -->
-  <div class="home-hero-foot">
-    <span class="home-hint">Hai ricevuto un link per una proprietà? Aprilo per visualizzare la scheda.</span>
-    <span class="home-accedi" onclick="askAdmin()">accedi</span>
+<div id="vl" style="min-height:100vh;background:#F5F4F0;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
+  <div style="width:min(320px,88vw);text-align:center;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#B0ADA8;margin-bottom:52px;">Link &nbsp; Milano</div>
+    <input id="lp-input" type="password" placeholder="Password" autocomplete="current-password"
+      style="width:100%;padding:15px 18px;border-radius:12px;border:1.5px solid rgba(0,0,0,0.1);background:#fff;color:#151515;font-size:16px;box-sizing:border-box;outline:none;font-family:'Inter',sans-serif;text-align:center;transition:border-color .15s;"
+      onfocus="this.style.borderColor='rgba(0,0,0,0.28)'" onblur="this.style.borderColor='rgba(0,0,0,0.1)'"
+      onkeydown="if(event.key==='Enter')lpSubmit()">
+    <div id="lp-error" style="color:#B83228;font-size:13px;min-height:20px;margin-top:10px;"></div>
+    <button id="lp-btn" onclick="lpSubmit()"
+      style="margin-top:4px;width:100%;padding:15px;border-radius:12px;border:none;background:#2A3240;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.01em;transition:opacity .15s;"
+      onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">Accedi</button>
   </div>
 </div>
 

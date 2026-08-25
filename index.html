@@ -1218,6 +1218,7 @@
     .lc-name{
       font-size:17px;font-weight:600;letter-spacing:-.02em;
       color:var(--text);line-height:1.2;margin-bottom:3px;
+      display:flex;align-items:center;gap:6px;
     }
     .lc-profilo{font-size:13px;color:var(--text-secondary);margin-bottom:8px;}
     .lc-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;}
@@ -2771,6 +2772,8 @@ async function processDeepLink(){
   const q = new URLSearchParams(location.search);
   const leadId = q.get('lead');
   if(!leadId || _adminAuthenticated !== true) return;
+  // Remove ?lead= from URL immediately so repeat focus events don't re-trigger
+  history.replaceState(null, '', '/?admin');
   await _leadsReady;
   const lead = (ST.leads||[]).find(l => l._sbId === leadId || l.id === leadId);
   if(lead){ vaTab('leads'); openLeadPanel(lead.id); }
@@ -5530,17 +5533,17 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
-  // Deep-link handler: notification tap while app is open
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data?.type === 'openLead' && e.data.leadId) {
-      const lead = (ST.leads||[]).find(l => l._sbId === e.data.leadId || l.id === e.data.leadId);
-      if (lead && _adminAuthenticated === true) {
-        vaTab('leads');
-        setTimeout(() => openLeadPanel(lead.id), 100);
-      }
-    }
-  });
 }
+
+// When app comes to foreground (notification tap navigates here, or user switches back):
+// 1. Process any ?lead= deep link (waits for leadsReady, no race condition)
+// 2. Sync badge with real DB unread count
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && _adminAuthenticated === true) {
+    processDeepLink();
+    syncUnreadBadge();
+  }
+});
 </script>
 </body>
 </html>

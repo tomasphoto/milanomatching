@@ -2251,36 +2251,45 @@
   </div>
   <!-- Scrollable body -->
   <div class="vlep-body">
-    <!-- Identity -->
-    <div class="vlep-id-row">
-      <div class="vlep-qual-lg" id="vlep-qual">&#8212;</div>
-      <div class="vlep-id-info">
-        <input class="vlep-name-in" id="vlep-nome" type="text" placeholder="Nome lead">
-        <input class="vlep-sub-in" id="vlep-profilo" type="text" placeholder="Profilo (es. Famiglia, Lavoratore&#8230;)">
+    <!-- Status metadata (tappable → opens status picker) -->
+    <div class="vlep-meta-row">
+      <button class="vlep-meta-btn" id="vlep-status-display" onclick="toggleVlepStatusPop()">—</button>
+      <div class="vlep-status-pop hidden" id="vlep-status-pop">
+        <div class="vlep-stat-opt" data-val="nuovo" onclick="vlepPickStatus('nuovo')">Nuovo<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+        <div class="vlep-stat-opt" data-val="contattato" onclick="vlepPickStatus('contattato')">Contattato<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+        <div class="vlep-stat-opt" data-val="visita" onclick="vlepPickStatus('visita')">Visita<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+        <div class="vlep-stat-opt" data-val="proposta" onclick="vlepPickStatus('proposta')">Proposta<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+        <div class="vlep-stat-opt" data-val="chiuso" onclick="vlepPickStatus('chiuso')">Chiuso<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
+        <div class="vlep-stat-opt" data-val="perso" onclick="vlepPickStatus('perso')">Perso<span class="vlep-stat-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span></div>
       </div>
     </div>
-    <!-- Mobile-only quick actions (icon-only, monolinear) -->
-    <div class="vlep-mob-acts">
-      <!-- Call -->
-      <button class="vlep-act-btn" id="vlep-tel-btn-m" onclick="vlepCall()" title="Chiama">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bare outline action icons -->
+    <div class="vlep-icon-row">
+      <button class="vlep-ico-btn" id="vlep-tel-btn-m" onclick="vlepCall()" title="Chiama">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.32a2 2 0 0 1 1.95-2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.29 6.29l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
       </button>
-      <!-- AI Message — 4-pointed sparkle (universal AI symbol) -->
-      <button class="vlep-act-btn" onclick="vlepMsg()" title="Genera messaggio AI">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <button class="vlep-ico-btn" onclick="vlepMsg()" title="Genera messaggio AI">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3 13.5 8.5 19 10 13.5 11.5 12 17 10.5 11.5 5 10 10.5 8.5Z"/>
           <path d="M19 2 19.7 4.3 22 5 19.7 5.7 19 8 18.3 5.7 16 5 18.3 4.3Z"/>
         </svg>
       </button>
-      <!-- Save contact -->
-      <button class="vlep-act-btn" onclick="saveContact(_vlepId)" title="Salva Contatto">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <button class="vlep-ico-btn" onclick="saveContact(_vlepId)" title="Salva Contatto">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
         </svg>
       </button>
+    </div>
+    <!-- Identity (editable) -->
+    <div class="vlep-id-row">
+      <div class="vlep-qual-lg" id="vlep-qual">&#8212;</div>
+      <div class="vlep-id-info">
+        <input class="vlep-name-in" id="vlep-nome" type="text" placeholder="Nome lead" oninput="vlepSyncHdName(this.value)">
+        <input class="vlep-sub-in" id="vlep-profilo" type="text" placeholder="Profilo (es. Famiglia, Lavoratore&#8230;)" oninput="vlepSyncMeta()">
+      </div>
     </div>
     <!-- Fields grid -->
     <div class="vaep-sec-hd">Contatti &amp; Dettagli</div>
@@ -4303,16 +4312,11 @@ function openLeadPanel(id){
   // Pipeline status select
   const stSel=document.getElementById('vlep-status');
   stSel.innerHTML=Object.entries(STATUSES).map(([k,v])=>`<option value="${k}"${lead.status===k?' selected':''}>${v.label}</option>`).join('');
-  // Tel buttons (desktop bar + mobile row)
-  const tb=document.getElementById('vlep-tel-btn');
+  // Tel icon opacity — dim when no number
   const tbm=document.getElementById('vlep-tel-btn-m');
-  if(lead.tel){
-    tb.textContent='☎️ '+lead.tel;tb.style.opacity='1';
-    if(tbm){tbm.textContent='✆ '+lead.tel;tbm.style.opacity='1';}
-  }else{
-    tb.textContent='☎️ —';tb.style.opacity='.45';
-    if(tbm){tbm.textContent='✆ Chiama';tbm.style.opacity='.45';}
-  }
+  if(tbm)tbm.style.opacity=lead.tel?'1':'.38';
+  // Sync header name + status meta display
+  vlepUpdateMeta();
   // Matches
   vlepRenderMatches(lead);
   // Mark as read (idempotent — only fires if not yet viewed)
@@ -4352,7 +4356,44 @@ function vlepSetStatus(status){
   stSave();scheduleSync();
   sbSyncLead(lead,{status});
   lRender();
+  vlepUpdateMeta();
 }
+
+/* ── Lead panel header helpers ──────────────────────────── */
+function vlepUpdateMeta(){
+  const nome=(document.getElementById('vlep-nome').value||'').trim();
+  document.getElementById('vlep-hd-name').textContent=nome||'—';
+  const stSel=document.getElementById('vlep-status');
+  const statusLabel=stSel&&stSel.selectedIndex>=0?stSel.options[stSel.selectedIndex].text:'—';
+  const profilo=(document.getElementById('vlep-profilo').value||'').trim();
+  const meta=profilo?statusLabel+' · '+profilo:statusLabel;
+  const disp=document.getElementById('vlep-status-display');
+  if(disp)disp.textContent=meta||'—';
+  const curVal=stSel?stSel.value:'';
+  document.querySelectorAll('#vlep-status-pop .vlep-stat-opt').forEach(el=>{
+    el.classList.toggle('active',el.dataset.val===curVal);
+  });
+}
+function vlepSyncHdName(v){
+  document.getElementById('vlep-hd-name').textContent=v.trim()||'—';
+}
+function vlepSyncMeta(){vlepUpdateMeta();}
+function toggleVlepStatusPop(){
+  document.getElementById('vlep-status-pop').classList.toggle('hidden');
+}
+function vlepPickStatus(val){
+  document.getElementById('vlep-status').value=val;
+  vlepSetStatus(val);
+  document.getElementById('vlep-status-pop').classList.add('hidden');
+}
+// Close status popover on outside tap
+document.addEventListener('click',function(e){
+  const pop=document.getElementById('vlep-status-pop');
+  if(!pop||pop.classList.contains('hidden'))return;
+  const btn=document.getElementById('vlep-status-display');
+  if(!pop.contains(e.target)&&!(btn&&btn.contains(e.target)))pop.classList.add('hidden');
+});
+/* ─────────────────────────────────────────────────────── */
 
 function vlepCall(){
   const lead=(ST.leads||[]).find(l=>l.id===_vlepId);

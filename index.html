@@ -2966,25 +2966,67 @@ async function sbInsertLead(localId, d){
 
 async function sbSyncLead(lead, localData){
   if(!lead?._sbId) return;
-  const d = {};
-  if('nome'      in localData) d.name         = localData.nome || null;
-  if('tel'       in localData) d.phone        = localData.tel || null;
-  if('email'     in localData) d.email        = localData.email || null;
-  if('profilo'   in localData) d.profile      = localData.profilo || null;
-  if('budgetMax' in localData) d.budget_max   = localData.budgetMax || null;
-  if('note'      in localData) d.notes        = localData.note || null;
-  if('richiesta' in localData) d.request_text = localData.richiesta || null;
-  if('ingresso'  in localData) d.move_in      = localData.ingresso || null;
-  if('urg'       in localData) d.urgency      = localData.urg || null;
-  if('qual'      in localData) d.quality      = localData.qual || null;
-  if('status'    in localData) d.status       = SB_STATUS_MAP[localData.status] || localData.status;
-  if('linkedProp' in localData){
-    // Translate local fk string → Supabase property UUID (or null to unlink)
-    const prop = localData.linkedProp ? allP().find(x=>fk(x)===localData.linkedProp) : null;
-    d.property_id = prop?._sbId || null;
+  _sbPendingLeadWrites.add(lead._sbId);
+  try {
+    const d = {};
+    if('nome'      in localData) d.name         = localData.nome || null;
+    if('tel'       in localData) d.phone        = localData.tel || null;
+    if('email'     in localData) d.email        = localData.email || null;
+    if('profilo'   in localData) d.profile      = localData.profilo || null;
+    if('budgetMax' in localData) d.budget_max   = localData.budgetMax || null;
+    if('note'      in localData) d.notes        = localData.note || null;
+    if('richiesta' in localData) d.request_text = localData.richiesta || null;
+    if('ingresso'  in localData) d.move_in      = localData.ingresso || null;
+    if('urg'       in localData) d.urgency      = localData.urg || null;
+    if('qual'      in localData) d.quality      = localData.qual || null;
+    if('status'    in localData) d.status       = SB_STATUS_MAP[localData.status] || localData.status;
+    if('linkedProp' in localData){
+      const prop = localData.linkedProp ? allP().find(x=>fk(x)===localData.linkedProp) : null;
+      d.property_id = prop?._sbId || null;
+    }
+    if('addedAt' in localData) d.received_at = localData.addedAt ? new Date(localData.addedAt).toISOString() : null;
+    if(Object.keys(d).length) await sbRpc('admin_update_lead', { p_sb_id: lead._sbId, p_data: d });
+  } finally {
+    _sbPendingLeadWrites.delete(lead._sbId);
   }
-  if('addedAt' in localData) d.received_at = localData.addedAt ? new Date(localData.addedAt).toISOString() : null;
-  if(Object.keys(d).length) await sbRpc('admin_update_lead', { p_sb_id: lead._sbId, p_data: d });
+}
+
+// ── sbLeadToLocal: map a Supabase lead row to local format ───
+// Merges into `existing` — preserves local-only fields not in Supabase
+function sbLeadToLocal(sl, existing){
+  existing = existing || {};
+  const SB_STATUS_REV = {
+    'new':'nuovo','contacted':'contattato','viewing_scheduled':'visita',
+    'proposal':'proposta','closed':'chiuso','lost':'perso',
+    'second_option':'secondo','contract':'contratto'
+  };
+  const linkedProp = (()=>{
+    if(!sl.property_id) return existing.linkedProp || '';
+    const lp = allP().find(x => x._sbId === sl.property_id);
+    return lp ? fk(lp) : (existing.linkedProp || '');
+  })();
+  const sbTime = sl.received_at ? new Date(sl.received_at).getTime()
+               : sl.added_at   ? new Date(sl.added_at).getTime() : null;
+  return {
+    ...existing,
+    id:        existing.id || ('SB_' + sl.id),
+    _sbId:     sl.id,
+    nome:      sl.name        != null ? sl.name        : (existing.nome      || ''),
+    tel:       sl.phone       != null ? sl.phone       : (existing.tel       || ''),
+    email:     sl.email       != null ? sl.email       : (existing.email     || ''),
+    profilo:   sl.profile     != null ? sl.profile     : (existing.profilo   || 'Privato'),
+    budgetMax: sl.budget_max  != null ? sl.budget_max  : (existing.budgetMax || null),
+    stanze:    sl.desired_rooms != null ? [sl.desired_rooms] : (existing.stanze || []),
+    zones:     sl.desired_zones != null ? sl.desired_zones   : (existing.zones  || []),
+    ingresso:  sl.move_in     != null ? sl.move_in     : (existing.ingresso  || ''),
+    urg:       sl.urgency     != null ? sl.urgency     : (existing.urg       || ''),
+    qual:      sl.quality     != null ? sl.quality     : (existing.qual      || null),
+    note:      sl.notes       != null ? sl.notes       : (existing.note      || ''),
+    richiesta: sl.request_text!= null ? sl.request_text: (existing.richiesta || ''),
+    status:    SB_STATUS_REV[sl.status] || existing.status || 'nuovo',
+    linkedProp,
+    addedAt:   sbTime || existing.addedAt || Date.now(),
+  };
 }
 
 // ── Unread / badge infrastructure ────────────────────────────
@@ -4434,6 +4476,10 @@ function lSetStatus(id,status,e){
 
 // ── Lead panel ────────────────────────────────────────────────
 let _vlepId=null;
+let _vlepDirty=false;                // true while panel has unsaved user edits
+const _sbPendingLeadWrites=new Set();// _sbIds of leads currently being written to DB
+let _sbLeadsLoading=false;           // queued lock: only one sbLoadLeads in flight
+let _sbLeadsReloadRequested=false;   // if true, re-run sbLoadLeads after current one finishes
 function lDesktop(){return window.innerWidth>=1024;}
 
 function openLeadPanel(id){

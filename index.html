@@ -3269,7 +3269,11 @@ async function processDeepLink(){
 }
 
 async function sbLoadLeads(){
+  // Queued lock — only one fetch in flight at a time
+  if(_sbLeadsLoading){ _sbLeadsReloadRequested = true; return; }
+  _sbLeadsLoading = true;
   try {
+    console.log('[LeadSync] start');
     const r = await fetch(`${SB_URL}/rest/v1/rpc/admin_get_leads`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type': 'application/json' },
@@ -3278,95 +3282,75 @@ async function sbLoadLeads(){
     if(!r.ok) return;
     const sbLeads = await r.json();
     if(!Array.isArray(sbLeads)) return;
-    console.log('[Sync] admin_get_leads returned', sbLeads.length, 'leads');
-    // Reverse status map: Supabase English → App Italian
-    const SB_STATUS_REV = {
-      'new':'nuovo','contacted':'contattato','viewing_scheduled':'visita',
-      'proposal':'proposta','closed':'chiuso','lost':'perso',
-      'second_option':'secondo','contract':'contratto'
-    };
     const _tombstones = new Set(ST.deletedSbIds || []);
-    let changed = false, newCount = 0;
+    let changed = false, newCount = 0, updatedCount = 0, skippedDirty = 0, skippedPending = 0;
     sbLeads.forEach(sl => {
       if(!sl.id) return;
-      // If locally marked as deleted, block re-import and retry DB delete
+      // Tombstoned: block re-import, retry DB delete
       if(_tombstones.has(sl.id)){
-        sbRpc('admin_delete_lead',{p_sb_id:sl.id}); // retry; tombstone cleanup deferred below
+        sbRpc('admin_delete_lead',{p_sb_id:sl.id});
         return;
       }
-      // Check if already tracked by _sbId
+      // Find existing local lead by sbId, or by name (legacy pre-sbId)
       let local = (ST.leads || []).find(l => l._sbId === sl.id);
-      if(!local) {
-        // Fallback: name match for leads that predate _sbId tagging
-        local = (ST.leads || []).find(l => l.nome === sl.name && !l._sbId);
-      }
+      if(!local) local = (ST.leads || []).find(l => l.nome === sl.name && !l._sbId);
       if(local) {
-        if(!local._sbId){ local._sbId = sl.id; changed = true; }
-        // Always sync addedAt from received_at (or added_at) so sort order is correct
-        const sbTime = sl.received_at ? new Date(sl.received_at).getTime() : (sl.added_at ? new Date(sl.added_at).getTime() : null);
-        if(sbTime && local.addedAt !== sbTime){ local.addedAt = sbTime; changed = true; }
-        // Sync property link from Supabase if not already set locally
-        if(sl.property_id && !local.linkedProp){
-          const lp = allP().find(x=>x._sbId===sl.property_id);
-          if(lp){ local.linkedProp = fk(lp); changed = true; }
-        }
-      } else {
-        // Supabase-only lead — import into local state
-        if(!ST.leads) ST.leads = [];
-        ST.leads.push({
-          id: 'SB_' + sl.id,
-          _sbId: sl.id,
-          nome: sl.name || '',
-          tel: sl.phone || '',
-          email: sl.email || '',
-          profilo: sl.profile || 'Privato',
-          budgetMax: sl.budget_max || null,
-          stanze: sl.desired_rooms ? [sl.desired_rooms] : [],
-          zones: sl.desired_zones || [],
-          ingresso: sl.move_in || '',
-          urg: sl.urgency || '',
-          qual: sl.quality || null,
-          note: sl.notes || '',
-          richiesta: sl.request_text || '',
-          status: SB_STATUS_REV[sl.status] || 'nuovo',
-          linkedProp: (()=>{ if(!sl.property_id) return ''; const lp=allP().find(x=>x._sbId===sl.property_id); return lp?fk(lp):''; })(),
-          addedAt: sl.received_at ? new Date(sl.received_at).getTime() : (sl.added_at ? new Date(sl.added_at).getTime() : Date.now())
+        // Skip if a write to this lead is currently in flight
+        if(_sbPendingLeadWrites.has(sl.id)){ skippedPending++; return; }
+        // Skip if panel is open on this lead with unsaved user edits
+        if(_vlepDirty && _vlepId === local.id){ skippedDirty++; return; }
+        // Full server-authoritative merge
+        const merged = sbLeadToLocal(sl, local);
+        // Only dirty state if something actually changed
+        const diff = Object.keys(merged).some(k => {
+          if(k === 'stanze' || k === 'zones')
+            return JSON.stringify(merged[k]) !== JSON.stringify(local[k]);
+          return merged[k] !== local[k];
         });
-        newCount++;
-        changed = true;
+        if(diff){ Object.assign(local, merged); updatedCount++; changed = true; }
+      } else {
+        if(!ST.leads) ST.leads = [];
+        ST.leads.push(sbLeadToLocal(sl));
+        newCount++; changed = true;
       }
     });
-    // Server-authoritative reconciliation:
-    // Any local lead with a _sbId that the server no longer returns was deleted elsewhere.
-    // Purely local leads (no _sbId) are never touched.
+    // Server-authoritative deletion
     const serverIds = new Set(sbLeads.map(sl => sl.id));
     const beforeCount = (ST.leads||[]).length;
     ST.leads = (ST.leads||[]).filter(local => {
-      if(!local._sbId) return true;           // locally created, not yet in DB — keep
-      return serverIds.has(local._sbId);      // keep only if server still has it
+      if(!local._sbId) return true;
+      if(_sbPendingLeadWrites.has(local._sbId)) return true; // write in flight — never remove
+      return serverIds.has(local._sbId);
     });
     const removed = beforeCount - ST.leads.length;
-    if(removed > 0){
-      console.log('[Sync] Removed', removed, 'local lead(s) absent from server');
-      changed = true;
-    }
-
-    // Tombstone cleanup: if a tombstoned sbId is no longer returned by Supabase,
-    // the row was truly deleted — safe to remove the tombstone entry
+    if(removed > 0) changed = true;
+    // Tombstone cleanup
     if(ST.deletedSbIds && ST.deletedSbIds.length){
       const before = ST.deletedSbIds.length;
       ST.deletedSbIds = ST.deletedSbIds.filter(id => serverIds.has(id));
       if(ST.deletedSbIds.length !== before) changed = true;
     }
+    console.log(`[LeadSync] done — server:${sbLeads.length} new:${newCount} updated:${updatedCount} removed:${removed} skipped(dirty):${skippedDirty} skipped(pending):${skippedPending}`);
     if(changed){
       stSave();
       if(newCount > 0) toast(`✓ ${newCount} lead${newCount>1?'s':''} caricati da Supabase`, 3000);
-      // Refresh the leads list if admin panel is open
       const va = document.getElementById('va');
       if(va && !va.classList.contains('hidden')) lRender();
+      // Refresh open panel fields if not dirty
+      if(_vlepId && !_vlepDirty){
+        const updatedLead = (ST.leads||[]).find(l => l.id === _vlepId);
+        if(updatedLead) vlepRefreshFromST(updatedLead);
+      }
     }
-  } catch(e){ console.warn('[SB] sbLoadLeads', e.message); }
-  _leadsReadyResolve(); // signal that ST.leads is populated
+  } catch(e){ console.warn('[LeadSync] error', e.message); }
+  finally {
+    _sbLeadsLoading = false;
+    _leadsReadyResolve(); // idempotent — safe every run
+    if(_sbLeadsReloadRequested){
+      _sbLeadsReloadRequested = false;
+      sbLoadLeads(); // drain queued request
+    }
+  }
 }
 
 let ST = {

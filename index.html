@@ -5671,7 +5671,14 @@ function vaepToggleHid(){
 
 function vaepDelete(){
   if(!_vaepK)return;
-  if(!ST.customProps.find(p=>fk(p)===_vaepK)){toast('Solo proprietà personalizzate possono essere rimosse.');return;}
+  if(!ST.customProps.find(p=>fk(p)===_vaepK)){
+    // Base property — hide it so it disappears from the list
+    if(!confirm('Rimuovere questa proprietà dalla lista?'))return;
+    if(!ST.hiddenKeys.includes(_vaepK))ST.hiddenKeys.push(_vaepK);
+    stSave();aRender();closeAdminCard();scheduleSync();
+    sbSyncProp(_vaepK,{visibility:'hidden'});
+    return;
+  }
   if(!confirm('Rimuovere questa proprietà?'))return;
   ST.customProps=ST.customProps.filter(p=>fk(p)!==_vaepK);
   delete ST.photos[_vaepK];delete ST.edits[_vaepK];

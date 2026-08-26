@@ -2955,6 +2955,7 @@ async function sbInsertLead(localId, d){
         request_text: d.richiesta    || null,
         property_id:  prop?._sbId    || null,
         received_at:  d.addedAt      ? new Date(d.addedAt).toISOString() : null,
+        desired_rooms: (d.stanze && d.stanze.length) ? d.stanze : null,
       }})
     });
     if(!r.ok){ console.warn('[SB] insert lead', await r.text()); return; }

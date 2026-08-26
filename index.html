@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-26h -->
+<!-- build: 2026-08-26i -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -5672,17 +5672,20 @@ function vaepToggleHid(){
 
 function vaepDelete(){
   if(!_vaepK)return;
+  const pToDelete=allP().find(p=>fk(p)===_vaepK); // grab _sbId before it gets filtered
   if(!ST.customProps.find(p=>fk(p)===_vaepK)){
     if(!confirm('Rimuovere questa proprietà dalla lista?'))return;
     if(!ST.deletedKeys)ST.deletedKeys=[];
     if(!ST.deletedKeys.includes(_vaepK))ST.deletedKeys.push(_vaepK);
     stSave();aRender();closeAdminCard();scheduleSync();
+    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{visibility:'deleted'}});
     return;
   }
   if(!confirm('Rimuovere questa proprietà?'))return;
   ST.customProps=ST.customProps.filter(p=>fk(p)!==_vaepK);
   delete ST.photos[_vaepK];delete ST.edits[_vaepK];
   stSave();aRender();closeAdminCard();scheduleSync();
+  if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{visibility:'deleted'}});
 }
 
 function vaepHeroSetup(photos,addr){
@@ -5771,11 +5774,13 @@ function toggleHid(k){
   scheduleSync();
 }
 function delCustom(k){
+  const pToDelete=allP().find(p=>fk(p)===k); // grab _sbId before it gets filtered
   if(!ST.customProps.find(p=>fk(p)===k)){
     if(!confirm('Rimuovere questa proprietà dalla lista?'))return;
     if(!ST.deletedKeys)ST.deletedKeys=[];
     if(!ST.deletedKeys.includes(k))ST.deletedKeys.push(k);
     stSave();aRender();scheduleSync();
+    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{visibility:'deleted'}});
     return;
   }
   if(!confirm('Rimuovere questa proprietà?'))return;
@@ -5783,6 +5788,7 @@ function delCustom(k){
   delete ST.photos[k];delete ST.edits[k];
   stSave();aRender();
   scheduleSync();
+  if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{visibility:'deleted'}});
 }
 
 // ── Share ─────────────────────────────────────────────────────

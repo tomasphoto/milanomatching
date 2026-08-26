@@ -5910,6 +5910,18 @@ const LEAD_DEFAULTS   = /*--LEADS--*/[{"id":"L38","nome":"Andrea Negri","profilo
 // ── Boot ─────────────────────────────────────────────────────
 stLoad();
 
+// ── One-time migration: remove pre-Aug-18 local-only legacy leads ─
+(function migrateRemoveLegacyLeads(){
+  if(ST.migrations && ST.migrations.legacyLeadsRemoved) return; // already done
+  const cutoff = new Date('2026-08-18').getTime();
+  const before = (ST.leads || []).length;
+  ST.leads = (ST.leads || []).filter(l => l._sbId || (l.addedAt || 0) >= cutoff);
+  const removed = before - ST.leads.length;
+  if(!ST.migrations) ST.migrations = {};
+  ST.migrations.legacyLeadsRemoved = true;
+  if(removed > 0){ stSave(); console.log('[migrate] removed', removed, 'legacy leads'); }
+})();
+
 // ── Apply baked-in defaults as fallback layer ─────────────────
 (function applyDefaults(){
   const _localTs = ST.syncTs || 0;

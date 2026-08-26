@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-26a -->
+<!-- build: 2026-08-26b -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -2986,6 +2986,7 @@ async function sbSyncLead(lead, localData){
       d.property_id = prop?._sbId || null;
     }
     if('addedAt' in localData) d.received_at = localData.addedAt ? new Date(localData.addedAt).toISOString() : null;
+    if('stanze'  in localData) d.desired_rooms = (localData.stanze && localData.stanze.length) ? localData.stanze : null;
     if(Object.keys(d).length) await sbRpc('admin_update_lead', { p_sb_id: lead._sbId, p_data: d });
   } finally {
     _sbPendingLeadWrites.delete(lead._sbId);
@@ -4667,7 +4668,7 @@ async function saveLeadPanel(){
   // Write to Supabase then pull authoritative state
   await sbSyncLead(lead,{nome:lead.nome,tel:lead.tel,email:lead.email,profilo:lead.profilo,
     budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status,
-    linkedProp:lead.linkedProp||''});
+    linkedProp:lead.linkedProp||'',stanze:lead.stanze});
   sbLoadLeads(); // confirm server state — picks up any concurrent changes from other devices
 }
 

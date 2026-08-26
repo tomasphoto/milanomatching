@@ -6008,7 +6008,7 @@ async function _bootLoadSB(){
     return { ok: false, status: 200, detail: 'Nessuna proprietà in Supabase' };
   }
   const uuidToFk = {};
-  const newBP = rows.map(r => { const p=_rowToP(r); uuidToFk[r.id]=fk(p); return p; });
+  const newBP = rows.filter(r => r.visibility !== 'deleted').map(r => { const p=_rowToP(r); uuidToFk[r.id]=fk(p); return p; });
   BP.length = 0;
   newBP.forEach(p => BP.push(p));
   // Supabase is source of truth — clear stale localStorage overrides

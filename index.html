@@ -4639,7 +4639,7 @@ async function vlepDelete(){
   }
 }
 
-function saveLeadPanel(){
+async function saveLeadPanel(){
   if(!_vlepId)return;
   const lead=(ST.leads||[]).find(l=>l.id===_vlepId);if(!lead)return;
   lead.nome=document.getElementById('vlep-nome').value.trim();
@@ -4655,13 +4655,15 @@ function saveLeadPanel(){
   // Tel icon opacity (SVG icon — do NOT set textContent)
   const tbm=document.getElementById('vlep-tel-btn-m');
   if(tbm)tbm.style.opacity=lead.tel?'1':'.38';
-  stSave();lRender();scheduleSync();
-  sbSyncLead(lead,{nome:lead.nome,tel:lead.tel,email:lead.email,profilo:lead.profilo,
-    budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status,
-    linkedProp:lead.linkedProp||''});
-  vlepRenderMatches(lead);
+  _vlepDirty=false; // clear before close so sbLoadLeads won't skip this lead
+  stSave();lRender();
   toast('✓ Lead aggiornato');
   closeLeadPanel();
+  // Write to Supabase then pull authoritative state
+  await sbSyncLead(lead,{nome:lead.nome,tel:lead.tel,email:lead.email,profilo:lead.profilo,
+    budgetMax:lead.budgetMax,note:lead.note,ingresso:lead.ingresso,status:lead.status,
+    linkedProp:lead.linkedProp||''});
+  sbLoadLeads(); // confirm server state — picks up any concurrent changes from other devices
 }
 
 function vlepPropSearch(q){
@@ -4700,6 +4702,45 @@ function vlepPropSelect(key,label){
 }
 
 function vlepToggleRoom(el){el.classList.toggle('active');_vlepDirty=true;}
+
+// Refresh open lead panel fields from ST without closing — skips focused element
+function vlepRefreshFromST(lead){
+  if(!lead) return;
+  const active = document.activeElement;
+  const setIfBlurred = (id, val) => {
+    const el = document.getElementById(id);
+    if(el && el !== active) el.value = val == null ? '' : val;
+  };
+  setIfBlurred('vlep-nome',    lead.nome    || '');
+  setIfBlurred('vlep-profilo', lead.profilo || '');
+  setIfBlurred('vlep-tel',     lead.tel     || '');
+  setIfBlurred('vlep-email',   lead.email   || '');
+  setIfBlurred('vlep-budget',  lead.budgetMax || '');
+  setIfBlurred('vlep-note',    lead.note    || '');
+  setIfBlurred('vlep-ingresso',lead.ingresso || 'Flessibile');
+  const stSel = document.getElementById('vlep-status');
+  if(stSel && stSel !== active) stSel.value = lead.status || 'nuovo';
+  // Rooms
+  const stArr = Array.isArray(lead.stanze) ? lead.stanze : (lead.stanze ? [+lead.stanze] : []);
+  document.querySelectorAll('#vlep-rooms .vlep-room-opt').forEach(el => {
+    el.classList.toggle('active', stArr.includes(+el.dataset.val));
+  });
+  // Property link display
+  const propIn = document.getElementById('vlep-prop-input');
+  if(propIn && propIn !== active){
+    if(lead.linkedProp){
+      const lp = allP().find(x => fk(x) === lead.linkedProp);
+      if(lp){ const pid = lead.linkedProp.split('::')[2]||'';
+        propIn.value = `${lp.addr}${pid?' ('+pid+')':''} · €${lp.price.toLocaleString('it-IT')}/mese`; }
+      else propIn.value = '';
+    } else propIn.value = '';
+  }
+  document.getElementById('vlep-prop-link') && (document.getElementById('vlep-prop-link').value = lead.linkedProp || '');
+  // Tel icon opacity
+  const tbm = document.getElementById('vlep-tel-btn-m');
+  if(tbm) tbm.style.opacity = lead.tel ? '1' : '.38';
+  vlepUpdateMeta();
+}
 
 function vlepRenderMatches(lead){
   const wrap=document.getElementById('vlep-matches');if(!wrap)return;

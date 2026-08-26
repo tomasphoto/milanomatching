@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-26d -->
+<!-- build: 2026-08-26c -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -5930,7 +5930,7 @@ stLoad();
     ST.edits       = Object.assign({}, EDIT_DEFAULTS);
     ST.hiddenKeys  = [...HIDDEN_DEFAULTS];
     ST.customProps = [...CUSTOM_DEFAULTS];
-    ST.leads       = LEAD_DEFAULTS.map(l=>Object.assign({},l));
+    ST.leads       = LEAD_DEFAULTS.filter(l=>!(ST.migrations&&ST.migrations.legacyLeadsRemoved)||l._sbId||(l.addedAt||0)>=1755475200000).map(l=>Object.assign({},l));
     Object.assign(ST.settings, DEFAULT_SETTINGS);
     Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ ST.photos[k]=v; });
   } else {

@@ -5930,7 +5930,7 @@ stLoad();
     ST.edits       = Object.assign({}, EDIT_DEFAULTS);
     ST.hiddenKeys  = [...HIDDEN_DEFAULTS];
     ST.customProps = [...CUSTOM_DEFAULTS];
-    ST.leads       = LEAD_DEFAULTS.filter(l=>!(ST.migrations&&ST.migrations.legacyLeadsRemoved)||l._sbId||(l.addedAt||0)>=1755475200000).map(l=>Object.assign({},l));
+    ST.leads       = LEAD_DEFAULTS.filter(l=>!(ST.migrations&&ST.migrations.legacyLeadsRemoved)||l._sbId||(l.addedAt||0)>=1787011200000).map(l=>Object.assign({},l));
     Object.assign(ST.settings, DEFAULT_SETTINGS);
     Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ ST.photos[k]=v; });
   } else {
@@ -5938,7 +5938,7 @@ stLoad();
     Object.entries(EDIT_DEFAULTS).forEach(([k,v])=>{ if(!ST.edits[k]) ST.edits[k]=v; });
     HIDDEN_DEFAULTS.forEach(k=>{ if(!ST.hiddenKeys.includes(k)) ST.hiddenKeys.push(k); });
     CUSTOM_DEFAULTS.forEach(p=>{ if(!ST.customProps.find(x=>fk(x)===fk(p))) ST.customProps.push(p); });
-    LEAD_DEFAULTS.forEach(l=>{ if(ST.migrations&&ST.migrations.legacyLeadsRemoved&&!l._sbId&&(l.addedAt||0)<1755475200000)return; const ex=ST.leads.find(x=>x.id===l.id); if(!ex){ST.leads.push(Object.assign({},l));}else{if(l.tel&&!ex.tel)ex.tel=l.tel;if(l.email&&!ex.email)ex.email=l.email;} });
+    LEAD_DEFAULTS.forEach(l=>{ if(ST.migrations&&ST.migrations.legacyLeadsRemoved&&!l._sbId&&(l.addedAt||0)<1787011200000)return; const ex=ST.leads.find(x=>x.id===l.id); if(!ex){ST.leads.push(Object.assign({},l));}else{if(l.tel&&!ex.tel)ex.tel=l.tel;if(l.email&&!ex.email)ex.email=l.email;} });
     Object.entries(PHOTO_DEFAULTS).forEach(([k,v])=>{ if(!ST.photos[k]) ST.photos[k]=v; });
     Object.keys(DEFAULT_SETTINGS).forEach(k=>{ if(!ST.settings[k]) ST.settings[k]=DEFAULT_SETTINGS[k]; });
   }

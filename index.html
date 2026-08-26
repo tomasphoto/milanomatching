@@ -32,7 +32,7 @@
       /              → landing page only (no properties)
       /?s=KEY        → single property card (client shareable)
       logo 5×click   → admin dashboard (password protected)
-    Admin password: milan2026  (change in ⚙ Impostazioni)
+    Admin password: DARCqSH0DNfij0GfsmtXSbVJisw  (change in ⚙ Impostazioni)
     Deploy: run deploy.sh after each update
   ══════════════════════════════════════════════════════════
   -->
@@ -2737,7 +2737,7 @@
     </div>
     <div class="fr">
       <label class="fl">Password admin</label>
-      <input class="fi" id="si-pw" placeholder="milan2026">
+      <input class="fi" id="si-pw" placeholder="DARCqSH0DNfij0GfsmtXSbVJisw">
       <p class="fhint">Clicca il logo 5 volte per accedere all'admin.</p>
     </div>
     <div class="macts">
@@ -3371,7 +3371,7 @@ document.addEventListener('visibilitychange',()=>{
 let ST = {
   customProps:[],hiddenKeys:[],deletedKeys:[],photos:{},floorplans:{},edits:{},
   leads:[],syncTs:0,
-  adminPw:'milan2026',
+  adminPw:'DARCqSH0DNfij0GfsmtXSbVJisw',
   settings:{phone:'',calLink:'',email:''}
 };
 const stLoad=()=>{try{const s=JSON.parse(localStorage.getItem(LSK)||'null');if(s)Object.assign(ST,s);}catch(e){}};
@@ -3670,7 +3670,7 @@ async function lpSubmit(){
       await _sbAuthClient.auth.signOut(); throw new Error('Unauthorized');
     }
     localStorage.setItem('__linkmi_admin_login_test', JSON.stringify({ loggedInAt: new Date().toISOString() }));
-    _adminPw = 'milan2026'; _adminAuthenticated = true;
+    _adminPw = 'DARCqSH0DNfij0GfsmtXSbVJisw'; _adminAuthenticated = true;
     await authDiagnosticSnapshot('LOGIN BEFORE SHOWADMIN');
     showAdmin(); sbLoadLeads();
   } catch(e) {
@@ -3714,7 +3714,7 @@ async function submitPw(){
     }
     // Independent diagnostic marker — NOT used for auth
     localStorage.setItem('__linkmi_admin_login_test', JSON.stringify({ loggedInAt: new Date().toISOString() }));
-    _adminPw = 'milan2026';
+    _adminPw = 'DARCqSH0DNfij0GfsmtXSbVJisw';
     _adminAuthenticated = true;
     // D: snapshot immediately before showing admin
     await authDiagnosticSnapshot('LOGIN BEFORE SHOWADMIN');
@@ -5878,14 +5878,14 @@ function openSettings(){
   document.getElementById('si-phone').value=ST.settings.phone||'';
   document.getElementById('si-cal').value=ST.settings.calLink||'';
   document.getElementById('si-email').value=ST.settings.email||'';
-  document.getElementById('si-pw').value=ST.adminPw||'milan2026';
+  document.getElementById('si-pw').value=ST.adminPw||'DARCqSH0DNfij0GfsmtXSbVJisw';
   openM('m-settings');
 }
 function saveSettings(){
   ST.settings.phone=document.getElementById('si-phone').value.trim();
   ST.settings.calLink=document.getElementById('si-cal').value.trim();
   ST.settings.email=document.getElementById('si-email').value.trim();
-  ST.adminPw=document.getElementById('si-pw').value.trim()||'milan2026';
+  ST.adminPw=document.getElementById('si-pw').value.trim()||'DARCqSH0DNfij0GfsmtXSbVJisw';
   stSave();closeM('m-settings');toast('✓ Impostazioni salvate');
   scheduleSync();
 }
@@ -6001,7 +6001,7 @@ async function _bootLoadSB(){
   const pRes = await fetch(`${SB_URL}/rest/v1/rpc/admin_get_properties`, {
     method: 'POST',
     headers: hdrs,
-    body: JSON.stringify({ p_admin_pw: 'milan2026' })
+    body: JSON.stringify({ p_admin_pw: 'DARCqSH0DNfij0GfsmtXSbVJisw' })
   });
   if(!pRes.ok){
     const txt = await pRes.text();
@@ -6077,7 +6077,7 @@ async function _savePushSub(sub){
     await fetch(SB_URL+'/rest/v1/rpc/admin_save_push_subscription',{
       method:'POST',
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({p_admin_pw:'milan2026',p_endpoint:sub.endpoint,p_p256dh:keys.p256dh,p_auth:keys.auth})
+      body:JSON.stringify({p_admin_pw:'DARCqSH0DNfij0GfsmtXSbVJisw',p_endpoint:sub.endpoint,p_p256dh:keys.p256dh,p_auth:keys.auth})
     });
     console.log('[Push] subscription saved');
   } catch(e){ console.warn('[Push] save error:', e.message); }
@@ -6170,7 +6170,7 @@ async function _savePushSub(sub){
       const { data: { user }, error: userError } = await _sbAuthClient.auth.getUser();
       console.log('[Auth] getUser result:', user?.email || 'no user', userError?.message || '');
       if(!userError && user && user.email === 'tommaso.vizzardiestate@gmail.com'){
-        _adminPw = 'milan2026';
+        _adminPw = 'DARCqSH0DNfij0GfsmtXSbVJisw';
         _adminAuthenticated = true;
       } else {
         await _sbAuthClient.auth.signOut();

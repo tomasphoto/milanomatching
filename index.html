@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-26k -->
+<!-- build: 2026-08-26l -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -5678,7 +5678,7 @@ function vaepDelete(){
     if(!ST.deletedKeys)ST.deletedKeys=[];
     if(!ST.deletedKeys.includes(_vaepK))ST.deletedKeys.push(_vaepK);
     stSave();aRender();closeAdminCard();scheduleSync();
-    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{avail:'__deleted__'}});
+    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{available_from:'__deleted__'}});
     return;
   }
   if(!confirm('Rimuovere questa proprietà?'))return;
@@ -5780,7 +5780,7 @@ function delCustom(k){
     if(!ST.deletedKeys)ST.deletedKeys=[];
     if(!ST.deletedKeys.includes(k))ST.deletedKeys.push(k);
     stSave();aRender();scheduleSync();
-    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{avail:'__deleted__'}});
+    if(pToDelete?._sbId) sbRpc('admin_update_property',{p_sb_id:pToDelete._sbId,p_data:{available_from:'__deleted__'}});
     return;
   }
   if(!confirm('Rimuovere questa proprietà?'))return;

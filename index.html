@@ -3353,6 +3353,15 @@ async function sbLoadLeads(){
   }
 }
 
+// ── Background polling: every 30s while admin is visible ──────
+setInterval(()=>{
+  if(_adminAuthenticated===true && !document.hidden) sbLoadLeads();
+}, 30000);
+// ── Foreground sync on tab/app focus ─────────────────────────
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && _adminAuthenticated===true) sbLoadLeads();
+});
+
 let ST = {
   customProps:[],hiddenKeys:[],photos:{},floorplans:{},edits:{},
   leads:[],syncTs:0,
@@ -4507,6 +4516,17 @@ function openLeadPanel(id){
   vlepRenderMatches(lead);
   // Mark as read (idempotent — only fires if not yet viewed)
   markLeadViewed(lead);
+  // Reset dirty flag and wire delegated listener for all native inputs/selects
+  _vlepDirty = false;
+  const _vlepPanelEl = document.getElementById('vl-ep');
+  if(_vlepPanelEl){
+    if(_vlepPanelEl._vlepDirtyFn) _vlepPanelEl.removeEventListener('input', _vlepPanelEl._vlepDirtyFn);
+    if(_vlepPanelEl._vlepDirtyFnC) _vlepPanelEl.removeEventListener('change', _vlepPanelEl._vlepDirtyFnC);
+    _vlepPanelEl._vlepDirtyFn = () => { _vlepDirty = true; };
+    _vlepPanelEl._vlepDirtyFnC = () => { _vlepDirty = true; };
+    _vlepPanelEl.addEventListener('input', _vlepPanelEl._vlepDirtyFn);
+    _vlepPanelEl.addEventListener('change', _vlepPanelEl._vlepDirtyFnC);
+  }
   // Show panel
   if(lDesktop()&&_lcView==='list'){
     document.querySelectorAll('.lc').forEach(el=>el.classList.remove('lc-selected'));
@@ -4676,9 +4696,10 @@ function vlepPropSelect(key,label){
   document.getElementById('vlep-prop-link').value=key;
   document.getElementById('vlep-prop-input').value=label;
   document.getElementById('vlep-prop-drop').classList.remove('open');
+  _vlepDirty=true;
 }
 
-function vlepToggleRoom(el){el.classList.toggle('active');}
+function vlepToggleRoom(el){el.classList.toggle('active');_vlepDirty=true;}
 
 function vlepRenderMatches(lead){
   const wrap=document.getElementById('vlep-matches');if(!wrap)return;

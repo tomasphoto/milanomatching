@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
-<!-- build: 2026-08-26f -->
+<!-- build: 2026-08-26g -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -5771,7 +5771,13 @@ function toggleHid(k){
   scheduleSync();
 }
 function delCustom(k){
-  if(!ST.customProps.find(p=>fk(p)===k)){toast('Solo proprietà personalizzate possono essere rimosse.');return;}
+  if(!ST.customProps.find(p=>fk(p)===k)){
+    if(!confirm('Rimuovere questa proprietà dalla lista?'))return;
+    if(!ST.hiddenKeys.includes(k))ST.hiddenKeys.push(k);
+    stSave();aRender();scheduleSync();
+    sbSyncProp(k,{visibility:'hidden'});
+    return;
+  }
   if(!confirm('Rimuovere questa proprietà?'))return;
   ST.customProps=ST.customProps.filter(p=>fk(p)!==k);
   delete ST.photos[k];delete ST.edits[k];

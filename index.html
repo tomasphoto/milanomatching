@@ -2992,7 +2992,8 @@ async function sbSyncLead(lead, localData){
 }
 
 // ── sbLeadToLocal: map a Supabase lead row to local format ───
-// Merges into `existing` — preserves local-only fields not in Supabase
+// Server is authoritative for all persisted fields — null from Supabase means cleared.
+// Only truly local-only fields (id, non-DB metadata) fall back to existing.*.
 function sbLeadToLocal(sl, existing){
   existing = existing || {};
   const SB_STATUS_REV = {
@@ -3000,30 +3001,33 @@ function sbLeadToLocal(sl, existing){
     'proposal':'proposta','closed':'chiuso','lost':'perso',
     'second_option':'secondo','contract':'contratto'
   };
+  // property_id null → server has no link → clear local link
+  // property_id set but property not loaded yet → keep existing as best-effort fallback
   const linkedProp = (()=>{
-    if(!sl.property_id) return existing.linkedProp || '';
+    if(sl.property_id == null) return '';
     const lp = allP().find(x => x._sbId === sl.property_id);
     return lp ? fk(lp) : (existing.linkedProp || '');
   })();
   const sbTime = sl.received_at ? new Date(sl.received_at).getTime()
                : sl.added_at   ? new Date(sl.added_at).getTime() : null;
   return {
-    ...existing,
+    ...existing,                          // preserve local-only fields (e.g. UI metadata)
     id:        existing.id || ('SB_' + sl.id),
     _sbId:     sl.id,
-    nome:      sl.name        != null ? sl.name        : (existing.nome      || ''),
-    tel:       sl.phone       != null ? sl.phone       : (existing.tel       || ''),
-    email:     sl.email       != null ? sl.email       : (existing.email     || ''),
-    profilo:   sl.profile     != null ? sl.profile     : (existing.profilo   || 'Privato'),
-    budgetMax: sl.budget_max  != null ? sl.budget_max  : (existing.budgetMax || null),
-    stanze:    sl.desired_rooms != null ? [sl.desired_rooms] : (existing.stanze || []),
-    zones:     sl.desired_zones != null ? sl.desired_zones   : (existing.zones  || []),
-    ingresso:  sl.move_in     != null ? sl.move_in     : (existing.ingresso  || ''),
-    urg:       sl.urgency     != null ? sl.urgency     : (existing.urg       || ''),
-    qual:      sl.quality     != null ? sl.quality     : (existing.qual      || null),
-    note:      sl.notes       != null ? sl.notes       : (existing.note      || ''),
-    richiesta: sl.request_text!= null ? sl.request_text: (existing.richiesta || ''),
-    status:    SB_STATUS_REV[sl.status] || existing.status || 'nuovo',
+    // ── Supabase-persisted fields: server wins; null → cleared ──
+    nome:      sl.name         ?? '',
+    tel:       sl.phone        ?? '',
+    email:     sl.email        ?? '',
+    profilo:   sl.profile      ?? 'Privato',
+    budgetMax: sl.budget_max   ?? null,
+    stanze:    Array.isArray(sl.desired_rooms) ? sl.desired_rooms : [],
+    zones:     sl.desired_zones ?? [],
+    ingresso:  sl.move_in      ?? '',
+    urg:       sl.urgency      ?? '',
+    qual:      sl.quality      ?? null,
+    note:      sl.notes        ?? '',
+    richiesta: sl.request_text ?? '',
+    status:    SB_STATUS_REV[sl.status]  || 'nuovo',
     linkedProp,
     addedAt:   sbTime || existing.addedAt || Date.now(),
   };

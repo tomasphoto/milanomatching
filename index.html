@@ -6571,8 +6571,8 @@ async function aqLoadLeads(areaId) {
   const grid = document.getElementById('aq-leads-grid');
   grid.innerHTML = '<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Caricamento…</p>';
   try {
-    const rows = await sbRpc('admin_get_acq_leads', { p_area_id: areaId });
-    _aqLeads = rows || [];
+    const res = await sbRpc('admin_get_acq_leads', { p_area_id: areaId });
+    _aqLeads = (res && res.ok && Array.isArray(res.data)) ? res.data : [];
     aqRender();
   } catch(e) {
     grid.innerHTML = `<p style="color:#c0392b;font-size:13px;padding:16px 0;">Errore caricamento: ${e.message||e}</p>`;
@@ -6645,6 +6645,28 @@ function aqEpOpen(id) {
         <button onclick="aqEpSavePhone(document.getElementById('vaqep-phone-in').value)"
           style="padding:9px 14px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Salva</button>
       </div>
+    </div>
+    <div class="vaqep-section">
+      <h4>Messaggio WhatsApp</h4>
+      ${(()=>{
+        const nome = (l.owner_name||'').split(' ')[0] || 'Proprietario';
+        const addr = l.address || l.property_title || 'il suo immobile';
+        const src  = l.source || 'un portale immobiliare';
+        const msg  = `Buongiorno ${nome}, ho visto il suo annuncio su ${src} per ${addr}. Sono un consulente immobiliare a Milano e vorrei proporle di gestire la commercializzazione del suo immobile senza alcuna commissione a suo carico. Sarebbe disponibile per un breve confronto? La ringrazio.`;
+        const phone = l.phone ? l.phone.replace(/[\s.-]/g,'').replace(/^\+/,'') : '';
+        const waUrl = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : '';
+        return `
+        <textarea id="vaqep-wa-msg" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text);line-height:1.55;resize:vertical;min-height:110px;">${msg}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+          <button onclick="navigator.clipboard.writeText(document.getElementById('vaqep-wa-msg').value).then(()=>toast('📋 Messaggio copiato!'))"
+            style="flex:1;padding:9px 12px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;">📋 Copia messaggio</button>
+          ${waUrl ? `<a href="${waUrl}" target="_blank"
+            style="flex:1;padding:9px 12px;background:#25D366;color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;text-align:center;text-decoration:none;">💬 Apri WhatsApp</a>` : ''}
+          ${phone ? `<a href="data:text/vcard;charset=utf-8,BEGIN:VCARD%0AVERSION:3.0%0AFN:${encodeURIComponent(l.owner_name||'Proprietario')}%0ATEL:${encodeURIComponent(l.phone||'')}%0AEND:VCARD"
+            download="${encodeURIComponent(l.owner_name||'contatto')}.vcf"
+            style="flex:1;padding:9px 12px;background:var(--bg2,#f5f5f5);color:var(--text);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;text-align:center;text-decoration:none;">👤 Salva contatto</a>` : ''}
+        </div>`;
+      })()}
     </div>
     <div class="vaqep-section">
       <h4>Proprietà</h4>
@@ -6833,7 +6855,7 @@ async function aqRunSearch() {
 
   for (const item of results.listings) {
     try {
-      const r = await sbRpc('admin_upsert_acq_lead', {
+      const res = await sbRpc('admin_upsert_acq_lead', {
         p_data: {
           area_id:        _aqCurrentArea.id,
           area_name:      _aqCurrentArea.name,
@@ -6851,6 +6873,7 @@ async function aqRunSearch() {
           notes:          item.phone_from_desc ? '[numero estratto da testo]' : null
         }
       });
+      const r = res?.data;
       if (r && r.new) {
         countNew++;
         if (item.phone) countPhones++;

@@ -6416,6 +6416,440 @@ document.addEventListener('visibilitychange', () => {
     loadLastSync();
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  ACQUISITIONS
+// ═══════════════════════════════════════════════════════════════
+
+const ACQ_STATUSES = {
+  new:            { label: 'Nuovo',           cls: 'aqst-new' },
+  to_contact:     { label: 'Da contattare',   cls: 'aqst-to_contact' },
+  contacted:      { label: 'Contattato',      cls: 'aqst-contacted' },
+  interested:     { label: 'Interessato',     cls: 'aqst-interested' },
+  appointment:    { label: 'Appuntamento',    cls: 'aqst-appointment' },
+  acquired:       { label: 'Acquisito',       cls: 'aqst-acquired' },
+  not_interested: { label: 'Non interessato', cls: 'aqst-not_interested' },
+  agency:         { label: 'Agenzia',         cls: 'aqst-agency' },
+  duplicate:      { label: 'Duplicato',       cls: 'aqst-duplicate' }
+};
+
+let _aqAreas = [];
+let _aqLeads = [];
+let _aqCurrentArea = null;
+let _aqEpId = null;
+
+// ── Areas ──────────────────────────────────────────────────────
+
+async function aqLoadAreas() {
+  if (!_adminPw) return;
+  try {
+    const rows = await sbRpc('admin_get_acq_areas', {});
+    _aqAreas = rows || [];
+    aqRenderAreas();
+  } catch(e) {
+    console.error('[ACQ] loadAreas error', e);
+    aqRenderAreas();
+  }
+}
+
+function aqRenderAreas() {
+  const el = document.getElementById('aq-areas-list');
+  if (!el) return;
+  if (!_aqAreas.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px 16px;color:var(--text-2);">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:.35;display:block;margin:0 auto 12px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p style="margin:0 0 8px;font-size:14px;">Nessuna area di ricerca</p>
+      <p style="margin:0;font-size:12px;">Premi + per aggiungere una zona</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = _aqAreas.map(area => {
+    const lc = area.last_count || {};
+    const meta = area.last_searched
+      ? `Ultima ricerca: ${relDate(area.last_searched)} · ${lc.contacts||0} contatti · ${lc.new||0} nuovi`
+      : 'Nessuna ricerca ancora';
+    return `<div class="aq-area-card">
+      <div class="aq-area-ic">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="aq-area-info" onclick="aqOpenArea('${area.id}','${esc(area.name)}')" style="cursor:pointer;">
+        <div class="aq-area-name">${esc(area.name)}</div>
+        <div class="aq-area-meta">${meta}</div>
+      </div>
+      <div class="aq-area-actions">
+        <button class="aq-area-btn" onclick="aqOpenAreaModal('${area.id}')">Modifica</button>
+        <button class="aq-area-btn" onclick="aqOpenArea('${area.id}','${esc(area.name)}')">Apri</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function aqOpenArea(areaId, areaName) {
+  _aqCurrentArea = _aqAreas.find(a => a.id === areaId) || { id: areaId, name: areaName };
+  document.getElementById('vaq-areas-view').style.display = 'none';
+  document.getElementById('vaq-leads-view').style.display = '';
+  document.getElementById('vaq-area-title').textContent = areaName;
+  // Pre-fill URL if area has a saved search_url
+  const urlIn = document.getElementById('aq-run-url');
+  if (_aqCurrentArea.search_url && !urlIn.value) urlIn.value = _aqCurrentArea.search_url;
+  aqLoadLeads(areaId);
+}
+
+function aqBackToAreas() {
+  _aqCurrentArea = null;
+  _aqLeads = [];
+  document.getElementById('vaq-leads-view').style.display = 'none';
+  document.getElementById('vaq-areas-view').style.display = '';
+  document.getElementById('aq-run-url').value = '';
+  document.getElementById('aq-run-summary').style.display = 'none';
+  aqLoadAreas();
+}
+
+// ── Area modal ─────────────────────────────────────────────────
+
+function aqOpenAreaModal(areaId) {
+  const modal = document.getElementById('aq-area-modal');
+  const title = document.getElementById('aq-area-modal-title');
+  const idIn  = document.getElementById('aq-area-modal-id');
+  const nameIn= document.getElementById('aq-area-name-in');
+  const urlIn = document.getElementById('aq-area-url-in');
+  const delBtn= document.getElementById('aq-area-del-btn');
+  if (areaId) {
+    const area = _aqAreas.find(a => a.id === areaId);
+    title.textContent  = 'Modifica Area';
+    idIn.value         = areaId;
+    nameIn.value       = area ? area.name : '';
+    urlIn.value        = area ? (area.search_url || '') : '';
+    delBtn.classList.remove('hidden');
+  } else {
+    title.textContent  = 'Nuova Area';
+    idIn.value         = '';
+    nameIn.value       = '';
+    urlIn.value        = '';
+    delBtn.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+  setTimeout(() => nameIn.focus(), 100);
+}
+
+function aqCloseAreaModal() {
+  document.getElementById('aq-area-modal').classList.add('hidden');
+}
+
+async function aqSaveArea() {
+  const id   = document.getElementById('aq-area-modal-id').value || null;
+  const name = document.getElementById('aq-area-name-in').value.trim();
+  const url  = document.getElementById('aq-area-url-in').value.trim() || null;
+  if (!name) { toast('Inserisci un nome'); return; }
+  try {
+    await sbRpc('admin_save_acq_area', { p_id: id || null, p_name: name, p_search_url: url });
+    aqCloseAreaModal();
+    toast('Area salvata');
+    aqLoadAreas();
+  } catch(e) {
+    toast('Errore: ' + (e.message || e));
+  }
+}
+
+async function aqDeleteArea() {
+  const id = document.getElementById('aq-area-modal-id').value;
+  if (!id) return;
+  if (!confirm('Eliminare questa area e tutti i suoi contatti?')) return;
+  try {
+    await sbRpc('admin_delete_acq_area', { p_id: id });
+    aqCloseAreaModal();
+    toast('Area eliminata');
+    aqLoadAreas();
+  } catch(e) {
+    toast('Errore: ' + (e.message || e));
+  }
+}
+
+// ── Leads in an area ───────────────────────────────────────────
+
+async function aqLoadLeads(areaId) {
+  const grid = document.getElementById('aq-leads-grid');
+  grid.innerHTML = '<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Caricamento…</p>';
+  try {
+    const rows = await sbRpc('admin_get_acq_leads', { p_area_id: areaId });
+    _aqLeads = rows || [];
+    aqRender();
+  } catch(e) {
+    grid.innerHTML = `<p style="color:#c0392b;font-size:13px;padding:16px 0;">Errore caricamento: ${e.message||e}</p>`;
+  }
+}
+
+function aqRender() {
+  const grid = document.getElementById('aq-leads-grid');
+  if (!grid) return;
+  const sf = (document.getElementById('aqf-status')||{}).value || '';
+  let leads = _aqLeads.filter(l => !sf || l.status === sf);
+  if (!leads.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:48px 16px;color:var(--text-2);grid-column:1/-1;">
+      <p style="margin:0;font-size:14px;">Nessun contatto trovato</p>
+      <p style="margin:6px 0 0;font-size:12px;">Incolla un URL e premi CERCA per trovare privati</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = leads.map(l => aqCard(l)).join('');
+}
+
+function aqCard(l) {
+  const st = ACQ_STATUSES[l.status] || ACQ_STATUSES.new;
+  const phone = l.phone ? l.phone.replace(/\s/g,'') : '';
+  const chips = [
+    l.rent   ? `€${l.rent.toLocaleString('it-IT')}/mo` : null,
+    l.sqm    ? `${l.sqm} m²` : null,
+    l.rooms  ? `${l.rooms} loc.` : null,
+    l.source ? l.source : null
+  ].filter(Boolean).map(c => `<span class="aqc-chip">${c}</span>`).join('');
+  return `<div class="aqc" onclick="aqEpOpen('${l.id}')">
+    <span class="aqc-status ${st.cls}">${st.label}</span>
+    <div class="aqc-name">${esc(l.owner_name||'Contatto sconosciuto')}</div>
+    <div class="aqc-addr">${esc(l.address||l.property_title||'—')}</div>
+    ${chips ? `<div class="aqc-meta">${chips}</div>` : ''}
+    <div class="aqc-actions">
+      ${phone ? `<a class="aqc-act call" href="tel:${phone}" onclick="event.stopPropagation()">CHIAMA</a>` : ''}
+      ${phone ? `<a class="aqc-act wa" href="https://wa.me/${phone.replace('+','')}" target="_blank" onclick="event.stopPropagation()">WHATSAPP</a>` : ''}
+      ${l.listing_url ? `<a class="aqc-act prop" href="${l.listing_url}" target="_blank" onclick="event.stopPropagation()">ANNUNCIO</a>` : ''}
+    </div>
+  </div>`;
+}
+
+// ── Detail panel ───────────────────────────────────────────────
+
+function aqEpOpen(id) {
+  _aqEpId = id;
+  const l = _aqLeads.find(x => x.id === id);
+  if (!l) return;
+  const ep = document.getElementById('vaq-ep');
+  document.getElementById('vaqep-bar-name').textContent = l.owner_name || 'Contatto';
+  const phone = l.phone ? l.phone.replace(/\s/g,'') : '';
+  const st = ACQ_STATUSES[l.status] || ACQ_STATUSES.new;
+  document.getElementById('vaqep-content').innerHTML = `
+    <p class="vaqep-name">${esc(l.owner_name||'Contatto sconosciuto')}</p>
+    <p class="vaqep-addr">${esc(l.address||l.property_title||'—')}</p>
+    <div class="vaqep-act-row">
+      ${phone ? `<a class="vaqep-act-btn call" href="tel:${phone}">CHIAMA</a>` : ''}
+      ${phone ? `<a class="vaqep-act-btn wa" href="https://wa.me/${phone.replace('+','')}" target="_blank">WHATSAPP</a>` : ''}
+      ${l.listing_url ? `<a class="vaqep-act-btn prop" href="${l.listing_url}" target="_blank">ANNUNCIO</a>` : ''}
+    </div>
+    <div class="vaqep-section">
+      <h4>Proprietà</h4>
+      ${l.property_title ? `<div class="vaqep-row"><span>Titolo</span><span>${esc(l.property_title)}</span></div>` : ''}
+      ${l.address  ? `<div class="vaqep-row"><span>Indirizzo</span><span>${esc(l.address)}</span></div>` : ''}
+      ${l.rent     ? `<div class="vaqep-row"><span>Affitto</span><span>€${l.rent.toLocaleString('it-IT')}/mese</span></div>` : ''}
+      ${l.sqm      ? `<div class="vaqep-row"><span>Superficie</span><span>${l.sqm} m²</span></div>` : ''}
+      ${l.rooms    ? `<div class="vaqep-row"><span>Locali</span><span>${l.rooms}</span></div>` : ''}
+      ${l.source   ? `<div class="vaqep-row"><span>Fonte</span><span>${esc(l.source)}</span></div>` : ''}
+      <div class="vaqep-row"><span>Trovato</span><span>${relDate(l.discovered_at)}</span></div>
+    </div>
+    ${l.description ? `<div class="vaqep-section"><h4>Descrizione</h4><p style="font-size:13px;color:var(--text-2);line-height:1.5;margin:0;">${esc(l.description).substring(0,400)}${l.description.length>400?'…':''}</p></div>` : ''}
+    <div class="vaqep-section">
+      <h4>Stato</h4>
+      <select class="vaqep-status-sel" id="vaqep-status-sel" onchange="aqEpSaveStatus(this.value)">
+        ${Object.entries(ACQ_STATUSES).map(([k,v])=>`<option value="${k}"${l.status===k?' selected':''}>${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="vaqep-section">
+      <h4>Note</h4>
+      <textarea class="vaqep-notes" id="vaqep-notes" onblur="aqEpSaveNotes()">${esc(l.notes||'')}</textarea>
+    </div>`;
+  ep.classList.remove('hidden');
+  ep.scrollTop = 0;
+}
+
+async function aqEpSaveStatus(val) {
+  if (!_aqEpId) return;
+  try {
+    await sbRpc('admin_update_acq_lead', { p_id: _aqEpId, p_data: { status: val } });
+    const l = _aqLeads.find(x => x.id === _aqEpId);
+    if (l) l.status = val;
+    aqRender();
+    toast('Stato aggiornato');
+  } catch(e) { toast('Errore: ' + (e.message||e)); }
+}
+
+async function aqEpSaveNotes() {
+  if (!_aqEpId) return;
+  const notes = (document.getElementById('vaqep-notes')||{}).value || '';
+  try {
+    await sbRpc('admin_update_acq_lead', { p_id: _aqEpId, p_data: { notes } });
+    const l = _aqLeads.find(x => x.id === _aqEpId);
+    if (l) l.notes = notes;
+  } catch(e) { console.error('[ACQ] save notes', e); }
+}
+
+async function aqEpDelete() {
+  if (!_aqEpId) return;
+  if (!confirm('Eliminare questo contatto?')) return;
+  try {
+    await sbRpc('admin_delete_acq_lead', { p_id: _aqEpId });
+    _aqLeads = _aqLeads.filter(x => x.id !== _aqEpId);
+    aqEpClose();
+    aqRender();
+    toast('Contatto eliminato');
+  } catch(e) { toast('Errore: ' + (e.message||e)); }
+}
+
+function aqEpClose() {
+  document.getElementById('vaq-ep').classList.add('hidden');
+  _aqEpId = null;
+}
+
+// ── RUN SEARCH ─────────────────────────────────────────────────
+// Uses allorigins.win as CORS proxy to fetch the page server-side,
+// then parses the HTML for private-owner listing signals.
+
+async function aqRunSearch() {
+  const urlIn = document.getElementById('aq-run-url');
+  const btn   = document.getElementById('aq-run-btn');
+  const sumEl = document.getElementById('aq-run-summary');
+  const rawUrl = (urlIn.value || '').trim();
+  if (!rawUrl) { toast('Incolla un URL prima'); return; }
+  if (!_aqCurrentArea) { toast('Errore: nessuna area selezionata'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '…';
+  sumEl.style.display = 'none';
+
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rawUrl)}`;
+  let html = '';
+  let fetchOk = false;
+  try {
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(20000) });
+    if (res.ok) {
+      const j = await res.json();
+      html = j.contents || '';
+      fetchOk = !!html;
+    }
+  } catch(e) {
+    console.warn('[ACQ] fetch via proxy failed:', e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'CERCA';
+
+  if (!fetchOk || !html) {
+    sumEl.style.display = '';
+    sumEl.innerHTML = `⚠️ Impossibile recuperare la pagina (CORS o sito bloccato). Controlla l'URL e riprova, oppure aggiungi contatti manualmente.`;
+    return;
+  }
+
+  // Detect source
+  const source = rawUrl.includes('immobiliare.it') ? 'Immobiliare'
+    : rawUrl.includes('idealista') ? 'Idealista'
+    : rawUrl.includes('subito.it') ? 'Subito'
+    : new URL(rawUrl).hostname;
+
+  // Parse listings from HTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  const results = aqParseListings(doc, source, rawUrl);
+
+  let countNew = 0, countDupe = 0;
+  for (const item of results.listings) {
+    try {
+      const r = await sbRpc('admin_upsert_acq_lead', {
+        p_data: {
+          area_id:        _aqCurrentArea.id,
+          area_name:      _aqCurrentArea.name,
+          owner_name:     item.owner_name || null,
+          phone:          item.phone || null,
+          property_title: item.title || null,
+          address:        item.address || null,
+          rent:           item.rent || null,
+          sqm:            item.sqm || null,
+          rooms:          item.rooms || null,
+          description:    item.description || null,
+          listing_url:    item.url || null,
+          source:         source,
+          listing_id:     item.listing_id || null
+        }
+      });
+      if (r && r.new) countNew++; else countDupe++;
+    } catch(e) { console.warn('[ACQ] upsert error', e); }
+  }
+
+  // Log search stats
+  const stats = {
+    scanned:     results.scanned,
+    private:     results.listings.length,
+    contacts:    results.listings.filter(x=>x.phone).length,
+    new:         countNew,
+    already_in_db: countDupe
+  };
+  try {
+    await sbRpc('admin_log_acq_search', { p_area_id: _aqCurrentArea.id, p_count: stats });
+    _aqCurrentArea.last_searched = new Date().toISOString();
+    _aqCurrentArea.last_count    = stats;
+  } catch(e) {}
+
+  sumEl.style.display = '';
+  sumEl.innerHTML = `✅ ${stats.scanned} annunci scansionati · ${stats.private} privati trovati · ${countNew} nuovi · ${countDupe} già in DB`;
+
+  await aqLoadLeads(_aqCurrentArea.id);
+}
+
+function aqParseListings(doc, source, pageUrl) {
+  const listings = [];
+  let scanned = 0;
+
+  if (source === 'Immobiliare') {
+    // Immobiliare.it — look for listing cards
+    const cards = doc.querySelectorAll('[class*="in-listingCard"],[class*="listing-item"],[data-listing-id]');
+    scanned = Math.max(cards.length, 1);
+    cards.forEach(card => {
+      // Skip agency listings (they have agency badge or "Agenzia" text)
+      const cardText = card.textContent || '';
+      if (/agenzia|immobiliare\s+\w+|s\.?r\.?l\.?|s\.?p\.?a\./i.test(cardText)) return;
+      const titleEl = card.querySelector('[class*="title"],[class*="Title"],[class*="listing-title"]');
+      const priceEl = card.querySelector('[class*="price"],[class*="Price"],[class*="listing-price"]');
+      const linkEl  = card.querySelector('a[href*="/annunci/"]');
+      const addrEl  = card.querySelector('[class*="address"],[class*="Address"],[class*="location"]');
+      const title   = (titleEl?.textContent||'').trim();
+      const address = (addrEl?.textContent||'').trim();
+      const priceStr = (priceEl?.textContent||'').replace(/\./g,'').replace(',','.');
+      const rent    = parseInt(priceStr) || null;
+      const url     = linkEl ? (linkEl.href || linkEl.getAttribute('href')) : null;
+      const lid     = url ? url.split('/').filter(Boolean).pop()?.replace('.htm','') : null;
+      // sqm / rooms from title
+      const sqmM   = title.match(/(\d+)\s*m²/i);
+      const roomsM = title.match(/(\d+)\s*loc/i);
+      if (title || address || url) {
+        listings.push({ title, address, rent, url, listing_id: lid, sqm: sqmM?parseInt(sqmM[1]):null, rooms: roomsM?parseInt(roomsM[1]):null });
+      }
+    });
+    if (!cards.length) {
+      // Fallback: page likely JS-rendered
+      scanned = 0;
+    }
+  } else if (source === 'Subito') {
+    const cards = doc.querySelectorAll('[class*="item-card"],[class*="ItemCard"],[data-id]');
+    scanned = Math.max(cards.length, 1);
+    cards.forEach(card => {
+      if (/agenzia|professionista/i.test(card.textContent)) return;
+      const titleEl = card.querySelector('h2,h3,[class*="title"]');
+      const priceEl = card.querySelector('[class*="price"]');
+      const linkEl  = card.querySelector('a[href]');
+      const title   = (titleEl?.textContent||'').trim();
+      const rent    = parseInt((priceEl?.textContent||'').replace(/\D/g,'')) || null;
+      const url     = linkEl?.getAttribute('href');
+      const lid     = url ? url.split('-').pop()?.replace('.htm','') : null;
+      if (title || url) listings.push({ title, rent, url, listing_id: lid });
+    });
+  } else {
+    // Generic fallback: count links and look for private signals
+    const links = doc.querySelectorAll('a[href]');
+    scanned = links.length;
+  }
+
+  return { scanned, listings };
+}
+
+// helper: escape HTML in templates
+function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 </script>
 </body>
 </html>

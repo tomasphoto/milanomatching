@@ -6601,7 +6601,8 @@ function aqCard(l) {
     l.rent   ? `€${l.rent.toLocaleString('it-IT')}/mo` : null,
     l.sqm    ? `${l.sqm} m²` : null,
     l.rooms  ? `${l.rooms} loc.` : null,
-    l.source ? l.source : null
+    l.source ? l.source : null,
+    (l.phone && l.phone_from_desc) ? '📞 estratto' : null
   ].filter(Boolean).map(c => `<span class="aqc-chip">${c}</span>`).join('');
   return `<div class="aqc" onclick="aqEpOpen('${l.id}')">
     <span class="aqc-status ${st.cls}">${st.label}</span>
@@ -6765,7 +6766,8 @@ async function aqRunSearch() {
           description:    item.description || null,
           listing_url:    item.url || null,
           source:         source,
-          listing_id:     item.listing_id || null
+          listing_id:     item.listing_id || null,
+          notes:          item.phone_from_desc ? '[numero estratto da testo]' : null
         }
       });
       if (r && r.new) countNew++; else countDupe++;
@@ -6817,8 +6819,12 @@ function aqParseListings(doc, source, pageUrl) {
       // sqm / rooms from title
       const sqmM   = title.match(/(\d+)\s*m²/i);
       const roomsM = title.match(/(\d+)\s*loc/i);
+      const descEl = card.querySelector('[class*="description"],[class*="Description"],[class*="note"],[class*="text-body"]');
+      const description = (descEl?.textContent||'').trim();
+      // Try to extract phone from description or full card text
+      const phoneFromDesc = aqExtractPhone(description) || aqExtractPhone(cardText);
       if (title || address || url) {
-        listings.push({ title, address, rent, url, listing_id: lid, sqm: sqmM?parseInt(sqmM[1]):null, rooms: roomsM?parseInt(roomsM[1]):null });
+        listings.push({ title, address, rent, url, listing_id: lid, sqm: sqmM?parseInt(sqmM[1]):null, rooms: roomsM?parseInt(roomsM[1]):null, description, phone: phoneFromDesc, phone_from_desc: !!phoneFromDesc });
       }
     });
     if (!cards.length) {
@@ -6837,7 +6843,9 @@ function aqParseListings(doc, source, pageUrl) {
       const rent    = parseInt((priceEl?.textContent||'').replace(/\D/g,'')) || null;
       const url     = linkEl?.getAttribute('href');
       const lid     = url ? url.split('-').pop()?.replace('.htm','') : null;
-      if (title || url) listings.push({ title, rent, url, listing_id: lid });
+      const cardTextS = card.textContent || '';
+      const phoneFromDescS = aqExtractPhone(cardTextS);
+      if (title || url) listings.push({ title, rent, url, listing_id: lid, phone: phoneFromDescS, phone_from_desc: !!phoneFromDescS });
     });
   } else {
     // Generic fallback: count links and look for private signals

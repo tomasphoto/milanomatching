@@ -6730,6 +6730,53 @@ function aqEpClose() {
   _aqEpId = null;
 }
 
+// ── DEEP SCRAPE — try to extract phone from individual listing page ──────────
+// Phone numbers that belong to Immobiliare.it's own call-center / service lines
+const AQ_SERVICE_NUMBERS = ['0843522100','08435221','0280888'];
+
+async function aqDeepScrapePhone(listingUrl) {
+  if (!listingUrl) return null;
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(listingUrl)}`;
+  let html = '';
+  try {
+    const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(18000) });
+    if (res.ok) {
+      const j = await res.json();
+      html = j.contents || '';
+    }
+  } catch(e) {
+    console.warn('[ACQ] deepScrape fetch fail:', e);
+    return null;
+  }
+  if (!html) return null;
+
+  // Try regex on raw HTML source — phones sometimes pre-rendered
+  // Italian mobile: 3xx-xxxxxxx | Italian landline: 0x-xxxxxxx
+  const re = /(?:\+39[\s.-]?)?(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{3,4}|3\d{8,9}|0\d{1,3}[\s.-]?\d{5,8})/g;
+  const all = (html.match(re) || [])
+    .map(m => m.replace(/[\s.-]/g,''))
+    .filter(m => {
+      const digits = m.replace('+','');
+      if (digits.length < 9 || digits.length > 13) return false;
+      // Filter out known service numbers
+      return !AQ_SERVICE_NUMBERS.some(svc => digits.startsWith(svc));
+    })
+    // Prefer mobile (3xx)
+    .sort((a,b) => {
+      const aM = /^(?:\+39)?3/.test(a.replace('+','')) ? 0 : 1;
+      const bM = /^(?:\+39)?3/.test(b.replace('+','')) ? 0 : 1;
+      return aM - bM;
+    });
+
+  if (!all.length) return null;
+  const raw = all[0];
+  // Format: if starts with 39 and long enough, prefix +
+  const digits = raw.replace('+','');
+  if (raw.startsWith('+')) return raw;
+  if (digits.startsWith('39') && digits.length >= 11) return '+' + digits;
+  return raw;
+}
+
 // ── RUN SEARCH ─────────────────────────────────────────────────
 // Uses allorigins.win as CORS proxy to fetch the page server-side,
 // then parses the HTML for private-owner listing signals.
@@ -6781,7 +6828,9 @@ async function aqRunSearch() {
 
   const results = aqParseListings(doc, source, rawUrl);
 
-  let countNew = 0, countDupe = 0;
+  let countNew = 0, countDupe = 0, countPhones = 0;
+  const deepScrapeQueue = []; // {leadId, url} for new leads without phone
+
   for (const item of results.listings) {
     try {
       const r = await sbRpc('admin_upsert_acq_lead', {
@@ -6802,15 +6851,47 @@ async function aqRunSearch() {
           notes:          item.phone_from_desc ? '[numero estratto da testo]' : null
         }
       });
-      if (r && r.new) countNew++; else countDupe++;
+      if (r && r.new) {
+        countNew++;
+        if (item.phone) countPhones++;
+        // Queue for deep scrape if no phone yet and URL available
+        if (!item.phone && item.url && r.id) {
+          deepScrapeQueue.push({ leadId: r.id, url: item.url });
+        }
+      } else {
+        countDupe++;
+      }
     } catch(e) { console.warn('[ACQ] upsert error', e); }
+  }
+
+  // ── Deep scrape: fetch individual pages to find pre-rendered phones ──────
+  if (deepScrapeQueue.length > 0) {
+    sumEl.style.display = '';
+    sumEl.innerHTML = `🔍 Cerco numeri di telefono nelle pagine individuali (${deepScrapeQueue.length} da scansionare)…`;
+    let deepFound = 0;
+    for (const { leadId, url } of deepScrapeQueue) {
+      try {
+        const phone = await aqDeepScrapePhone(url);
+        if (phone) {
+          await sbRpc('admin_update_acq_lead', {
+            p_id: leadId,
+            p_data: { phone, notes: '[numero trovato in pagina annuncio]' }
+          });
+          countPhones++;
+          deepFound++;
+        }
+      } catch(e) { console.warn('[ACQ] deepScrape update error', e); }
+    }
+    if (deepFound > 0) {
+      sumEl.innerHTML = `🔍 Trovati ${deepFound} numeri aggiuntivi dalla pagina annuncio…`;
+    }
   }
 
   // Log search stats
   const stats = {
     scanned:     results.scanned,
     private:     results.listings.length,
-    contacts:    results.listings.filter(x=>x.phone).length,
+    contacts:    countPhones,
     new:         countNew,
     already_in_db: countDupe
   };
@@ -6821,7 +6902,7 @@ async function aqRunSearch() {
   } catch(e) {}
 
   sumEl.style.display = '';
-  sumEl.innerHTML = `✅ ${stats.scanned} annunci scansionati · ${stats.private} privati trovati · ${countNew} nuovi · ${countDupe} già in DB`;
+  sumEl.innerHTML = `✅ ${stats.scanned} annunci scansionati · ${stats.private} privati trovati · ${countNew} nuovi · ${countPhones} telefoni · ${countDupe} già in DB`;
 
   await aqLoadLeads(_aqCurrentArea.id);
 }

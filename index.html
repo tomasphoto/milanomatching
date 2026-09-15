@@ -6443,8 +6443,8 @@ let _aqEpId = null;
 async function aqLoadAreas() {
   if (!_adminPw) return;
   try {
-    const rows = await sbRpc('admin_get_acq_areas', {});
-    _aqAreas = rows || [];
+    const res = await sbRpc('admin_get_acq_areas', {});
+    _aqAreas = (res && res.ok && Array.isArray(res.data)) ? res.data : [];
     aqRenderAreas();
   } catch(e) {
     console.error('[ACQ] loadAreas error', e);

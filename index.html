@@ -5070,14 +5070,14 @@ function saveContact(id){
 
   const lines=[
     'BEGIN:VCARD','VERSION:3.0',
-    `N:${esc(parts.slice(1).join(' '))};${esc(parts[0])};;;`,
-    `FN:${esc(displayName)}`,
+    `N:${aqEsc(parts.slice(1).join(' '))};${esc(parts[0])};;;`,
+    `FN:${aqEsc(displayName)}`,
   ];
   if(tel)          lines.push(`TEL;TYPE=CELL:${tel}`);
   if(lead.email)   lines.push(`EMAIL:${lead.email}`);
-  if(lead.profilo) lines.push(`ORG:${esc(lead.profilo)}`);
-  if(propLine)     lines.push(`NOTE:${esc(propLine)}`);
-  else if(lead.note) lines.push(`NOTE:${esc(lead.note)}`);
+  if(lead.profilo) lines.push(`ORG:${aqEsc(lead.profilo)}`);
+  if(propLine)     lines.push(`NOTE:${aqEsc(propLine)}`);
+  else if(lead.note) lines.push(`NOTE:${aqEsc(lead.note)}`);
   lines.push('END:VCARD');
 
   const blob=new Blob([lines.join('\r\n')],{type:'text/vcard;charset=utf-8'});
@@ -6472,13 +6472,13 @@ function aqRenderAreas() {
       <div class="aq-area-ic">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </div>
-      <div class="aq-area-info" onclick="aqOpenArea('${area.id}','${esc(area.name)}')" style="cursor:pointer;">
-        <div class="aq-area-name">${esc(area.name)}</div>
+      <div class="aq-area-info" onclick="aqOpenArea('${area.id}','${aqEsc(area.name)}')" style="cursor:pointer;">
+        <div class="aq-area-name">${aqEsc(area.name)}</div>
         <div class="aq-area-meta">${meta}</div>
       </div>
       <div class="aq-area-actions">
         <button class="aq-area-btn" onclick="aqOpenAreaModal('${area.id}')">Modifica</button>
-        <button class="aq-area-btn" onclick="aqOpenArea('${area.id}','${esc(area.name)}')">Apri</button>
+        <button class="aq-area-btn" onclick="aqOpenArea('${area.id}','${aqEsc(area.name)}')">Apri</button>
       </div>
     </div>`;
   }).join('');
@@ -6605,8 +6605,8 @@ function aqCard(l) {
   ].filter(Boolean).map(c => `<span class="aqc-chip">${c}</span>`).join('');
   return `<div class="aqc" onclick="aqEpOpen('${l.id}')">
     <span class="aqc-status ${st.cls}">${st.label}</span>
-    <div class="aqc-name">${esc(l.owner_name||'Contatto sconosciuto')}</div>
-    <div class="aqc-addr">${esc(l.address||l.property_title||'—')}</div>
+    <div class="aqc-name">${aqEsc(l.owner_name||'Contatto sconosciuto')}</div>
+    <div class="aqc-addr">${aqEsc(l.address||l.property_title||'—')}</div>
     ${chips ? `<div class="aqc-meta">${chips}</div>` : ''}
     <div class="aqc-actions">
       ${phone ? `<a class="aqc-act call" href="tel:${phone}" onclick="event.stopPropagation()">CHIAMA</a>` : ''}
@@ -6627,8 +6627,8 @@ function aqEpOpen(id) {
   const phone = l.phone ? l.phone.replace(/\s/g,'') : '';
   const st = ACQ_STATUSES[l.status] || ACQ_STATUSES.new;
   document.getElementById('vaqep-content').innerHTML = `
-    <p class="vaqep-name">${esc(l.owner_name||'Contatto sconosciuto')}</p>
-    <p class="vaqep-addr">${esc(l.address||l.property_title||'—')}</p>
+    <p class="vaqep-name">${aqEsc(l.owner_name||'Contatto sconosciuto')}</p>
+    <p class="vaqep-addr">${aqEsc(l.address||l.property_title||'—')}</p>
     <div class="vaqep-act-row">
       ${phone ? `<a class="vaqep-act-btn call" href="tel:${phone}">CHIAMA</a>` : ''}
       ${phone ? `<a class="vaqep-act-btn wa" href="https://wa.me/${phone.replace('+','')}" target="_blank">WHATSAPP</a>` : ''}
@@ -6636,15 +6636,15 @@ function aqEpOpen(id) {
     </div>
     <div class="vaqep-section">
       <h4>Proprietà</h4>
-      ${l.property_title ? `<div class="vaqep-row"><span>Titolo</span><span>${esc(l.property_title)}</span></div>` : ''}
-      ${l.address  ? `<div class="vaqep-row"><span>Indirizzo</span><span>${esc(l.address)}</span></div>` : ''}
+      ${l.property_title ? `<div class="vaqep-row"><span>Titolo</span><span>${aqEsc(l.property_title)}</span></div>` : ''}
+      ${l.address  ? `<div class="vaqep-row"><span>Indirizzo</span><span>${aqEsc(l.address)}</span></div>` : ''}
       ${l.rent     ? `<div class="vaqep-row"><span>Affitto</span><span>€${l.rent.toLocaleString('it-IT')}/mese</span></div>` : ''}
       ${l.sqm      ? `<div class="vaqep-row"><span>Superficie</span><span>${l.sqm} m²</span></div>` : ''}
       ${l.rooms    ? `<div class="vaqep-row"><span>Locali</span><span>${l.rooms}</span></div>` : ''}
-      ${l.source   ? `<div class="vaqep-row"><span>Fonte</span><span>${esc(l.source)}</span></div>` : ''}
+      ${l.source   ? `<div class="vaqep-row"><span>Fonte</span><span>${aqEsc(l.source)}</span></div>` : ''}
       <div class="vaqep-row"><span>Trovato</span><span>${relDate(l.discovered_at)}</span></div>
     </div>
-    ${l.description ? `<div class="vaqep-section"><h4>Descrizione</h4><p style="font-size:13px;color:var(--text-2);line-height:1.5;margin:0;">${esc(l.description).substring(0,400)}${l.description.length>400?'…':''}</p></div>` : ''}
+    ${l.description ? `<div class="vaqep-section"><h4>Descrizione</h4><p style="font-size:13px;color:var(--text-2);line-height:1.5;margin:0;">${aqEsc(l.description).substring(0,400)}${l.description.length>400?'…':''}</p></div>` : ''}
     <div class="vaqep-section">
       <h4>Stato</h4>
       <select class="vaqep-status-sel" id="vaqep-status-sel" onchange="aqEpSaveStatus(this.value)">
@@ -6653,7 +6653,7 @@ function aqEpOpen(id) {
     </div>
     <div class="vaqep-section">
       <h4>Note</h4>
-      <textarea class="vaqep-notes" id="vaqep-notes" onblur="aqEpSaveNotes()">${esc(l.notes||'')}</textarea>
+      <textarea class="vaqep-notes" id="vaqep-notes" onblur="aqEpSaveNotes()">${aqEsc(l.notes||'')}</textarea>
     </div>`;
   ep.classList.remove('hidden');
   ep.scrollTop = 0;
@@ -6848,8 +6848,8 @@ function aqParseListings(doc, source, pageUrl) {
   return { scanned, listings };
 }
 
-// helper: escape HTML in templates
-function esc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+function aqEsc(s){ return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
 </script>
 </body>
 </html>

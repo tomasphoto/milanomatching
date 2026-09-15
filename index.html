@@ -6635,6 +6635,17 @@ function aqEpOpen(id) {
       ${l.listing_url ? `<a class="vaqep-act-btn prop" href="${l.listing_url}" target="_blank">ANNUNCIO</a>` : ''}
     </div>
     <div class="vaqep-section">
+      <h4>Nome proprietario</h4>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="vaqep-name-in" value="${aqEsc(l.owner_name||'')}"
+          placeholder="Es. Marco Rossi…"
+          style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);"
+          onblur="aqEpSaveName(this.value)">
+        <button onclick="aqEpSaveName(document.getElementById('vaqep-name-in').value)"
+          style="padding:9px 14px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Salva</button>
+      </div>
+    </div>
+    <div class="vaqep-section">
       <h4>Telefono</h4>
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="tel" id="vaqep-phone-in" value="${aqEsc(l.phone||'')}"
@@ -6675,6 +6686,7 @@ function aqEpOpen(id) {
       ${l.sqm      ? `<div class="vaqep-row"><span>Superficie</span><span>${l.sqm} m²</span></div>` : ''}
       ${l.rooms    ? `<div class="vaqep-row"><span>Locali</span><span>${l.rooms}</span></div>` : ''}
       ${l.source   ? `<div class="vaqep-row"><span>Fonte</span><span>${aqEsc(l.source)}</span></div>` : ''}
+      ${l.listing_url ? `<div class="vaqep-row"><span>Annuncio</span><a href="${aqEsc(l.listing_url)}" target="_blank" style="color:var(--accent);text-decoration:none;font-size:13px;word-break:break-all;">🔗 Apri annuncio</a></div>` : ''}
       <div class="vaqep-row"><span>Trovato</span><span>${relDate(l.discovered_at)}</span></div>
     </div>
     ${l.description ? `<div class="vaqep-section"><h4>Descrizione</h4><p style="font-size:13px;color:var(--text-2);line-height:1.5;margin:0;">${aqEsc(l.description).substring(0,400)}${l.description.length>400?'…':''}</p></div>` : ''}
@@ -6711,6 +6723,20 @@ async function aqEpSaveNotes() {
     const l = _aqLeads.find(x => x.id === _aqEpId);
     if (l) l.notes = notes;
   } catch(e) { console.error('[ACQ] save notes', e); }
+}
+
+async function aqEpSaveName(rawName) {
+  if (!_aqEpId) return;
+  const owner_name = (rawName || '').trim() || null;
+  try {
+    await sbRpc('admin_update_acq_lead', { p_id: _aqEpId, p_data: { owner_name } });
+    const l = _aqLeads.find(x => x.id === _aqEpId);
+    if (l) l.owner_name = owner_name;
+    const savedId = _aqEpId;
+    aqEpOpen(savedId); // refresh panel so WhatsApp template uses new name
+    aqRender();
+    toast(owner_name ? '👤 Nome salvato' : 'Nome rimosso');
+  } catch(e) { toast('Errore salvataggio: ' + (e.message||e)); }
 }
 
 async function aqEpSavePhone(rawPhone) {

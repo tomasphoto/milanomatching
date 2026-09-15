@@ -6630,10 +6630,21 @@ function aqEpOpen(id) {
   document.getElementById('vaqep-content').innerHTML = `
     <p class="vaqep-name">${aqEsc(l.owner_name||'Contatto sconosciuto')}</p>
     <p class="vaqep-addr">${aqEsc(l.address||l.property_title||'—')}</p>
-    <div class="vaqep-act-row">
+    <div class="vaqep-act-row" id="vaqep-act-row">
       ${phone ? `<a class="vaqep-act-btn call" href="tel:${phone}">CHIAMA</a>` : ''}
       ${phone ? `<a class="vaqep-act-btn wa" href="https://wa.me/${phone.replace('+','')}" target="_blank">WHATSAPP</a>` : ''}
       ${l.listing_url ? `<a class="vaqep-act-btn prop" href="${l.listing_url}" target="_blank">ANNUNCIO</a>` : ''}
+    </div>
+    <div class="vaqep-section">
+      <h4>Telefono</h4>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="tel" id="vaqep-phone-in" value="${aqEsc(l.phone||'')}"
+          placeholder="Aggiungi numero…"
+          style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);"
+          onblur="aqEpSavePhone(this.value)">
+        <button onclick="aqEpSavePhone(document.getElementById('vaqep-phone-in').value)"
+          style="padding:9px 14px;background:var(--accent);color:white;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Salva</button>
+      </div>
     </div>
     <div class="vaqep-section">
       <h4>Proprietà</h4>

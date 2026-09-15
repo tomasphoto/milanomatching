@@ -6628,7 +6628,6 @@ function aqEpOpen(id) {
   const phone = l.phone ? l.phone.replace(/\s/g,'') : '';
   const st = ACQ_STATUSES[l.status] || ACQ_STATUSES.new;
   document.getElementById('vaqep-content').innerHTML = `
-    <p class="vaqep-name">${aqEsc(l.owner_name||'Contatto sconosciuto')}</p>
     <p class="vaqep-addr">${aqEsc(l.address||l.property_title||'—')}</p>
     <div class="vaqep-act-row" id="vaqep-act-row">
       ${phone ? `<a class="vaqep-act-btn call" href="tel:${phone}">CHIAMA</a>` : ''}

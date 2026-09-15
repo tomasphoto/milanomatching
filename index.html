@@ -6692,6 +6692,27 @@ async function aqEpSaveNotes() {
   } catch(e) { console.error('[ACQ] save notes', e); }
 }
 
+async function aqEpSavePhone(rawPhone) {
+  if (!_aqEpId) return;
+  const phone = (rawPhone || '').trim() || null;
+  try {
+    await sbRpc('admin_update_acq_lead', { p_id: _aqEpId, p_data: { phone } });
+    const l = _aqLeads.find(x => x.id === _aqEpId);
+    if (l) l.phone = phone;
+    // Refresh action buttons
+    const row = document.getElementById('vaqep-act-row');
+    if (row) {
+      const ph = phone;
+      const linkEl = l && l.listing_url ? `<a class="vaqep-act-btn prop" href="${aqEsc(l.listing_url)}" target="_blank">ANNUNCIO</a>` : '';
+      row.innerHTML = (ph ? `<a class="vaqep-act-btn call" href="tel:${aqEsc(ph)}">CHIAMA</a>` : '')
+        + (ph ? `<a class="vaqep-act-btn wa" href="https://wa.me/${ph.replace('+','')}" target="_blank">WHATSAPP</a>` : '')
+        + linkEl;
+    }
+    aqRender();
+    toast(phone ? '📞 Telefono salvato' : 'Telefono rimosso');
+  } catch(e) { toast('Errore salvataggio: ' + (e.message||e)); }
+}
+
 async function aqEpDelete() {
   if (!_aqEpId) return;
   if (!confirm('Eliminare questo contatto?')) return;

@@ -1947,9 +1947,10 @@
   .vaqep-act-btn.prop{color:var(--accent);border-color:var(--accent);}
   .vaqep-section{margin:0 0 20px;}
   .vaqep-section h4{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:0 0 8px;}
-  .vaqep-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .vaqep-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px;}
   .vaqep-row:last-child{border:none;}
-  .vaqep-row span:first-child{color:var(--text-2);}
+  .vaqep-row span:first-child{color:var(--text-2);flex-shrink:0;}
+  .vaqep-row span:last-child{text-align:right;word-break:break-word;min-width:0;}
   .vaqep-status-sel{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);}
   .vaqep-notes{width:100%;min-height:80px;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text);resize:vertical;box-sizing:border-box;}
   </style>
